@@ -1,0 +1,395 @@
+import { useState } from 'react';
+import {
+  ScanLine,
+  Upload,
+  Camera,
+  Check,
+  X,
+  Loader2,
+  Tag,
+} from 'lucide-react';
+import type { ExpenseCategory } from '../../types';
+import { categoryLabels } from '../../data/mockData';
+import Dropdown from '../../components/ui/Dropdown';
+
+interface FormData {
+  storeName: string;
+  amount: string;
+  category: ExpenseCategory;
+  date: string;
+  notes: string;
+}
+
+interface FormErrors {
+  storeName?: string;
+  amount?: string;
+  category?: string;
+  date?: string;
+}
+
+type ScanState = 'idle' | 'scanning' | 'success' | 'error';
+
+export default function AddExpensePage() {
+  const [activeTab, setActiveTab] = useState<'manual' | 'scan'>('manual');
+  const [formData, setFormData] = useState<FormData>({
+    storeName: '',
+    amount: '',
+    category: 'food',
+    date: new Date().toISOString().split('T')[0],
+    notes: '',
+  });
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  // QR Scan states
+  const [scanState, setScanState] = useState<ScanState>('idle');
+
+  const categories = Object.entries(categoryLabels) as [ExpenseCategory, string][];
+
+  const validate = (): boolean => {
+    const newErrors: FormErrors = {};
+    if (!formData.storeName.trim()) newErrors.storeName = 'Store name is required';
+    if (!formData.amount || parseFloat(formData.amount) <= 0) newErrors.amount = 'Valid amount is required';
+    if (!formData.date) newErrors.date = 'Date is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (field: keyof FormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (field in errors) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    setIsSubmitting(true);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setIsSubmitting(false);
+    setSubmitted(true);
+
+    // Reset after showing success
+    setTimeout(() => {
+      setSubmitted(false);
+      setFormData({
+        storeName: '',
+        amount: '',
+        category: 'food',
+        date: new Date().toISOString().split('T')[0],
+        notes: '',
+      });
+    }, 3000);
+  };
+
+  const handleScan = async () => {
+    setScanState('scanning');
+    // Simulate QR scan
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    setScanState('success');
+
+    // Auto-fill form after scan
+    setFormData({
+      storeName: 'Kaufland',
+      amount: '187.45',
+      category: 'food',
+      date: '2026-02-15',
+      notes: 'Auto-scanned receipt - Weekly groceries',
+    });
+    setActiveTab('manual');
+  };
+
+  const resetScan = () => {
+    setScanState('idle');
+  };
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-6">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-surface-900 dark:text-white">Add Expense</h1>
+        <p className="text-sm text-surface-500 dark:text-surface-400">
+          Add a new expense manually or scan a receipt QR code.
+        </p>
+      </div>
+
+      {/* Tab Switcher */}
+      <div className="flex rounded-lg border border-surface-200 bg-surface-50 p-1 dark:border-surface-700 dark:bg-surface-800">
+        <button
+          onClick={() => setActiveTab('manual')}
+          className={`flex-1 flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all ${
+            activeTab === 'manual'
+              ? 'bg-white text-surface-900 shadow-sm dark:bg-surface-700 dark:text-white'
+              : 'text-surface-500 hover:text-surface-700 dark:hover:text-surface-300'
+          }`}
+        >
+          <Check size={16} />
+          Manual Entry
+        </button>
+        <button
+          onClick={() => setActiveTab('scan')}
+          className={`flex-1 flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all ${
+            activeTab === 'scan'
+              ? 'bg-white text-surface-900 shadow-sm dark:bg-surface-700 dark:text-white'
+              : 'text-surface-500 hover:text-surface-700 dark:hover:text-surface-300'
+          }`}
+        >
+          <ScanLine size={16} />
+          Scan Receipt
+        </button>
+      </div>
+
+      {/* QR Scan Section */}
+      {activeTab === 'scan' && (
+        <div className="card">
+          <div className="text-center">
+            <h2 className="text-lg font-semibold text-surface-900 dark:text-white mb-2">
+              Scan Receipt QR Code
+            </h2>
+            <p className="text-sm text-surface-500 dark:text-surface-400 mb-6">
+              Point your camera at the QR code on your receipt or upload an image.
+            </p>
+
+            {/* Camera Area */}
+            <div className="mx-auto max-w-sm">
+              <div className="relative aspect-square rounded-xl border-2 border-dashed border-surface-300 bg-surface-50 dark:border-surface-600 dark:bg-surface-900 flex items-center justify-center overflow-hidden">
+                {scanState === 'idle' && (
+                  <div className="text-center p-6">
+                    <Camera size={48} className="mx-auto text-surface-300 dark:text-surface-600 mb-4" />
+                    <p className="text-sm text-surface-500 dark:text-surface-400">
+                      Camera preview will appear here
+                    </p>
+                  </div>
+                )}
+
+                {scanState === 'scanning' && (
+                  <div className="text-center p-6">
+                    <div className="relative">
+                      <div className="absolute inset-0 rounded-lg border-2 border-primary-500 animate-pulse" />
+                      <Loader2 size={48} className="mx-auto text-primary-500 animate-spin mb-4" />
+                    </div>
+                    <p className="text-sm font-medium text-primary-600 dark:text-primary-400">
+                      Scanning receipt...
+                    </p>
+                    <p className="text-xs text-surface-400 mt-1">
+                      Extracting purchase data
+                    </p>
+                  </div>
+                )}
+
+                {scanState === 'success' && (
+                  <div className="text-center p-6">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success-50 dark:bg-success-500/10">
+                      <Check size={32} className="text-success-500" />
+                    </div>
+                    <p className="text-sm font-medium text-success-600 dark:text-success-500">
+                      Receipt scanned successfully!
+                    </p>
+                    <p className="text-xs text-surface-400 mt-1">
+                      Data has been auto-filled in the form
+                    </p>
+                  </div>
+                )}
+
+                {scanState === 'error' && (
+                  <div className="text-center p-6">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-danger-50 dark:bg-danger-500/10">
+                      <X size={32} className="text-danger-500" />
+                    </div>
+                    <p className="text-sm font-medium text-danger-600 dark:text-danger-500">
+                      Could not read QR code
+                    </p>
+                    <p className="text-xs text-surface-400 mt-1">
+                      Please try again or enter manually
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-6 flex gap-3">
+                {scanState === 'idle' && (
+                  <>
+                    <button onClick={handleScan} className="btn-primary flex-1">
+                      <Camera size={16} />
+                      Start Scanning
+                    </button>
+                    <button className="btn-secondary flex-1">
+                      <Upload size={16} />
+                      Upload Image
+                    </button>
+                  </>
+                )}
+                {scanState === 'scanning' && (
+                  <button
+                    onClick={resetScan}
+                    className="btn-secondary flex-1"
+                  >
+                    Cancel
+                  </button>
+                )}
+                {(scanState === 'success' || scanState === 'error') && (
+                  <>
+                    <button onClick={resetScan} className="btn-secondary flex-1">
+                      Scan Again
+                    </button>
+                    {scanState === 'success' && (
+                      <button
+                        onClick={() => setActiveTab('manual')}
+                        className="btn-primary flex-1"
+                      >
+                        Review & Submit
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manual Entry Form */}
+      {activeTab === 'manual' && (
+        <div className="card">
+          {submitted ? (
+            <div className="py-12 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success-50 dark:bg-success-500/10">
+                <Check size={32} className="text-success-500" />
+              </div>
+              <h3 className="text-lg font-semibold text-surface-900 dark:text-white">
+                Expense Added!
+              </h3>
+              <p className="text-sm text-surface-500 mt-1">
+                Your expense has been recorded successfully.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Store Name */}
+              <div>
+                <label htmlFor="storeName" className="label">
+                  Store / Vendor Name
+                </label>
+                <input
+                  id="storeName"
+                  type="text"
+                  value={formData.storeName}
+                  onChange={(e) => handleChange('storeName', e.target.value)}
+                  placeholder="e.g. Kaufland, Amazon, Bolt"
+                  className={`input ${errors.storeName ? 'border-danger-500' : ''}`}
+                />
+                {errors.storeName && (
+                  <p className="mt-1.5 text-xs text-danger-500">{errors.storeName}</p>
+                )}
+              </div>
+
+              {/* Amount + Category */}
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="amount" className="label">
+                    Total Amount ($)
+                  </label>
+                  <input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.amount}
+                    onChange={(e) => handleChange('amount', e.target.value)}
+                    placeholder="0.00"
+                    className={`input ${errors.amount ? 'border-danger-500' : ''}`}
+                  />
+                  {errors.amount && (
+                    <p className="mt-1.5 text-xs text-danger-500">{errors.amount}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="category" className="label">
+                    Category
+                  </label>
+                  <Dropdown
+                    value={formData.category}
+                    onChange={(val) => handleChange('category', val)}
+                    options={categories.map(([value, label]) => ({ value, label }))}
+                    icon={<Tag size={16} />}
+                    fullWidth
+                  />
+                </div>
+              </div>
+
+              {/* Date */}
+              <div>
+                <label htmlFor="date" className="label">
+                  Date
+                </label>
+                <input
+                  id="date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => handleChange('date', e.target.value)}
+                  className={`input ${errors.date ? 'border-danger-500' : ''}`}
+                />
+                {errors.date && (
+                  <p className="mt-1.5 text-xs text-danger-500">{errors.date}</p>
+                )}
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label htmlFor="notes" className="label">
+                  Notes <span className="text-surface-400 font-normal">(optional)</span>
+                </label>
+                <textarea
+                  id="notes"
+                  rows={3}
+                  value={formData.notes}
+                  onChange={(e) => handleChange('notes', e.target.value)}
+                  placeholder="Add any additional details..."
+                  className="input resize-none"
+                />
+              </div>
+
+              {/* Submit */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="btn-primary flex-1"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Add Expense'
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData({
+                      storeName: '',
+                      amount: '',
+                      category: 'food',
+                      date: new Date().toISOString().split('T')[0],
+                      notes: '',
+                    })
+                  }
+                  className="btn-secondary"
+                >
+                  Clear
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
