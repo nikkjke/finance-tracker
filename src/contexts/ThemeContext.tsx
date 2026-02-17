@@ -35,7 +35,19 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [theme]);
 
   const toggleTheme = () => {
+    // Disable transitions temporarily to avoid visual delay
+    const css = document.createElement('style');
+    css.textContent = '*, *::before, *::after { transition: none !important; }';
+    document.head.appendChild(css);
+
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+
+    // Re-enable transitions after a frame
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.head.removeChild(css);
+      });
+    });
   };
 
   return (
