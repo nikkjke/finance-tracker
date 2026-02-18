@@ -7,7 +7,7 @@ interface BarChartProps {
   color?: string;
 }
 
-export default function BarChart({ data, height = 200, color = '#3b82f6' }: BarChartProps) {
+export default function BarChart({ data, height = 200, color = '#22c55e' }: BarChartProps) {
   const maxValue = Math.max(...data.map((d) => d.value));
   const total = data.reduce((sum, d) => sum + d.value, 0);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -48,9 +48,10 @@ export default function BarChart({ data, height = 200, color = '#3b82f6' }: BarC
                   height: `${barHeight}%`,
                   minHeight: '4px',
                   backgroundColor: color,
-                  opacity: isHovered ? 1 : 0.8 + (index / data.length) * 0.2,
+                  opacity: isHovered ? 1 : 0.75 + (index / data.length) * 0.2,
                   transform: isHovered ? 'scaleY(1.03)' : 'scaleY(1)',
                   transformOrigin: 'bottom',
+                  boxShadow: isHovered ? '0 0 12px rgba(34, 197, 94, 0.5)' : 'none',
                 }}
               />
             </div>
@@ -62,7 +63,7 @@ export default function BarChart({ data, height = 200, color = '#3b82f6' }: BarC
           <div key={index} className="flex-1 text-center">
             <span className={`text-xs transition-colors ${
               hoveredIndex === index
-                ? 'text-surface-900 dark:text-white font-medium'
+                ? 'text-success-500 font-medium'
                 : 'text-surface-400'
             }`}>{point.label}</span>
           </div>
