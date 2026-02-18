@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ScanLine, Eye, EyeOff, ArrowRight, BarChart3, Shield, Wallet } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, BarChart3, Shield, Wallet } from 'lucide-react';
+import fintrackLogo from '../../assets/fintrack-logo.svg';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -75,12 +76,10 @@ export default function LoginPage() {
 
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-600 border border-white/20">
-              <ScanLine size={22} className="text-white" />
-            </div>
+          <Link to="/" className="flex items-center gap-1">
+            <img src={fintrackLogo} alt="FinTrack" className="h-12 w-12" />
             <span className="text-2xl font-bold text-white">FinTrack</span>
-          </div>
+          </Link>
 
           {/* Center content */}
           <div>
@@ -131,12 +130,10 @@ export default function LoginPage() {
       <div className="flex lg:w-1/2 w-full items-center justify-center bg-surface-50 dark:bg-surface-950 px-4 py-12">
         <div className="w-full max-w-md">
           {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-2.5 mb-8">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-600">
-              <ScanLine size={18} className="text-white" />
-            </div>
+          <Link to="/" className="lg:hidden flex items-center gap-1 mb-8">
+            <img src={fintrackLogo} alt="FinTrack" className="h-12 w-12" />
             <span className="text-lg font-bold text-surface-900 dark:text-white">FinTrack</span>
-          </div>
+          </Link>
 
           <div className="rounded-2xl bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 p-8 shadow-xl shadow-surface-900/5 dark:shadow-none">
             <h1 className="text-2xl font-bold text-surface-900 dark:text-white">

@@ -9,8 +9,8 @@ import {
   Settings,
   LogOut,
   X,
-  ScanLine,
 } from 'lucide-react';
+import fintrackLogo from '../../assets/fintrack-logo.svg';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarProps {
@@ -75,10 +75,8 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
       >
         {/* Logo */}
         <div className={`flex h-16 items-center border-b border-surface-200 dark:border-surface-700 ${collapsed ? 'justify-center px-2' : 'justify-between px-5'}`}>
-          <NavLink to="/dashboard" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-600">
-              <ScanLine size={18} className="text-white" />
-            </div>
+          <NavLink to="/dashboard" className="flex items-center gap-1">
+            <img src={fintrackLogo} alt="FinTrack" className="h-12 w-12 shrink-0" />
             {!collapsed && (
               <span className="text-lg font-bold text-surface-900 dark:text-white">
                 FinTrack
