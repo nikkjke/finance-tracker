@@ -32,6 +32,7 @@ const LinkedInIcon = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 import { useTheme } from '../contexts/ThemeContext';
+import fintrackLogo from '../assets/fintrack logo.svg';
 
 export default function LandingPage() {
   const { theme, toggleTheme } = useTheme();
@@ -41,10 +42,8 @@ export default function LandingPage() {
       {/* Navbar */}
       <nav className="sticky top-0 z-50 border-b border-surface-200/60 bg-white/80 backdrop-blur-lg dark:border-surface-800 dark:bg-surface-950/80">
         <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link to="/" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
-              <ScanLine size={18} className="text-white" />
-            </div>
+          <Link to="/" className="flex items-center gap-1">
+            <img src={fintrackLogo} alt="FinTrack" className="h-12 w-12" />
             <span className="text-lg font-bold text-surface-900 dark:text-white">
               FinTrack
             </span>
@@ -544,10 +543,8 @@ export default function LandingPage() {
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
             {/* Brand column */}
             <div className="lg:col-span-2">
-              <Link to="/" className="inline-flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
-                  <ScanLine size={18} className="text-white" />
-                </div>
+              <Link to="/" className="inline-flex items-center gap-1">
+                <img src={fintrackLogo} alt="FinTrack" className="h-14 w-14" />
                 <span className="text-lg font-bold text-surface-900 dark:text-white">
                   FinTrack
                 </span>
