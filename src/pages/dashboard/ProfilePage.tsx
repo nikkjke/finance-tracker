@@ -93,7 +93,7 @@ export default function ProfilePage() {
                 options={[
                   { value: 'USD', label: 'USD ($)' },
                   { value: 'EUR', label: 'EUR (€)' },
-                  { value: 'RON', label: 'RON (lei)' },
+                  { value: 'MDL', label: 'MDL (lei)' },
                   { value: 'GBP', label: 'GBP (£)' },
                 ]}
               />
