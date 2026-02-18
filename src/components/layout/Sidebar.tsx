@@ -10,7 +10,7 @@ import {
   LogOut,
   X,
 } from 'lucide-react';
-import fintrackLogo from '../../assets/fintrack logo.svg';
+import fintrackLogo from '../../assets/fintrack-logo.svg';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarProps {

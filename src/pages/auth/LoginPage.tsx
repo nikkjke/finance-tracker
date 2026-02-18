@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, ArrowRight, BarChart3, Shield, Wallet } from 'lucide-react';
-import fintrackLogo from '../../assets/fintrack logo.svg';
+import fintrackLogo from '../../assets/fintrack-logo.svg';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 

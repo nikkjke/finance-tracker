@@ -32,7 +32,7 @@ const LinkedInIcon = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 import { useTheme } from '../contexts/ThemeContext';
-import fintrackLogo from '../assets/fintrack logo.svg';
+import fintrackLogo from '../assets/fintrack-logo.svg';
 
 export default function LandingPage() {
   const { theme, toggleTheme } = useTheme();
