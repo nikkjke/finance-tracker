@@ -76,7 +76,7 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
         {/* Logo */}
         <div className={`flex h-16 items-center border-b border-surface-200 dark:border-surface-700 ${collapsed ? 'justify-center px-2' : 'justify-between px-5'}`}>
           <NavLink to="/dashboard" className="flex items-center gap-1">
-            <img src={fintrackLogo} alt="FinTrack" className="h-[72px] w-[72px] shrink-0" />
+            <img src={fintrackLogo} alt="FinTrack" className="h-12 w-12 shrink-0" />
             {!collapsed && (
               <span className="text-lg font-bold text-surface-900 dark:text-white">
                 FinTrack

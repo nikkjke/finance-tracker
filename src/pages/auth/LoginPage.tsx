@@ -77,7 +77,7 @@ export default function LoginPage() {
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-1">
-            <img src={fintrackLogo} alt="FinTrack" className="h-20 w-20" />
+            <img src={fintrackLogo} alt="FinTrack" className="h-12 w-12" />
             <span className="text-2xl font-bold text-white">FinTrack</span>
           </Link>
 
@@ -131,7 +131,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <Link to="/" className="lg:hidden flex items-center gap-1 mb-8">
-            <img src={fintrackLogo} alt="FinTrack" className="h-16 w-16" />
+            <img src={fintrackLogo} alt="FinTrack" className="h-12 w-12" />
             <span className="text-lg font-bold text-surface-900 dark:text-white">FinTrack</span>
           </Link>
 
