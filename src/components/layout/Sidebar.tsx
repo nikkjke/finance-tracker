@@ -112,6 +112,7 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
               <NavLink
                 key={link.to}
                 to={link.to}
+                end={link.to === '/admin'}
                 className={collapsed ? collapsedLinkClass : linkClass}
                 onClick={onClose}
                 title={collapsed ? link.label : undefined}
