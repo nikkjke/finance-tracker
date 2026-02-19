@@ -32,7 +32,7 @@ export default function Dropdown({ value, onChange, options, icon, placeholder, 
   }, []);
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className={`relative ${fullWidth ? 'w-full' : 'inline-block'}`}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -53,7 +53,7 @@ export default function Dropdown({ value, onChange, options, icon, placeholder, 
       </button>
 
       {open && (
-        <div className={`absolute left-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30 ${fullWidth ? 'w-full' : 'min-w-[200px]'}`}>
+        <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30">
           <div className="p-1.5">
             {options.map((option) => {
               const isActive = option.value === value;
