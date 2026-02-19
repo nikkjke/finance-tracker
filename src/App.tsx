@@ -14,6 +14,11 @@ import ReportsPage from './pages/dashboard/ReportsPage';
 import BudgetsPage from './pages/dashboard/BudgetsPage';
 import ProfilePage from './pages/dashboard/ProfilePage';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminTransactions from './pages/admin/AdminTransactions';
+import AdminReports from './pages/admin/AdminReports';
+import AdminSystem from './pages/admin/AdminSystem';
+import AdminAlerts from './pages/admin/AdminAlerts';
 
 function App() {
   return (
@@ -26,10 +31,10 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
 
-            {/* Protected Dashboard Routes */}
+            {/* Protected User Routes */}
             <Route
               element={
-                <ProtectedRoute>
+                <ProtectedRoute userOnly>
                   <DashboardLayout />
                 </ProtectedRoute>
               }
@@ -39,16 +44,22 @@ function App() {
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/budgets" element={<BudgetsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+            </Route>
 
-              {/* Admin Routes */}
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute requiredRole="admin">
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
+            {/* Protected Admin Routes */}
+            <Route
+              element={
+                <ProtectedRoute adminOnly>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/transactions" element={<AdminTransactions />} />
+              <Route path="/admin/reports" element={<AdminReports />} />
+              <Route path="/admin/system" element={<AdminSystem />} />
+              <Route path="/admin/alerts" element={<AdminAlerts />} />
             </Route>
 
             {/* Catch-all */}
