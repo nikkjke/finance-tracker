@@ -14,6 +14,7 @@ import {
 import { mockExpenses } from '../../data/mockData';
 import BarChart from '../../components/ui/BarChart';
 import DonutChart from '../../components/ui/DonutChart';
+import Dropdown from '../../components/ui/Dropdown';
 import type { Expense } from '../../types';
 
 export default function AdminTransactions() {
@@ -104,16 +105,16 @@ export default function AdminTransactions() {
           </p>
         </div>
         <div className="flex gap-2">
-          <select
+          <Dropdown
             value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-            className="input w-auto"
-          >
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-            <option value="quarter">This Quarter</option>
-            <option value="year">This Year</option>
-          </select>
+            onChange={setDateRange}
+            options={[
+              { value: 'week', label: 'This Week' },
+              { value: 'month', label: 'This Month' },
+              { value: 'quarter', label: 'This Quarter' },
+              { value: 'year', label: 'This Year' },
+            ]}
+          />
           <button onClick={handleExport} className="btn-primary flex items-center gap-2">
             <Download size={16} />
             <span className="hidden sm:inline">Export</span>
@@ -252,21 +253,21 @@ export default function AdminTransactions() {
           </div>
 
           <div className="flex gap-2">
-            <select
+            <Dropdown
               value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="input w-auto"
-            >
-              <option value="all">All Categories</option>
-              <option value="food">Food</option>
-              <option value="transport">Transport</option>
-              <option value="entertainment">Entertainment</option>
-              <option value="shopping">Shopping</option>
-              <option value="bills">Bills</option>
-              <option value="health">Health</option>
-              <option value="education">Education</option>
-              <option value="travel">Travel</option>
-            </select>
+              onChange={setCategoryFilter}
+              options={[
+                { value: 'all', label: 'All Categories' },
+                { value: 'food', label: 'Food' },
+                { value: 'transport', label: 'Transport' },
+                { value: 'entertainment', label: 'Entertainment' },
+                { value: 'shopping', label: 'Shopping' },
+                { value: 'bills', label: 'Bills' },
+                { value: 'health', label: 'Health' },
+                { value: 'education', label: 'Education' },
+                { value: 'travel', label: 'Travel' },
+              ]}
+            />
           </div>
         </div>
 

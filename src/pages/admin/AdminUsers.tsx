@@ -11,6 +11,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { mockUsers } from '../../data/mockData';
+import Dropdown from '../../components/ui/Dropdown';
 import type { User } from '../../types';
 
 export default function AdminUsers() {
@@ -179,15 +180,15 @@ export default function AdminUsers() {
                 className="input pl-9 w-full sm:w-64"
               />
             </div>
-            <select
+            <Dropdown
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'name' | 'date' | 'role')}
-              className="input w-auto"
-            >
-              <option value="date">Sort by Date</option>
-              <option value="name">Sort by Name</option>
-              <option value="role">Sort by Role</option>
-            </select>
+              onChange={(val) => setSortBy(val as 'name' | 'date' | 'role')}
+              options={[
+                { value: 'date', label: 'Sort by Date' },
+                { value: 'name', label: 'Sort by Name' },
+                { value: 'role', label: 'Sort by Role' },
+              ]}
+            />
           </div>
         </div>
 

@@ -10,6 +10,7 @@ import {
   Trash2,
   Eye,
 } from 'lucide-react';
+import Dropdown from '../../components/ui/Dropdown';
 
 interface Alert {
   id: string;
@@ -26,11 +27,11 @@ export default function AdminAlerts() {
   const [alerts, setAlerts] = useState<Alert[]>([
     {
       id: '1',
-      title: 'High Server Load',
-      message: 'Server 3 (Asia-Pacific) is experiencing high CPU usage (72%). Consider scaling resources.',
+      title: 'Payment Gateway Latency',
+      message: 'Spike in payment processing time detected. Monitoring for stability.',
       type: 'warning',
       severity: 'high',
-      timestamp: '2026-02-19T14:15:00',
+      timestamp: '2026-02-19T14:10:00',
       read: false,
       resolved: false,
     },
@@ -314,15 +315,15 @@ export default function AdminAlerts() {
                   className="input pl-9 w-full sm:w-64"
                 />
               </div>
-              <select
+              <Dropdown
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'unread' | 'unresolved')}
-                className="input w-auto"
-              >
-                <option value="all">All Status</option>
-                <option value="unread">Unread</option>
-                <option value="unresolved">Unresolved</option>
-              </select>
+                onChange={(val) => setStatusFilter(val as 'all' | 'unread' | 'unresolved')}
+                options={[
+                  { value: 'all', label: 'All Status' },
+                  { value: 'unread', label: 'Unread' },
+                  { value: 'unresolved', label: 'Unresolved' },
+                ]}
+              />
             </div>
           </div>
         </div>
