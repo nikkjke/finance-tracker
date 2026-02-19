@@ -201,8 +201,8 @@ export default function AdminAlerts() {
                 {stats.total}
               </p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center">
-              <Bell size={24} className="text-primary-600 dark:text-primary-400" />
+            <div className="h-12 w-12 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
+              <Bell size={24} className="text-primary-600 dark:text-primary-400 transition-transform duration-300 group-hover:scale-110" />
             </div>
           </div>
         </div>
@@ -217,8 +217,8 @@ export default function AdminAlerts() {
                 {stats.unread}
               </p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-info-100 dark:bg-info-500/20 flex items-center justify-center">
-              <Info size={24} className="text-info-600 dark:text-info-400" />
+            <div className="h-12 w-12 rounded-full bg-info-100 dark:bg-info-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
+              <Info size={24} className="text-info-600 dark:text-info-400 transition-transform duration-300 group-hover:scale-110" />
             </div>
           </div>
         </div>
@@ -233,8 +233,8 @@ export default function AdminAlerts() {
                 {stats.critical}
               </p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-danger-100 dark:bg-danger-500/20 flex items-center justify-center">
-              <AlertCircle size={24} className="text-danger-600 dark:text-danger-400" />
+            <div className="h-12 w-12 rounded-full bg-danger-100 dark:bg-danger-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
+              <AlertCircle size={24} className="text-danger-600 dark:text-danger-400 transition-transform duration-300 group-hover:scale-110" />
             </div>
           </div>
         </div>
@@ -249,8 +249,8 @@ export default function AdminAlerts() {
                 {stats.unresolved}
               </p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-warning-100 dark:bg-warning-500/20 flex items-center justify-center">
-              <AlertTriangle size={24} className="text-warning-600 dark:text-warning-400" />
+            <div className="h-12 w-12 rounded-full bg-warning-100 dark:bg-warning-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
+              <AlertTriangle size={24} className="text-warning-600 dark:text-warning-400 transition-transform duration-300 group-hover:scale-110" />
             </div>
           </div>
         </div>

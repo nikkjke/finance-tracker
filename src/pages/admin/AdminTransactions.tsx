@@ -133,8 +133,8 @@ export default function AdminTransactions() {
                 €{stats.total.toFixed(2)}
               </p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center">
-              <DollarSign size={24} className="text-primary-600 dark:text-primary-400" />
+            <div className="h-12 w-12 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
+              <DollarSign size={24} className="text-primary-600 dark:text-primary-400 transition-transform duration-300 group-hover:scale-110" />
             </div>
           </div>
           <div className="flex items-center gap-1 mt-2 text-xs text-success-600 dark:text-success-400">
@@ -153,8 +153,8 @@ export default function AdminTransactions() {
                 {stats.completed}
               </p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-success-100 dark:bg-success-500/20 flex items-center justify-center">
-              <ArrowUpRight size={24} className="text-success-600 dark:text-success-400" />
+            <div className="h-12 w-12 rounded-full bg-success-100 dark:bg-success-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
+              <ArrowUpRight size={24} className="text-success-600 dark:text-success-400 transition-transform duration-300 group-hover:scale-110" />
             </div>
           </div>
         </div>
@@ -169,8 +169,8 @@ export default function AdminTransactions() {
                 {stats.pending}
               </p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-warning-100 dark:bg-warning-500/20 flex items-center justify-center">
-              <Calendar size={24} className="text-warning-600 dark:text-warning-400" />
+            <div className="h-12 w-12 rounded-full bg-warning-100 dark:bg-warning-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
+              <Calendar size={24} className="text-warning-600 dark:text-warning-400 transition-transform duration-300 group-hover:scale-110" />
             </div>
           </div>
         </div>
@@ -185,8 +185,8 @@ export default function AdminTransactions() {
                 {stats.cancelled}
               </p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-danger-100 dark:bg-danger-500/20 flex items-center justify-center">
-              <ArrowDownRight size={24} className="text-danger-600 dark:text-danger-400" />
+            <div className="h-12 w-12 rounded-full bg-danger-100 dark:bg-danger-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
+              <ArrowDownRight size={24} className="text-danger-600 dark:text-danger-400 transition-transform duration-300 group-hover:scale-110" />
             </div>
           </div>
         </div>

@@ -95,8 +95,8 @@ export default function AdminUsers() {
                 {stats.total}
               </p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center">
-              <Users size={24} className="text-primary-600 dark:text-primary-400" />
+            <div className="h-12 w-12 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
+              <Users size={24} className="text-primary-600 dark:text-primary-400 transition-transform duration-300 group-hover:scale-110" />
             </div>
           </div>
         </div>
@@ -110,8 +110,8 @@ export default function AdminUsers() {
                 {stats.active}
               </p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-success-100 dark:bg-success-500/20 flex items-center justify-center">
-              <CheckCircle size={24} className="text-success-600 dark:text-success-400" />
+            <div className="h-12 w-12 rounded-full bg-success-100 dark:bg-success-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
+              <CheckCircle size={24} className="text-success-600 dark:text-success-400 transition-transform duration-300 group-hover:scale-110" />
             </div>
           </div>
         </div>
@@ -125,8 +125,8 @@ export default function AdminUsers() {
                 {stats.admins}
               </p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-warning-100 dark:bg-warning-500/20 flex items-center justify-center">
-              <Shield size={24} className="text-warning-600 dark:text-warning-400" />
+            <div className="h-12 w-12 rounded-full bg-warning-100 dark:bg-warning-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
+              <Shield size={24} className="text-warning-600 dark:text-warning-400 transition-transform duration-300 group-hover:scale-110" />
             </div>
           </div>
         </div>
