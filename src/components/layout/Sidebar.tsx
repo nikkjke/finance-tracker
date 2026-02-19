@@ -10,8 +10,6 @@ import {
   X,
   Users,
   Activity,
-  FileText,
-  Database,
   AlertCircle,
 } from 'lucide-react';
 import fintrackLogo from '../../assets/fintrack-logo.svg';
@@ -44,8 +42,6 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
     { to: '/admin', label: 'Overview', icon: LayoutDashboard },
     { to: '/admin/users', label: 'User Management', icon: Users },
     { to: '/admin/transactions', label: 'Transactions', icon: Activity },
-    { to: '/admin/reports', label: 'Reports', icon: FileText },
-    { to: '/admin/system', label: 'System', icon: Database },
     { to: '/admin/alerts', label: 'Alerts', icon: AlertCircle },
   ];
 

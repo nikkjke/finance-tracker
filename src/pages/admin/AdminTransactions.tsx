@@ -8,8 +8,12 @@ import {
   TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
+  BarChart3,
+  FileText,
 } from 'lucide-react';
 import { mockExpenses } from '../../data/mockData';
+import BarChart from '../../components/ui/BarChart';
+import DonutChart from '../../components/ui/DonutChart';
 import type { Expense } from '../../types';
 
 export default function AdminTransactions() {
@@ -17,6 +21,7 @@ export default function AdminTransactions() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending' | 'cancelled'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [dateRange, setDateRange] = useState('month');
 
   const filteredTransactions = transactions.filter((tx) => {
     const matchesSearch =
@@ -37,6 +42,37 @@ export default function AdminTransactions() {
   const handleExport = () => {
     alert('Exporting transaction data... (Feature in development)');
   };
+
+  const handleExportReport = (type: string) => {
+    alert(`Exporting ${type} report... (Feature in development)`);
+  };
+
+  const revenueData = [
+    { label: 'Sep', value: 2450 },
+    { label: 'Oct', value: 3200 },
+    { label: 'Nov', value: 2890 },
+    { label: 'Dec', value: 4100 },
+    { label: 'Jan', value: 3650 },
+    { label: 'Feb', value: 3800 },
+  ];
+
+  const categoryData = [
+    { label: 'Food', value: 35, color: '#22c55e' },
+    { label: 'Transport', value: 20, color: '#3b82f6' },
+    { label: 'Shopping', value: 15, color: '#ec4899' },
+    { label: 'Bills', value: 18, color: '#f97316' },
+    { label: 'Other', value: 12, color: '#8b5cf6' },
+  ];
+
+  const userActivityData = [
+    { label: 'Mon', value: 156 },
+    { label: 'Tue', value: 189 },
+    { label: 'Wed', value: 175 },
+    { label: 'Thu', value: 201 },
+    { label: 'Fri', value: 234 },
+    { label: 'Sat', value: 145 },
+    { label: 'Sun', value: 98 },
+  ];
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
@@ -60,17 +96,29 @@ export default function AdminTransactions() {
           <div className="flex items-center gap-2 mb-1">
             <Activity size={20} className="text-primary-600 dark:text-primary-400" />
             <h1 className="text-2xl font-bold text-surface-900 dark:text-white">
-              Transaction Monitor
+              Transactions & Analytics
             </h1>
           </div>
           <p className="text-sm text-surface-500 dark:text-surface-400">
-            Monitor all user transactions across the platform.
+            Monitor transactions, view analytics, and export reports.
           </p>
         </div>
-        <button onClick={handleExport} className="btn-primary flex items-center gap-2">
-          <Download size={16} />
-          <span className="hidden sm:inline">Export Data</span>
-        </button>
+        <div className="flex gap-2">
+          <select
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value)}
+            className="input w-auto"
+          >
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="quarter">This Quarter</option>
+            <option value="year">This Year</option>
+          </select>
+          <button onClick={handleExport} className="btn-primary flex items-center gap-2">
+            <Download size={16} />
+            <span className="hidden sm:inline">Export</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -300,6 +348,156 @@ export default function AdminTransactions() {
             <p className="text-surface-500 dark:text-surface-400">No transactions found</p>
           </div>
         )}
+      </div>
+
+      {/* Analytics Charts */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Revenue Trends */}
+        <div className="card">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-base font-semibold text-surface-900 dark:text-white">
+                Revenue Trends
+              </h2>
+              <p className="text-sm text-surface-400">Monthly revenue overview</p>
+            </div>
+            <button
+              onClick={() => handleExportReport('revenue')}
+              className="btn-secondary btn-sm flex items-center gap-2"
+            >
+              <Download size={14} />
+              Export
+            </button>
+          </div>
+          <BarChart data={revenueData} height={250} color="#3b82f6" />
+        </div>
+
+        {/* Category Distribution */}
+        <div className="card">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-base font-semibold text-surface-900 dark:text-white">
+                Expense Categories
+              </h2>
+              <p className="text-sm text-surface-400">Distribution by category</p>
+            </div>
+            <button
+              onClick={() => handleExportReport('categories')}
+              className="btn-secondary btn-sm flex items-center gap-2"
+            >
+              <Download size={14} />
+              Export
+            </button>
+          </div>
+          <DonutChart data={categoryData} size={200} />
+        </div>
+      </div>
+
+      {/* User Activity */}
+      <div className="card">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-base font-semibold text-surface-900 dark:text-white">
+              User Activity
+            </h2>
+            <p className="text-sm text-surface-400">Daily active users this week</p>
+          </div>
+          <button
+            onClick={() => handleExportReport('activity')}
+            className="btn-secondary btn-sm flex items-center gap-2"
+          >
+            <Download size={14} />
+            Export
+          </button>
+        </div>
+        <BarChart data={userActivityData} height={200} color="#22c55e" />
+      </div>
+
+      {/* Export Options */}
+      <div className="card">
+        <div className="mb-4">
+          <h2 className="text-base font-semibold text-surface-900 dark:text-white">
+            Export Reports
+          </h2>
+          <p className="text-sm text-surface-400">Download detailed reports</p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <button
+            onClick={() => handleExportReport('financial')}
+            className="flex items-center gap-3 p-4 rounded-lg border border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors"
+          >
+            <div className="h-10 w-10 rounded-lg bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center">
+              <FileText size={20} className="text-primary-600 dark:text-primary-400" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-medium text-surface-900 dark:text-white">
+                Financial Report
+              </p>
+              <p className="text-xs text-surface-400">PDF, Excel</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => handleExportReport('transaction-log')}
+            className="flex items-center gap-3 p-4 rounded-lg border border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors"
+          >
+            <div className="h-10 w-10 rounded-lg bg-warning-100 dark:bg-warning-500/20 flex items-center justify-center">
+              <Activity size={20} className="text-warning-600 dark:text-warning-400" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-medium text-surface-900 dark:text-white">
+                Transaction Log
+              </p>
+              <p className="text-xs text-surface-400">CSV, Excel</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => handleExportReport('category-breakdown')}
+            className="flex items-center gap-3 p-4 rounded-lg border border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors"
+          >
+            <div className="h-10 w-10 rounded-lg bg-purple-100 dark:bg-purple-500/20 flex items-center justify-center">
+              <BarChart3 size={20} className="text-purple-600 dark:text-purple-400" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-medium text-surface-900 dark:text-white">
+                Category Analysis
+              </p>
+              <p className="text-xs text-surface-400">PDF, CSV</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => handleExportReport('monthly-summary')}
+            className="flex items-center gap-3 p-4 rounded-lg border border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors"
+          >
+            <div className="h-10 w-10 rounded-lg bg-cyan-100 dark:bg-cyan-500/20 flex items-center justify-center">
+              <Calendar size={20} className="text-cyan-600 dark:text-cyan-400" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-medium text-surface-900 dark:text-white">
+                Monthly Summary
+              </p>
+              <p className="text-xs text-surface-400">PDF, Email</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => handleExportReport('custom')}
+            className="flex items-center gap-3 p-4 rounded-lg border border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors"
+          >
+            <div className="h-10 w-10 rounded-lg bg-orange-100 dark:bg-orange-500/20 flex items-center justify-center">
+              <Download size={20} className="text-orange-600 dark:text-orange-400" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-medium text-surface-900 dark:text-white">
+                Custom Report
+              </p>
+              <p className="text-xs text-surface-400">Build your own</p>
+            </div>
+          </button>
+        </div>
       </div>
     </div>
   );

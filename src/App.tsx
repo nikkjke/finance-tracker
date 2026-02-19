@@ -16,8 +16,6 @@ import ProfilePage from './pages/dashboard/ProfilePage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminTransactions from './pages/admin/AdminTransactions';
-import AdminReports from './pages/admin/AdminReports';
-import AdminSystem from './pages/admin/AdminSystem';
 import AdminAlerts from './pages/admin/AdminAlerts';
 
 function App() {
@@ -57,8 +55,6 @@ function App() {
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/transactions" element={<AdminTransactions />} />
-              <Route path="/admin/reports" element={<AdminReports />} />
-              <Route path="/admin/system" element={<AdminSystem />} />
               <Route path="/admin/alerts" element={<AdminAlerts />} />
             </Route>
 
