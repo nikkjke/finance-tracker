@@ -36,7 +36,7 @@ export default function Dropdown({ value, onChange, options, icon, placeholder, 
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5 text-sm font-medium shadow-sm transition-all ${fullWidth ? 'w-full' : ''} ${
+        className={`flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5 text-sm font-medium shadow-sm transition-all ${fullWidth ? 'w-full' : 'min-w-[160px]'} ${
           open
             ? 'border-primary-500 bg-white ring-2 ring-primary-500/20 dark:border-primary-500 dark:bg-surface-800 dark:ring-primary-500/20'
             : 'border-surface-300 bg-white hover:border-surface-400 dark:border-surface-600 dark:bg-surface-800 dark:hover:border-surface-500'
@@ -48,7 +48,7 @@ export default function Dropdown({ value, onChange, options, icon, placeholder, 
         </span>
         <ChevronDown
           size={14}
-          className={`text-surface-400 shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          className={`text-surface-400 shrink-0 ml-auto transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
         />
       </button>
 
