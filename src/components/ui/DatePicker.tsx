@@ -107,77 +107,94 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
       </button>
 
       {open && (
-        <div className="absolute right-0 bottom-full z-[100] mb-2 w-72 overflow-hidden rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30 p-4">
-          {/* Month/Year Navigation */}
-          <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={handlePrevMonth}
-              className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <div className="text-center">
-              <p className="text-sm font-semibold text-surface-900 dark:text-white">
-                {monthNames[month]} {year}
-              </p>
-            </div>
-            <button
-              onClick={handleNextMonth}
-              className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
-
-          {/* Day Headers */}
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {dayNames.map((day) => (
-              <div key={day} className="text-center text-xs font-semibold text-surface-500 py-1">
-                {day}
+        <div className="fixed inset-0 z-[100]" onClick={() => setOpen(false)}>
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="absolute right-0 bottom-full mb-2 w-72 rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30 overflow-hidden"
+            style={{
+              bottom: ref.current ? `${window.innerHeight - ref.current.getBoundingClientRect().top + 8}px` : undefined,
+              right: ref.current ? `${window.innerWidth - ref.current.getBoundingClientRect().right}px` : undefined,
+              maxHeight: '420px'
+            }}
+          >
+            <div className="p-4">
+              {/* Month/Year Navigation */}
+              <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={handlePrevMonth}
+                  className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-surface-900 dark:text-white">
+                    {monthNames[month]} {year}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleNextMonth}
+                  className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
+                >
+                  <ChevronRight size={20} />
+                </button>
               </div>
-            ))}
-          </div>
 
-          {/* Calendar Days */}
-          <div className="grid grid-cols-7 gap-1 mb-4">
-            {days.map((day, idx) => (
-              <button
-                key={idx}
-                onClick={() => day && handleDateClick(day)}
-                disabled={!day}
-                className={`p-2 text-sm rounded-lg transition-colors ${
-                  !day
-                    ? 'text-transparent cursor-default'
-                    : selectedDate && selectedDate.day === day && selectedDate.month === month && selectedDate.year === year
-                    ? 'bg-primary-500 text-white font-semibold'
-                    : 'text-surface-700 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700'
-                }`}
-              >
-                {day}
-              </button>
-            ))}
-          </div>
+              {/* Day Headers */}
+              <div className="grid grid-cols-7 gap-1 mb-2 flex-shrink-0">
+                {dayNames.map((day) => (
+                  <div key={day} className="text-center text-xs font-semibold text-surface-500 py-1">
+                    {day}
+                  </div>
+                ))}
+              </div>
 
-          {/* Footer Buttons */}
-          <div className="flex gap-2 pt-2 border-t border-surface-200 dark:border-surface-700">
-            <button
-              onClick={() => setOpen(false)}
-              className="flex-1 text-center text-sm text-primary-500 hover:text-primary-600 py-2 font-medium transition-colors"
-            >
-              Close
-            </button>
-            <button
-              onClick={() => {
-                const today = new Date().toISOString().split('T')[0];
-                onChange(today);
-                setMonth(new Date().getMonth());
-                setYear(new Date().getFullYear());
-                setOpen(false);
-              }}
-              className="flex-1 text-center text-sm text-primary-500 hover:text-primary-600 py-2 font-medium transition-colors"
-            >
-              Today
-            </button>
+              {/* Calendar Days */}
+              <div className="grid grid-cols-7 gap-1 mb-4">
+                {days.map((day, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => day && handleDateClick(day)}
+                    disabled={!day}
+                    className={`p-2 text-sm rounded-lg transition-colors ${
+                      !day
+                        ? 'text-transparent cursor-default'
+                        : selectedDate && selectedDate.day === day && selectedDate.month === month && selectedDate.year === year
+                        ? 'bg-primary-500 text-white font-semibold'
+                        : 'text-surface-700 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700'
+                    }`}
+                  >
+                    {day}
+                  </button>
+                ))}
+              </div>
+
+              {/* Footer Buttons */}
+              <div className="flex gap-2 pt-2 border-t border-surface-200 dark:border-surface-700">
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="flex-1 text-center text-sm text-primary-500 hover:text-primary-600 py-2 font-medium transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const today = new Date().toISOString().split('T')[0];
+                    onChange(today);
+                    setMonth(new Date().getMonth());
+                    setYear(new Date().getFullYear());
+                    setOpen(false);
+                  }}
+                  className="flex-1 text-center text-sm text-primary-500 hover:text-primary-600 py-2 font-medium transition-colors"
+                >
+                  Today
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
