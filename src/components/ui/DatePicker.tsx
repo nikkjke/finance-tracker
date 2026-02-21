@@ -10,11 +10,26 @@ interface DatePickerProps {
 
 export default function DatePicker({ value, onChange, label, error }: DatePickerProps) {
   const [open, setOpen] = useState(false);
-  const [month, setMonth] = useState(new Date(value || Date.now()).getMonth());
-  const [year, setYear] = useState(new Date(value || Date.now()).getFullYear());
+  const [month, setMonth] = useState(() => {
+    if (value) {
+      const [, m] = value.split('-').map(Number);
+      return m - 1;
+    }
+    return new Date().getMonth();
+  });
+  const [year, setYear] = useState(() => {
+    if (value) {
+      const [y] = value.split('-').map(Number);
+      return y;
+    }
+    return new Date().getFullYear();
+  });
   const ref = useRef<HTMLDivElement>(null);
 
-  const selectedDate = value ? new Date(value) : null;
+  const selectedDate = value ? (() => {
+    const [y, m, d] = value.split('-').map(Number);
+    return { year: y, month: m - 1, day: d };
+  })() : null;
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -35,8 +50,9 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
   };
 
   const handleDateClick = (day: number) => {
-    const newDate = new Date(year, month, day);
-    const dateString = newDate.toISOString().split('T')[0];
+    const m = String(month + 1).padStart(2, '0');
+    const d = String(day).padStart(2, '0');
+    const dateString = `${year}-${m}-${d}`;
     onChange(dateString);
     setOpen(false);
   };
@@ -67,7 +83,7 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
   const days: (number | null)[] = Array(firstDay).fill(null).concat(Array.from({ length: daysInMonth }, (_, i) => i + 1));
 
   const displayDate = selectedDate 
-    ? selectedDate.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })
+    ? `${String(selectedDate.month + 1).padStart(2, '0')}/${String(selectedDate.day).padStart(2, '0')}/${selectedDate.year}`
     : 'Select date...';
 
   return (
@@ -91,7 +107,7 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30 p-4">
+        <div className="absolute right-0 bottom-full z-[100] mb-2 w-72 overflow-hidden rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30 p-4">
           {/* Month/Year Navigation */}
           <div className="flex items-center justify-between mb-4">
             <button
@@ -132,7 +148,7 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
                 className={`p-2 text-sm rounded-lg transition-colors ${
                   !day
                     ? 'text-transparent cursor-default'
-                    : selectedDate && selectedDate.getDate() === day && selectedDate.getMonth() === month && selectedDate.getFullYear() === year
+                    : selectedDate && selectedDate.day === day && selectedDate.month === month && selectedDate.year === year
                     ? 'bg-primary-500 text-white font-semibold'
                     : 'text-surface-700 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700'
                 }`}

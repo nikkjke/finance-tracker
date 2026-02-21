@@ -44,6 +44,7 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    overflow-y: scroll;
   }
 
   body {
