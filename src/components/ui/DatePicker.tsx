@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 
 interface DatePickerProps {
   value: string;
@@ -103,17 +103,17 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
         <span className={`truncate ${!selectedDate ? 'text-surface-400' : 'text-surface-700 dark:text-surface-200'}`}>
           {displayDate}
         </span>
-        <ChevronRight size={16} className="text-surface-400 shrink-0 ml-2" />
+        <Calendar size={16} className="text-surface-400 shrink-0 ml-auto" />
       </button>
 
       {open && (
         <div className="fixed inset-0 z-[100]" onClick={() => setOpen(false)}>
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="absolute right-0 bottom-full mb-2 w-72 rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30 overflow-hidden"
+            className="absolute w-72 rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30 overflow-hidden"
             style={{
               bottom: ref.current ? `${window.innerHeight - ref.current.getBoundingClientRect().top + 8}px` : undefined,
-              right: ref.current ? `${window.innerWidth - ref.current.getBoundingClientRect().right}px` : undefined,
+              left: ref.current ? `${ref.current.getBoundingClientRect().right - 288}px` : undefined,
               maxHeight: '420px'
             }}
           >
