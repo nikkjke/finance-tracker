@@ -177,7 +177,7 @@ export default function AdminAlerts() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <AlertCircle size={20} className="text-primary-600 dark:text-primary-400" />
-            <h1 className="text-2xl font-bold text-surface-900 dark:text-white">
+            <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">
               Alerts & Notifications
             </h1>
           </div>

@@ -88,7 +88,7 @@ export default function AdminDashboard() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Shield size={20} className="text-primary-600 dark:text-primary-400" />
-            <h1 className="text-2xl font-bold text-surface-900 dark:text-white">Admin Dashboard</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Admin Dashboard</h1>
           </div>
           <p className="text-sm text-surface-500 dark:text-surface-400">
             System overview and user management.

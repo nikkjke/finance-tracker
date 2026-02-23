@@ -44,7 +44,7 @@ export default function LandingPage() {
         <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link to="/" className="flex items-center gap-1">
             <img src={fintrackLogo} alt="FinTrack" className="h-12 w-12" />
-            <span className="text-lg font-bold text-surface-900 dark:text-white">
+            <span className="text-xl font-bold text-surface-900 dark:text-white">
               FinTrack
             </span>
           </Link>
@@ -135,24 +135,24 @@ export default function LandingPage() {
                 Smart receipt scanning powered by QR technology
               </div>
 
-              <h1 className="text-4xl font-extrabold tracking-tight text-surface-900 dark:text-white sm:text-5xl lg:text-6xl">
+              <h1 className="text-3xl font-extrabold tracking-tight text-surface-900 dark:text-white sm:text-4xl lg:text-5xl">
                 Take control of your{' '}
                 <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
                   finances
                 </span>
               </h1>
 
-              <p className="mt-6 text-lg text-surface-600 dark:text-surface-400 leading-relaxed">
+              <p className="mt-6 text-base text-surface-600 dark:text-surface-400 leading-relaxed">
                 Track expenses, scan receipts with QR codes, manage budgets, and get powerful
                 analytics — all in one beautiful dashboard.
               </p>
 
               <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-                <Link to="/register" className="btn-primary px-8 py-3 text-base">
+                <Link to="/register" className="btn-primary px-8 py-3 text-sm">
                   Get Started
                   <ArrowRight size={18} />
                 </Link>
-                <Link to="/login" className="btn-secondary px-8 py-3 text-base">
+                <Link to="/login" className="btn-secondary px-8 py-3 text-sm">
                   Sign in to Dashboard
                 </Link>
               </div>
@@ -160,17 +160,17 @@ export default function LandingPage() {
               {/* Stats row */}
               <div className="mt-12 flex items-center gap-8">
                 <div>
-                  <p className="text-2xl font-bold text-surface-900 dark:text-white">10K+</p>
+                  <p className="text-xl font-bold text-surface-900 dark:text-white">10K+</p>
                   <p className="text-sm text-surface-500 dark:text-surface-400">Active Users</p>
                 </div>
                 <div className="h-10 w-px bg-surface-200 dark:bg-surface-700" />
                 <div>
-                  <p className="text-2xl font-bold text-surface-900 dark:text-white">$2M+</p>
+                  <p className="text-xl font-bold text-surface-900 dark:text-white">$2M+</p>
                   <p className="text-sm text-surface-500 dark:text-surface-400">Tracked Monthly</p>
                 </div>
                 <div className="h-10 w-px bg-surface-200 dark:bg-surface-700 hidden sm:block" />
                 <div className="hidden sm:block">
-                  <p className="text-2xl font-bold text-surface-900 dark:text-white">50K+</p>
+                  <p className="text-xl font-bold text-surface-900 dark:text-white">50K+</p>
                   <p className="text-sm text-surface-500 dark:text-surface-400">Receipts Scanned</p>
                 </div>
               </div>
@@ -332,8 +332,8 @@ export default function LandingPage() {
                     { label: 'Budget Left', value: '$3,363' },
                   ].map((card) => (
                     <div key={card.label} className="rounded-lg bg-white dark:bg-surface-800 p-4 shadow-sm">
-                      <p className="text-xs text-surface-400 mb-1">{card.label}</p>
-                      <p className="text-lg font-bold text-surface-900 dark:text-white">{card.value}</p>
+                      <p className="text-sm text-surface-400 mb-1">{card.label}</p>
+                      <p className="text-base font-bold text-surface-900 dark:text-white">{card.value}</p>
                     </div>
                   ))}
                 </div>
@@ -351,10 +351,10 @@ export default function LandingPage() {
       <section id="how-it-works" className="border-t border-surface-200 bg-surface-50 dark:border-surface-800 dark:bg-surface-900">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-surface-900 dark:text-white sm:text-4xl">
+            <h2 className="text-2xl font-bold text-surface-900 dark:text-white sm:text-3xl">
               How QR Receipt Scanning Works
             </h2>
-            <p className="mt-4 text-lg text-surface-600 dark:text-surface-400 max-w-2xl mx-auto">
+            <p className="mt-4 text-base text-surface-600 dark:text-surface-400 max-w-2xl mx-auto">
               Stop entering expenses manually. Just scan and go.
             </p>
           </div>
@@ -397,10 +397,10 @@ export default function LandingPage() {
       <section id="features" className="border-t border-surface-200 dark:border-surface-800">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-surface-900 dark:text-white sm:text-4xl">
+            <h2 className="text-2xl font-bold text-surface-900 dark:text-white sm:text-3xl">
               Everything you need to manage your money
             </h2>
-            <p className="mt-4 text-lg text-surface-600 dark:text-surface-400 max-w-2xl mx-auto">
+            <p className="mt-4 text-base text-surface-600 dark:text-surface-400 max-w-2xl mx-auto">
               Powerful features designed for modern personal finance management.
             </p>
           </div>
@@ -445,7 +445,7 @@ export default function LandingPage() {
                 <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-500/10 group-hover:bg-primary-100 dark:group-hover:bg-primary-500/20 transition-colors">
                   <feature.icon size={20} className="text-primary-600 dark:text-primary-400" />
                 </div>
-                <h3 className="text-base font-semibold text-surface-900 dark:text-white mb-2">
+                <h3 className="text-lg font-semibold text-surface-900 dark:text-white mb-2">
                   {feature.title}
                 </h3>
                 <p className="text-sm text-surface-500 dark:text-surface-400 leading-relaxed">
@@ -461,10 +461,10 @@ export default function LandingPage() {
       <section id="security" className="border-t border-surface-200 bg-surface-50 dark:border-surface-800 dark:bg-surface-900">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-surface-900 dark:text-white sm:text-4xl">
+            <h2 className="text-2xl font-bold text-surface-900 dark:text-white sm:text-3xl">
               Your data is safe with us
             </h2>
-            <p className="mt-4 text-lg text-surface-600 dark:text-surface-400 max-w-2xl mx-auto">
+            <p className="mt-4 text-base text-surface-600 dark:text-surface-400 max-w-2xl mx-auto">
               We take security seriously. Your financial data is protected with industry-leading practices.
             </p>
           </div>
@@ -496,8 +496,8 @@ export default function LandingPage() {
                 <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary-50 dark:bg-primary-500/10 group-hover:bg-primary-100 dark:group-hover:bg-primary-500/20 transition-colors">
                   <item.icon size={22} className="text-primary-600 dark:text-primary-400" />
                 </div>
-                <h3 className="text-sm font-semibold text-surface-900 dark:text-white mb-1.5">{item.title}</h3>
-                <p className="text-xs text-surface-500 dark:text-surface-400 leading-relaxed">{item.description}</p>
+                <h3 className="text-base font-semibold text-surface-900 dark:text-white mb-1.5">{item.title}</h3>
+                <p className="text-sm text-surface-500 dark:text-surface-400 leading-relaxed">{item.description}</p>
               </div>
             ))}
           </div>
@@ -514,7 +514,7 @@ export default function LandingPage() {
             <h2 className="text-2xl font-bold text-surface-900 dark:text-white sm:text-3xl">
               Ready to take control of your finances?
             </h2>
-            <p className="mt-4 text-surface-600 dark:text-surface-400 max-w-xl mx-auto">
+            <p className="mt-4 text-base text-surface-600 dark:text-surface-400 max-w-xl mx-auto">
               Join thousands of users who have simplified their expense tracking with FinTrack.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -544,8 +544,8 @@ export default function LandingPage() {
             {/* Brand column */}
             <div className="lg:col-span-2">
               <Link to="/" className="inline-flex items-center gap-1">
-                <img src={fintrackLogo} alt="FinTrack" className="h-14 w-14" />
-                <span className="text-lg font-bold text-surface-900 dark:text-white">
+                <img src={fintrackLogo} alt="FinTrack" className="h-12 w-12" />
+                <span className="text-xl font-bold text-surface-900 dark:text-white">
                   FinTrack
                 </span>
               </Link>
@@ -576,7 +576,7 @@ export default function LandingPage() {
 
             {/* Product */}
             <div>
-              <h4 className="text-sm font-semibold text-surface-900 dark:text-white">Product</h4>
+              <h4 className="text-base font-semibold text-surface-900 dark:text-white">Product</h4>
               <ul className="mt-4 space-y-3">
                 {[
                   { label: 'How it Works', anchor: 'how-it-works' },
@@ -614,7 +614,7 @@ export default function LandingPage() {
 
             {/* Company */}
             <div>
-              <h4 className="text-sm font-semibold text-surface-900 dark:text-white">Company</h4>
+              <h4 className="text-base font-semibold text-surface-900 dark:text-white">Company</h4>
               <ul className="mt-4 space-y-3">
                 {[
                   { label: 'About Us' },
@@ -645,7 +645,7 @@ export default function LandingPage() {
 
             {/* Legal */}
             <div>
-              <h4 className="text-sm font-semibold text-surface-900 dark:text-white">Legal</h4>
+              <h4 className="text-base font-semibold text-surface-900 dark:text-white">Legal</h4>
               <ul className="mt-4 space-y-3">
                 {[
                   'Privacy Policy',
@@ -669,7 +669,7 @@ export default function LandingPage() {
           {/* Newsletter */}
           <div id="contact" className="mt-12 rounded-xl border border-surface-200 bg-white p-6 dark:border-surface-700 dark:bg-surface-800/50 sm:flex sm:items-center sm:justify-between sm:p-8">
             <div>
-              <h4 className="text-sm font-semibold text-surface-900 dark:text-white">
+              <h4 className="text-base font-semibold text-surface-900 dark:text-white">
                 Stay up to date
               </h4>
               <p className="mt-1 text-sm text-surface-500 dark:text-surface-400">

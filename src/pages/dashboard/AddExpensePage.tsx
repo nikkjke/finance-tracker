@@ -111,7 +111,7 @@ export default function AddExpensePage() {
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-surface-900 dark:text-white">Add Expense</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Add Expense</h1>
         <p className="text-sm text-surface-500 dark:text-surface-400">
           Add a new expense manually or scan a receipt QR code.
         </p>

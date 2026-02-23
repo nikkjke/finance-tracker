@@ -66,7 +66,7 @@ export default function AdminUsers() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Users size={20} className="text-primary-600 dark:text-primary-400" />
-            <h1 className="text-2xl font-bold text-surface-900 dark:text-white">User Management</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">User Management</h1>
           </div>
           <p className="text-sm text-surface-500 dark:text-surface-400">
             Manage all users and their permissions.
