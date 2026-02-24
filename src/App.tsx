@@ -17,6 +17,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminTransactions from './pages/admin/AdminTransactions';
 import AdminAlerts from './pages/admin/AdminAlerts';
+import NotFoundPage from './pages/errors/NotFoundPage';
 
 function App() {
   return (
@@ -57,6 +58,9 @@ function App() {
               <Route path="/admin/transactions" element={<AdminTransactions />} />
               <Route path="/admin/alerts" element={<AdminAlerts />} />
             </Route>
+
+            {/* Error Pages */}
+            <Route path="/404" element={<NotFoundPage />} />
 
             {/* Catch-all */}
             <Route path="*" element={<Navigate to="/" replace />} />

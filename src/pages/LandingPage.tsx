@@ -540,7 +540,7 @@ export default function LandingPage() {
       <footer className="border-t border-surface-200 bg-surface-50 dark:border-surface-800 dark:bg-surface-900/50">
         <div className="mx-auto max-w-7xl px-4 pt-16 pb-8 sm:px-6 lg:px-8">
           {/* Top section */}
-          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-6">
             {/* Brand column */}
             <div className="lg:col-span-2">
               <Link to="/" className="inline-flex items-center gap-1">
@@ -662,6 +662,21 @@ export default function LandingPage() {
                     </span>
                   </li>
                 ))}
+              </ul>
+            </div>
+
+            {/* Status Pages */}
+            <div>
+              <h4 className="text-base font-semibold text-surface-900 dark:text-white">Status Pages</h4>
+              <ul className="mt-4 space-y-3">
+                <li>
+                  <Link
+                    to="/404"
+                    className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
+                  >
+                    404 Not Found
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
