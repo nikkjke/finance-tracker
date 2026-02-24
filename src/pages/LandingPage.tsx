@@ -693,6 +693,14 @@ export default function LandingPage() {
                     404 Not Found
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    to="/500"
+                    className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
+                  >
+                    500 Server Error
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

@@ -20,6 +20,7 @@ import AdminAlerts from './pages/admin/AdminAlerts';
 import NotFoundPage from './pages/errors/NotFoundPage';
 import UnauthorizedPage from './pages/errors/UnauthorizedPage';
 import ForbiddenPage from './pages/errors/ForbiddenPage';
+import ServerErrorPage from './pages/errors/ServerErrorPage';
 
 function App() {
   return (
@@ -65,6 +66,7 @@ function App() {
             <Route path="/401" element={<UnauthorizedPage />} />
             <Route path="/403" element={<ForbiddenPage />} />
             <Route path="/404" element={<NotFoundPage />} />
+            <Route path="/500" element={<ServerErrorPage />} />
 
             {/* Catch-all */}
             <Route path="*" element={<Navigate to="/" replace />} />
