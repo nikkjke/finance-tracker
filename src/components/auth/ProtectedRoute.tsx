@@ -18,18 +18,19 @@ export default function ProtectedRoute({ children, requiredRole, adminOnly, user
     return <Navigate to="/401" replace />;
   }
 
-  // If admin tries to access user routes, redirect to admin panel
+  // If admin tries to access user-only routes → 403 Forbidden
   if (user?.role === 'admin' && userOnly) {
-    return <Navigate to="/admin" replace />;
+    return <Navigate to="/403" replace />;
   }
 
-  // If regular user tries to access admin routes, redirect to dashboard
+  // If regular user tries to access admin-only routes → 403 Forbidden
   if (user?.role === 'user' && adminOnly) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/403" replace />;
   }
 
+  // If specific role is required and doesn't match → 403 Forbidden
   if (requiredRole && user?.role !== requiredRole) {
-    return <Navigate to={user?.role === 'admin' ? '/admin' : '/dashboard'} replace />;
+    return <Navigate to="/403" replace />;
   }
 
   return <>{children}</>;
