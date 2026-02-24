@@ -1,15 +1,12 @@
-import type { User, UserRole } from '../types';
+import type { User, UserRole, AuthResult } from '../types';
+import { STORAGE_KEYS } from '../types';
 import { mockUsers } from '../data/mockData';
 
-// ─── Storage Keys ────────────────────────────────────────────────
-const STORAGE_KEY = 'currentUser';
+// Re-export so existing consumers don't break
+export type { AuthResult } from '../types';
 
-// ─── Types ───────────────────────────────────────────────────────
-export interface AuthResult {
-  success: boolean;
-  user?: User;
-  error?: string;
-}
+// ─── Storage Keys ────────────────────────────────────────────────
+const STORAGE_KEY = STORAGE_KEYS.CURRENT_USER;
 
 // ─── Mock credentials (for demo login) ──────────────────────────
 const MOCK_CREDENTIALS: Record<string, string> = {

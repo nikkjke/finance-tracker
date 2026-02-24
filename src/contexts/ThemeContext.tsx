@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { STORAGE_KEYS } from '../types';
 
 type Theme = 'light' | 'dark';
 
@@ -12,7 +13,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('theme') as Theme;
+      const saved = localStorage.getItem(STORAGE_KEYS.THEME) as Theme;
       if (saved) return saved;
       return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
@@ -23,7 +24,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
-    localStorage.setItem('theme', theme);
+    localStorage.setItem(STORAGE_KEYS.THEME, theme);
 
     if (theme === 'dark') {
       document.body.style.backgroundColor = '#0f172a';

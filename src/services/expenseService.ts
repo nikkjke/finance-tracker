@@ -1,28 +1,12 @@
-import type { Expense, ExpenseCategory } from '../types';
+import type { Expense, ServiceResponse, CreateExpenseDTO, UpdateExpenseDTO } from '../types';
+import { STORAGE_KEYS } from '../types';
 import { mockExpenses } from '../data/mockData';
 
-// ─── Types ───────────────────────────────────────────────────────
-export interface ServiceResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
-
-export interface CreateExpenseDTO {
-  storeName: string;
-  amount: number;
-  category: ExpenseCategory;
-  date: string;
-  notes?: string;
-  paymentMethod: Expense['paymentMethod'];
-}
-
-export interface UpdateExpenseDTO extends Partial<CreateExpenseDTO> {
-  status?: Expense['status'];
-}
+// Re-export so existing consumers don't break
+export type { ServiceResponse, CreateExpenseDTO, UpdateExpenseDTO } from '../types';
 
 // ─── Storage ─────────────────────────────────────────────────────
-const STORAGE_KEY = 'expenses';
+const STORAGE_KEY = STORAGE_KEYS.EXPENSES;
 
 /**
  * Load expenses from localStorage, falling back to mock data on first use.

@@ -1,23 +1,12 @@
-import type { Budget, ExpenseCategory } from '../types';
-import type { ServiceResponse } from './expenseService';
+import type { Budget, ServiceResponse, CreateBudgetDTO, UpdateBudgetDTO } from '../types';
+import { STORAGE_KEYS } from '../types';
 import { mockBudgets } from '../data/mockData';
 
-// ─── Types ───────────────────────────────────────────────────────
-export interface CreateBudgetDTO {
-  category: ExpenseCategory;
-  limit: number;
-  month: string; // format: "YYYY-MM"
-}
-
-export interface UpdateBudgetDTO {
-  category?: ExpenseCategory;
-  limit?: number;
-  spent?: number;
-  month?: string;
-}
+// Re-export so existing consumers don't break
+export type { CreateBudgetDTO, UpdateBudgetDTO } from '../types';
 
 // ─── Storage ─────────────────────────────────────────────────────
-const STORAGE_KEY = 'budgets';
+const STORAGE_KEY = STORAGE_KEYS.BUDGETS;
 
 /**
  * Load budgets from localStorage, falling back to mock data on first use.
