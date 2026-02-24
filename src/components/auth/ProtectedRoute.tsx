@@ -13,8 +13,9 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children, requiredRole, adminOnly, userOnly }: ProtectedRouteProps) {
   const { isAuthenticated, user } = useAuth();
 
+  // Unauthenticated users → 401 Unauthorized
   if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/401" replace />;
   }
 
   // If admin tries to access user routes, redirect to admin panel
