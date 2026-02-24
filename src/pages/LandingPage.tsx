@@ -671,6 +671,14 @@ export default function LandingPage() {
               <ul className="mt-4 space-y-3">
                 <li>
                   <Link
+                    to="/401"
+                    className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
+                  >
+                    401 Unauthorized
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     to="/404"
                     className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
                   >

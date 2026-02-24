@@ -18,6 +18,7 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminTransactions from './pages/admin/AdminTransactions';
 import AdminAlerts from './pages/admin/AdminAlerts';
 import NotFoundPage from './pages/errors/NotFoundPage';
+import UnauthorizedPage from './pages/errors/UnauthorizedPage';
 
 function App() {
   return (
@@ -60,6 +61,7 @@ function App() {
             </Route>
 
             {/* Error Pages */}
+            <Route path="/401" element={<UnauthorizedPage />} />
             <Route path="/404" element={<NotFoundPage />} />
 
             {/* Catch-all */}
