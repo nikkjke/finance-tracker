@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Download, Filter, Calendar, CalendarDays, ArrowUpRight, Hash } from 'lucide-react';
 import TransactionTable from '../../components/ui/TransactionTable';
 import BarChart from '../../components/ui/BarChart';
@@ -15,7 +15,21 @@ export default function ReportsPage() {
   const [dateRange, setDateRange] = useState('6months');
   const [categoryFilter, setCategoryFilter] = useState('all');
 
-  const filteredExpenses = filterByField(mockExpenses, 'category', categoryFilter);
+  // Memoize filtered expenses — recalculates only when categoryFilter changes
+  const filteredExpenses = useMemo(
+    () => filterByField(mockExpenses, 'category', categoryFilter),
+    [categoryFilter],
+  );
+
+  // Memoize summary stats derived from filtered expenses
+  const summaryStats = useMemo(() => {
+    const total = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
+    const avgDaily = filteredExpenses.length > 0 ? total / 30 : 0; // approximate 30-day avg
+    const highest = filteredExpenses.length > 0
+      ? Math.max(...filteredExpenses.map((e) => e.amount))
+      : 0;
+    return { avgDaily, highest, count: filteredExpenses.length };
+  }, [filteredExpenses]);
 
   return (
     <div className="space-y-6">
@@ -97,19 +111,19 @@ export default function ReportsPage() {
         {[
           {
             label: 'Average Daily',
-            value: '$54.56',
+            value: `$${summaryStats.avgDaily.toFixed(2)}`,
             icon: CalendarDays,
             valueColor: 'text-surface-900 dark:text-white',
           },
           {
             label: 'Highest Expense',
-            value: '$450.00',
+            value: `$${summaryStats.highest.toFixed(2)}`,
             icon: ArrowUpRight,
             valueColor: 'text-surface-900 dark:text-white',
           },
           {
             label: 'Total Transactions',
-            value: filteredExpenses.length.toString(),
+            value: summaryStats.count.toString(),
             icon: Hash,
             valueColor: 'text-surface-900 dark:text-white',
           },
