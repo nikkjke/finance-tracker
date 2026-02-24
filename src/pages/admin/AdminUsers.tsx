@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Users,
   Search,
@@ -22,19 +22,27 @@ export default function AdminUsers() {
   const [roleFilter, setRoleFilter] = useState<'all' | 'user' | 'admin'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'role'>('date');
 
-  // Map UI sort key to filterService SortConfig
-  const sortConfigMap: Record<string, SortConfig<User>> = {
-    name: { key: 'name', direction: 'asc' },
-    date: { key: 'createdAt', direction: 'desc' },
-    role: { key: 'role', direction: 'asc' },
-  };
+  // Map UI sort key to filterService SortConfig (memoized – only changes if sortBy changes)
+  const sortConfig = useMemo<SortConfig<User>>(() => {
+    const map: Record<string, SortConfig<User>> = {
+      name: { key: 'name', direction: 'asc' },
+      date: { key: 'createdAt', direction: 'desc' },
+      role: { key: 'role', direction: 'asc' },
+    };
+    return map[sortBy];
+  }, [sortBy]);
 
-  const { items: filteredUsers } = applyFilters(users, {
-    searchQuery,
-    searchFields: ['name', 'email'],
-    filters: { role: roleFilter },
-    sort: sortConfigMap[sortBy],
-  });
+  // Memoize filtered & sorted user list — recalculates only when users, searchQuery, roleFilter or sortConfig change
+  const filteredUsers = useMemo(
+    () =>
+      applyFilters(users, {
+        searchQuery,
+        searchFields: ['name', 'email'],
+        filters: { role: roleFilter },
+        sort: sortConfig,
+      }).items,
+    [users, searchQuery, roleFilter, sortConfig],
+  );
 
   const handleDeleteUser = (id: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
@@ -54,11 +62,15 @@ export default function AdminUsers() {
     alert('Exporting user data... (Feature in development)');
   };
 
-  const stats = {
-    total: users.length,
-    active: users.filter((u) => u.role === 'user').length,
-    admins: users.filter((u) => u.role === 'admin').length,
-  };
+  // Memoize stats — recalculates only when users array changes
+  const stats = useMemo(
+    () => ({
+      total: users.length,
+      active: users.filter((u) => u.role === 'user').length,
+      admins: users.filter((u) => u.role === 'admin').length,
+    }),
+    [users],
+  );
 
   return (
     <div className="space-y-6">
