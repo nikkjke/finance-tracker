@@ -679,6 +679,14 @@ export default function LandingPage() {
                 </li>
                 <li>
                   <Link
+                    to="/403"
+                    className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
+                  >
+                    403 Forbidden
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     to="/404"
                     className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
                   >
