@@ -17,10 +17,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminTransactions from './pages/admin/AdminTransactions';
 import AdminAlerts from './pages/admin/AdminAlerts';
-import NotFoundPage from './pages/errors/NotFoundPage';
-import UnauthorizedPage from './pages/errors/UnauthorizedPage';
-import ForbiddenPage from './pages/errors/ForbiddenPage';
-import ServerErrorPage from './pages/errors/ServerErrorPage';
+import { NotFoundPage, UnauthorizedPage, ForbiddenPage, ServerErrorPage } from './pages/errors';
 
 function App() {
   return (
