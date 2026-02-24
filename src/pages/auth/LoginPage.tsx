@@ -41,24 +41,26 @@ export default function LoginPage() {
     if (!validate()) return;
 
     setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    const success = login(email, password);
+    const result = await login(email, password);
     setIsLoading(false);
 
-    if (success) {
+    if (result.success) {
       navigate('/dashboard');
+    } else {
+      setErrors({ email: result.error || 'Login failed' });
     }
   };
 
-  const handleQuickLogin = (role: 'user' | 'admin') => {
+  const handleQuickLogin = async (role: 'user' | 'admin') => {
     const credentials = role === 'admin'
       ? { email: 'admin@fintrack.com', password: 'admin123' }
       : { email: 'mariana@example.com', password: 'user123' };
     setEmail(credentials.email);
     setPassword(credentials.password);
-    login(credentials.email, credentials.password);
-    navigate('/dashboard');
+    const result = await login(credentials.email, credentials.password);
+    if (result.success) {
+      navigate(role === 'admin' ? '/admin' : '/dashboard');
+    }
   };
 
   return (

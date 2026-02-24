@@ -51,14 +51,13 @@ export default function RegisterPage() {
     if (!validate()) return;
 
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    const success = register(name, email, password);
+    const result = await register(name, email, password);
     setIsLoading(false);
 
-    if (success) {
+    if (result.success) {
       navigate('/dashboard');
     } else {
-      setErrors({ email: 'This email is already registered' });
+      setErrors({ email: result.error || 'Registration failed' });
     }
   };
 
