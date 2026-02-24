@@ -81,7 +81,7 @@ export interface FilterPipelineResult<T> {
  * searchByText(users, 'mari', ['name', 'email']);
  * ```
  */
-export function searchByText<T extends Record<string, unknown>>(
+export function searchByText<T>(
   items: T[],
   query: string,
   fields: (keyof T)[],
@@ -109,7 +109,7 @@ export function searchByText<T extends Record<string, unknown>>(
  * filterByField(users, 'role', 'all');     // everyone
  * ```
  */
-export function filterByField<T extends Record<string, unknown>>(
+export function filterByField<T>(
   items: T[],
   field: keyof T,
   value: string,
@@ -127,7 +127,7 @@ export function filterByField<T extends Record<string, unknown>>(
  * filterByFields(expenses, { status: 'completed', category: 'all' });
  * ```
  */
-export function filterByFields<T extends Record<string, unknown>>(
+export function filterByFields<T>(
   items: T[],
   filters: Partial<Record<keyof T, string>>,
 ): T[] {
@@ -152,7 +152,7 @@ export function filterByFields<T extends Record<string, unknown>>(
  * sortItems(expenses, { key: 'date', direction: 'desc' });
  * ```
  */
-export function sortItems<T extends Record<string, unknown>>(
+export function sortItems<T>(
   items: T[],
   config: SortConfig<T>,
 ): T[] {
@@ -233,7 +233,7 @@ export function presetToDateRange(preset: DateRangePreset): DateRange {
  * filterByDateRange(expenses, 'date', presetToDateRange('30days'));
  * ```
  */
-export function filterByDateRange<T extends Record<string, unknown>>(
+export function filterByDateRange<T>(
   items: T[],
   dateField: keyof T,
   range: DateRange,
@@ -305,7 +305,7 @@ export function paginate<T>(items: T[], page = 1, pageSize = 10): PaginatedResul
  * });
  * ```
  */
-export function applyFilters<T extends Record<string, unknown>>(
+export function applyFilters<T>(
   items: T[],
   config: FilterPipelineConfig<T>,
 ): FilterPipelineResult<T> {

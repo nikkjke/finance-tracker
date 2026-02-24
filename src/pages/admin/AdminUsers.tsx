@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { mockUsers } from '../../data/mockData';
 import Dropdown from '../../components/ui/Dropdown';
+import { applyFilters } from '../../services/filterService';
+import type { SortConfig } from '../../services/filterService';
 import type { User } from '../../types';
 
 export default function AdminUsers() {
@@ -20,20 +22,19 @@ export default function AdminUsers() {
   const [roleFilter, setRoleFilter] = useState<'all' | 'user' | 'admin'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'role'>('date');
 
-  const filteredUsers = users
-    .filter((u) => {
-      const matchesSearch =
-        u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesRole = roleFilter === 'all' || u.role === roleFilter;
-      return matchesSearch && matchesRole;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'name') return a.name.localeCompare(b.name);
-      if (sortBy === 'date') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      if (sortBy === 'role') return a.role.localeCompare(b.role);
-      return 0;
-    });
+  // Map UI sort key to filterService SortConfig
+  const sortConfigMap: Record<string, SortConfig<User>> = {
+    name: { key: 'name', direction: 'asc' },
+    date: { key: 'createdAt', direction: 'desc' },
+    role: { key: 'role', direction: 'asc' },
+  };
+
+  const { items: filteredUsers } = applyFilters(users, {
+    searchQuery,
+    searchFields: ['name', 'email'],
+    filters: { role: roleFilter },
+    sort: sortConfigMap[sortBy],
+  });
 
   const handleDeleteUser = (id: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {

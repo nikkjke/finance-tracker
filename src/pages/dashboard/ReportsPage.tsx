@@ -4,6 +4,7 @@ import TransactionTable from '../../components/ui/TransactionTable';
 import BarChart from '../../components/ui/BarChart';
 import DonutChart from '../../components/ui/DonutChart';
 import Dropdown from '../../components/ui/Dropdown';
+import { filterByField } from '../../services/filterService';
 import {
   mockExpenses,
   mockMonthlySpending,
@@ -14,9 +15,7 @@ export default function ReportsPage() {
   const [dateRange, setDateRange] = useState('6months');
   const [categoryFilter, setCategoryFilter] = useState('all');
 
-  const filteredExpenses = categoryFilter === 'all'
-    ? mockExpenses
-    : mockExpenses.filter((e) => e.category === categoryFilter);
+  const filteredExpenses = filterByField(mockExpenses, 'category', categoryFilter);
 
   return (
     <div className="space-y-6">

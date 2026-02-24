@@ -15,6 +15,7 @@ import { mockExpenses } from '../../data/mockData';
 import BarChart from '../../components/ui/BarChart';
 import DonutChart from '../../components/ui/DonutChart';
 import Dropdown from '../../components/ui/Dropdown';
+import { applyFilters } from '../../services/filterService';
 import type { Expense } from '../../types';
 
 export default function AdminTransactions() {
@@ -24,13 +25,11 @@ export default function AdminTransactions() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState('month');
 
-  const filteredTransactions = transactions.filter((tx) => {
-    const matchesSearch =
-      tx.storeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tx.notes?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || tx.status === statusFilter;
-    const matchesCategory = categoryFilter === 'all' || tx.category === categoryFilter;
-    return matchesSearch && matchesStatus && matchesCategory;
+  const { items: filteredTransactions } = applyFilters(transactions, {
+    searchQuery,
+    searchFields: ['storeName', 'notes'],
+    filters: { status: statusFilter, category: categoryFilter },
+    sort: { key: 'date', direction: 'desc' },
   });
 
   const stats = {
