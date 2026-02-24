@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Activity,
   Search,
@@ -25,19 +25,28 @@ export default function AdminTransactions() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState('month');
 
-  const { items: filteredTransactions } = applyFilters(transactions, {
-    searchQuery,
-    searchFields: ['storeName', 'notes'],
-    filters: { status: statusFilter, category: categoryFilter },
-    sort: { key: 'date', direction: 'desc' },
-  });
+  // Memoize filtered & sorted transactions — recalculates only when dependencies change
+  const filteredTransactions = useMemo(
+    () =>
+      applyFilters(transactions, {
+        searchQuery,
+        searchFields: ['storeName', 'notes'],
+        filters: { status: statusFilter, category: categoryFilter },
+        sort: { key: 'date', direction: 'desc' },
+      }).items,
+    [transactions, searchQuery, statusFilter, categoryFilter],
+  );
 
-  const stats = {
-    total: transactions.reduce((sum, tx) => sum + tx.amount, 0),
-    completed: transactions.filter((tx) => tx.status === 'completed').length,
-    pending: transactions.filter((tx) => tx.status === 'pending').length,
-    cancelled: transactions.filter((tx) => tx.status === 'cancelled').length,
-  };
+  // Memoize stats — recalculates only when transactions array changes
+  const stats = useMemo(
+    () => ({
+      total: transactions.reduce((sum, tx) => sum + tx.amount, 0),
+      completed: transactions.filter((tx) => tx.status === 'completed').length,
+      pending: transactions.filter((tx) => tx.status === 'pending').length,
+      cancelled: transactions.filter((tx) => tx.status === 'cancelled').length,
+    }),
+    [transactions],
+  );
 
   const handleExport = () => {
     alert('Exporting transaction data... (Feature in development)');
