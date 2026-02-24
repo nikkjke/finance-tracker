@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 import DashboardLayout from './components/layout/DashboardLayout';
 
 import LandingPage from './pages/LandingPage';
@@ -17,12 +18,14 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminTransactions from './pages/admin/AdminTransactions';
 import AdminAlerts from './pages/admin/AdminAlerts';
+import { NotFoundPage, UnauthorizedPage, ForbiddenPage, ServerErrorPage } from './pages/errors';
 
 function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
+          <ErrorBoundary>
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
@@ -58,9 +61,16 @@ function App() {
               <Route path="/admin/alerts" element={<AdminAlerts />} />
             </Route>
 
-            {/* Catch-all */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {/* Error Pages */}
+            <Route path="/401" element={<UnauthorizedPage />} />
+            <Route path="/403" element={<ForbiddenPage />} />
+            <Route path="/404" element={<NotFoundPage />} />
+            <Route path="/500" element={<ServerErrorPage />} />
+
+            {/* Catch-all: any unknown route → 404 */}
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
+          </ErrorBoundary>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

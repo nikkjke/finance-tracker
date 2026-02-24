@@ -1,22 +1,47 @@
-import { useState } from 'react';
-import { Download, Filter, Calendar, CalendarDays, ArrowUpRight, Hash } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Download, Filter, Calendar, CalendarDays, ArrowUpRight, Hash, BarChart3 } from 'lucide-react';
 import TransactionTable from '../../components/ui/TransactionTable';
 import BarChart from '../../components/ui/BarChart';
 import DonutChart from '../../components/ui/DonutChart';
 import Dropdown from '../../components/ui/Dropdown';
+import Spinner from '../../components/ui/Spinner';
+import EmptyState from '../../components/ui/EmptyState';
+import ErrorState from '../../components/ui/ErrorState';
 import {
   mockExpenses,
   mockMonthlySpending,
   mockSpendingByCategory,
 } from '../../data/mockData';
+import type { Expense } from '../../types';
 
 export default function ReportsPage() {
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState('6months');
   const [categoryFilter, setCategoryFilter] = useState('all');
 
+  const fetchReports = () => {
+    setIsLoading(true);
+    setError(null);
+    setTimeout(() => {
+      try {
+        setExpenses(mockExpenses);
+        setIsLoading(false);
+      } catch {
+        setError('Failed to load report data. The service might be unavailable.');
+        setIsLoading(false);
+      }
+    }, 800);
+  };
+
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
   const filteredExpenses = categoryFilter === 'all'
-    ? mockExpenses
-    : mockExpenses.filter((e) => e.category === categoryFilter);
+    ? expenses
+    : expenses.filter((e) => e.category === categoryFilter);
 
   return (
     <div className="space-y-6">
@@ -69,6 +94,41 @@ export default function ReportsPage() {
         </div>
       </div>
 
+      {/* Loading State */}
+      {isLoading && (
+        <div className="card flex items-center justify-center py-20">
+          <div className="flex flex-col items-center gap-3">
+            <Spinner size={32} />
+            <p className="text-sm text-surface-500 dark:text-surface-400">Loading reports...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {!isLoading && error && (
+        <div className="card">
+          <ErrorState
+            title="Failed to load reports"
+            message={error}
+            onRetry={fetchReports}
+          />
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && !error && expenses.length === 0 && (
+        <div className="card">
+          <EmptyState
+            icon={BarChart3}
+            title="No report data available"
+            description="There are no transactions to generate reports from. Add some expenses to see analytics."
+          />
+        </div>
+      )}
+
+      {/* Content (only when loaded, no error, and has data) */}
+      {!isLoading && !error && expenses.length > 0 && (
+        <>
       {/* Charts */}
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="card lg:col-span-2 flex flex-col">
@@ -150,6 +210,8 @@ export default function ReportsPage() {
         </h2>
         <TransactionTable expenses={filteredExpenses} />
       </div>
+        </>
+      )}
     </div>
   );
 }

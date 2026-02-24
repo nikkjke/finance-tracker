@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Activity,
   Search,
@@ -15,14 +15,37 @@ import { mockExpenses } from '../../data/mockData';
 import BarChart from '../../components/ui/BarChart';
 import DonutChart from '../../components/ui/DonutChart';
 import Dropdown from '../../components/ui/Dropdown';
+import Spinner from '../../components/ui/Spinner';
+import EmptyState from '../../components/ui/EmptyState';
+import ErrorState from '../../components/ui/ErrorState';
 import type { Expense } from '../../types';
 
 export default function AdminTransactions() {
-  const [transactions] = useState<Expense[]>(mockExpenses);
+  const [transactions, setTransactions] = useState<Expense[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending' | 'cancelled'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState('month');
+
+  const fetchTransactions = () => {
+    setIsLoading(true);
+    setError(null);
+    setTimeout(() => {
+      try {
+        setTransactions(mockExpenses);
+        setIsLoading(false);
+      } catch {
+        setError('Failed to load transactions. The service might be unavailable.');
+        setIsLoading(false);
+      }
+    }, 800);
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
 
   const filteredTransactions = transactions.filter((tx) => {
     const matchesSearch =
@@ -122,6 +145,30 @@ export default function AdminTransactions() {
         </div>
       </div>
 
+      {/* Loading State */}
+      {isLoading && (
+        <div className="card flex items-center justify-center py-20">
+          <div className="flex flex-col items-center gap-3">
+            <Spinner size={32} />
+            <p className="text-sm text-surface-500 dark:text-surface-400">Loading transactions...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {!isLoading && error && (
+        <div className="card">
+          <ErrorState
+            title="Failed to load transactions"
+            message={error}
+            onRetry={fetchTransactions}
+          />
+        </div>
+      )}
+
+      {/* Content (only when loaded and no error) */}
+      {!isLoading && !error && (
+        <>
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="card group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-primary-200/60 hover:shadow-xl hover:shadow-primary-500/[0.06] dark:hover:border-primary-500/25 dark:hover:shadow-primary-500/[0.08]">
@@ -352,10 +399,19 @@ export default function AdminTransactions() {
         </div>
 
         {filteredTransactions.length === 0 && (
-          <div className="text-center py-12">
-            <Activity size={48} className="mx-auto text-surface-300 dark:text-surface-700 mb-3" />
-            <p className="text-surface-500 dark:text-surface-400">No transactions found</p>
-          </div>
+          <EmptyState
+            icon={Activity}
+            title="No transactions found"
+            description="Try adjusting your search query or filters to find what you're looking for."
+            action={
+              <button
+                onClick={() => { setSearchQuery(''); setStatusFilter('all'); setCategoryFilter('all'); }}
+                className="btn-secondary"
+              >
+                Clear Filters
+              </button>
+            }
+          />
         )}
       </div>
 
@@ -508,6 +564,8 @@ export default function AdminTransactions() {
           </button>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }

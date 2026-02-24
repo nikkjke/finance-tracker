@@ -1,17 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, PiggyBank, Receipt, TrendingUp, Tag } from 'lucide-react';
 import BudgetProgress from '../../components/ui/BudgetProgress';
 import Modal from '../../components/ui/Modal';
 import Dropdown from '../../components/ui/Dropdown';
+import Spinner from '../../components/ui/Spinner';
+import EmptyState from '../../components/ui/EmptyState';
+import ErrorState from '../../components/ui/ErrorState';
 import { mockBudgets, categoryLabels } from '../../data/mockData';
 import type { Budget, ExpenseCategory } from '../../types';
 
 export default function BudgetsPage() {
-  const [budgets, setBudgets] = useState<Budget[]>(mockBudgets);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [formCategory, setFormCategory] = useState<ExpenseCategory>('food');
   const [formLimit, setFormLimit] = useState('');
+
+  const fetchBudgets = () => {
+    setIsLoading(true);
+    setError(null);
+    setTimeout(() => {
+      try {
+        setBudgets(mockBudgets);
+        setIsLoading(false);
+      } catch {
+        setError('Failed to load budgets. The service might be unavailable.');
+        setIsLoading(false);
+      }
+    }, 800);
+  };
+
+  useEffect(() => {
+    fetchBudgets();
+  }, []);
 
   const totalBudget = budgets.reduce((sum, b) => sum + b.limit, 0);
   const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0);
@@ -75,6 +98,30 @@ export default function BudgetsPage() {
         </button>
       </div>
 
+      {/* Loading State */}
+      {isLoading && (
+        <div className="card flex items-center justify-center py-20">
+          <div className="flex flex-col items-center gap-3">
+            <Spinner size={32} />
+            <p className="text-sm text-surface-500 dark:text-surface-400">Loading budgets...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {!isLoading && error && (
+        <div className="card">
+          <ErrorState
+            title="Failed to load budgets"
+            message={error}
+            onRetry={fetchBudgets}
+          />
+        </div>
+      )}
+
+      {/* Content (only when loaded and no error) */}
+      {!isLoading && !error && (
+        <>
       {/* Summary */}
       <div className="grid gap-4 sm:grid-cols-3">
         {[
@@ -126,6 +173,19 @@ export default function BudgetsPage() {
       </div>
 
       {/* Budget Cards */}
+      {budgets.length === 0 ? (
+        <EmptyState
+          icon={PiggyBank}
+          title="No budgets yet"
+          description="Create your first budget to start tracking your spending limits by category."
+          action={
+            <button onClick={handleAdd} className="btn-primary">
+              <Plus size={18} />
+              Add Budget
+            </button>
+          }
+        />
+      ) : (
       <div className="grid gap-5 sm:grid-cols-2">
         {budgets.map((budget) => (
           <div key={budget.id} className="card hover:shadow-md transition-shadow duration-200">
@@ -151,6 +211,7 @@ export default function BudgetsPage() {
           </div>
         ))}
       </div>
+      )}
 
       {/* Add/Edit Modal */}
       <Modal
@@ -191,6 +252,8 @@ export default function BudgetsPage() {
           </div>
         </div>
       </Modal>
+        </>
+      )}
     </div>
   );
 }

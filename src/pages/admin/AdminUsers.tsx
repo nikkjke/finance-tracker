@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Users,
   Search,
@@ -12,13 +12,37 @@ import {
 } from 'lucide-react';
 import { mockUsers } from '../../data/mockData';
 import Dropdown from '../../components/ui/Dropdown';
+import Spinner from '../../components/ui/Spinner';
+import EmptyState from '../../components/ui/EmptyState';
+import ErrorState from '../../components/ui/ErrorState';
 import type { User } from '../../types';
 
 export default function AdminUsers() {
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'user' | 'admin'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'role'>('date');
+
+  const fetchUsers = () => {
+    setIsLoading(true);
+    setError(null);
+    // Simulate API call with delay
+    setTimeout(() => {
+      try {
+        setUsers(mockUsers);
+        setIsLoading(false);
+      } catch {
+        setError('Failed to load users. The service might be unavailable.');
+        setIsLoading(false);
+      }
+    }, 800);
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const filteredUsers = users
     .filter((u) => {
@@ -84,6 +108,30 @@ export default function AdminUsers() {
         </div>
       </div>
 
+      {/* Loading State */}
+      {isLoading && (
+        <div className="card flex items-center justify-center py-20">
+          <div className="flex flex-col items-center gap-3">
+            <Spinner size={32} />
+            <p className="text-sm text-surface-500 dark:text-surface-400">Loading users...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {!isLoading && error && (
+        <div className="card">
+          <ErrorState
+            title="Failed to load users"
+            message={error}
+            onRetry={fetchUsers}
+          />
+        </div>
+      )}
+
+      {/* Content (only when loaded and no error) */}
+      {!isLoading && !error && (
+        <>
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="card group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-primary-200/60 hover:shadow-xl hover:shadow-primary-500/[0.06] dark:hover:border-primary-500/25 dark:hover:shadow-primary-500/[0.08]">
@@ -299,12 +347,23 @@ export default function AdminUsers() {
         </div>
 
         {filteredUsers.length === 0 && (
-          <div className="text-center py-12">
-            <Users size={48} className="mx-auto text-surface-300 dark:text-surface-700 mb-3" />
-            <p className="text-surface-500 dark:text-surface-400">No users found</p>
-          </div>
+          <EmptyState
+            icon={Users}
+            title="No users found"
+            description="Try adjusting your search query or role filter to find what you're looking for."
+            action={
+              <button
+                onClick={() => { setSearchQuery(''); setRoleFilter('all'); }}
+                className="btn-secondary"
+              >
+                Clear Filters
+              </button>
+            }
+          />
         )}
       </div>
+        </>
+      )}
     </div>
   );
 }
