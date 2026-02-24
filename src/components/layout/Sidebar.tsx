@@ -5,10 +5,12 @@ import {
   BarChart3,
   Wallet,
   User,
-  Shield,
   Settings,
   LogOut,
   X,
+  Users,
+  Activity,
+  AlertCircle,
 } from 'lucide-react';
 import fintrackLogo from '../../assets/fintrack-logo.svg';
 import { useAuth } from '../../contexts/AuthContext';
@@ -37,7 +39,10 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
   ];
 
   const adminLinks = [
-    { to: '/admin', label: 'Admin Panel', icon: Shield },
+    { to: '/admin', label: 'Overview', icon: LayoutDashboard },
+    { to: '/admin/users', label: 'User Management', icon: Users },
+    { to: '/admin/transactions', label: 'Transactions', icon: Activity },
+    { to: '/admin/alerts', label: 'Alerts', icon: AlertCircle },
   ];
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -75,7 +80,7 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
       >
         {/* Logo */}
         <div className={`flex h-16 items-center border-b border-surface-200 dark:border-surface-700 ${collapsed ? 'justify-center px-2' : 'justify-between px-5'}`}>
-          <NavLink to="/dashboard" className="flex items-center gap-1">
+          <NavLink to={user?.role === 'admin' ? '/admin' : '/dashboard'} className="flex items-center gap-1">
             <img src={fintrackLogo} alt="FinTrack" className="h-12 w-12 shrink-0" />
             {!collapsed && (
               <span className="text-lg font-bold text-surface-900 dark:text-white">
@@ -97,43 +102,38 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
         <nav className={`flex-1 overflow-y-auto py-4 space-y-1 ${collapsed ? 'px-2' : 'px-3'}`}>
           {!collapsed && (
             <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-surface-400">
-              Menu
+              {user?.role === 'admin' ? 'Admin Panel' : 'Menu'}
             </p>
           )}
-          {userLinks.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              className={collapsed ? collapsedLinkClass : linkClass}
-              onClick={onClose}
-              title={collapsed ? link.label : undefined}
-            >
-              <link.icon size={18} />
-              {!collapsed && link.label}
-            </NavLink>
-          ))}
-
-          {user?.role === 'admin' && (
-            <>
-              <div className="my-4 border-t border-surface-200 dark:border-surface-700" />
-              {!collapsed && (
-                <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-surface-400">
-                  Admin
-                </p>
-              )}
-              {adminLinks.map((link) => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  className={collapsed ? collapsedLinkClass : linkClass}
-                  onClick={onClose}
-                  title={collapsed ? link.label : undefined}
-                >
-                  <link.icon size={18} />
-                  {!collapsed && link.label}
-                </NavLink>
-              ))}
-            </>
+          
+          {/* Show admin links for admin, user links for regular users */}
+          {user?.role === 'admin' ? (
+            adminLinks.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.to === '/admin'}
+                className={collapsed ? collapsedLinkClass : linkClass}
+                onClick={onClose}
+                title={collapsed ? link.label : undefined}
+              >
+                <link.icon size={18} />
+                {!collapsed && link.label}
+              </NavLink>
+            ))
+          ) : (
+            userLinks.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={collapsed ? collapsedLinkClass : linkClass}
+                onClick={onClose}
+                title={collapsed ? link.label : undefined}
+              >
+                <link.icon size={18} />
+                {!collapsed && link.label}
+              </NavLink>
+            ))
           )}
         </nav>
 

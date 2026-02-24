@@ -6,17 +6,29 @@ import type { ReactNode } from 'react';
 interface ProtectedRouteProps {
   children: ReactNode;
   requiredRole?: UserRole;
+  adminOnly?: boolean;
+  userOnly?: boolean;
 }
 
-export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
+export default function ProtectedRoute({ children, requiredRole, adminOnly, userOnly }: ProtectedRouteProps) {
   const { isAuthenticated, user } = useAuth();
 
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 
-  if (requiredRole && user?.role !== requiredRole) {
+  // If admin tries to access user routes, redirect to admin panel
+  if (user?.role === 'admin' && userOnly) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  // If regular user tries to access admin routes, redirect to dashboard
+  if (user?.role === 'user' && adminOnly) {
     return <Navigate to="/dashboard" replace />;
+  }
+
+  if (requiredRole && user?.role !== requiredRole) {
+    return <Navigate to={user?.role === 'admin' ? '/admin' : '/dashboard'} replace />;
   }
 
   return <>{children}</>;

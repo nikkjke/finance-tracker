@@ -83,16 +83,16 @@ export default function RegisterPage() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-1">
             <img src={fintrackLogo} alt="FinTrack" className="h-12 w-12" />
-            <span className="text-2xl font-bold text-white">FinTrack</span>
+            <span className="text-xl font-bold text-white">FinTrack</span>
           </Link>
 
           {/* Center content */}
           <div>
-            <h2 className="text-4xl font-bold text-white leading-tight mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white leading-tight mb-4">
               Start your financial
               <br />journey today
             </h2>
-            <p className="text-lg text-primary-100/90 max-w-sm">
+            <p className="text-base text-primary-100/90 max-w-sm">
               Create a free account and start tracking your expenses in under a minute.
             </p>
 
@@ -111,8 +111,8 @@ export default function RegisterPage() {
                     <item.icon size={16} className="text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-white">{item.title}</p>
-                    <p className="text-xs text-white/60">{item.desc}</p>
+                    <p className="text-base font-semibold text-white">{item.title}</p>
+                    <p className="text-sm text-white/60">{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -121,7 +121,7 @@ export default function RegisterPage() {
 
           {/* Testimonial */}
           <div className="rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 p-5">
-            <p className="text-sm text-white/90 italic">
+            <p className="text-base text-white/90 italic">
               "FinTrack made it so easy to track where my money goes. The QR scanning is a game changer!"
             </p>
             <div className="mt-3 flex items-center gap-3">
@@ -129,8 +129,8 @@ export default function RegisterPage() {
                 MP
               </div>
               <div>
-                <p className="text-xs font-semibold text-white">Mariana P.</p>
-                <p className="text-[10px] text-white/60">FinTrack user since 2025</p>
+                <p className="text-sm font-semibold text-white">Mariana P.</p>
+                <p className="text-xs text-white/60">FinTrack user since 2025</p>
               </div>
             </div>
           </div>
@@ -143,14 +143,14 @@ export default function RegisterPage() {
           {/* Mobile logo */}
           <Link to="/" className="lg:hidden flex items-center gap-1 mb-8">
             <img src={fintrackLogo} alt="FinTrack" className="h-12 w-12" />
-            <span className="text-lg font-bold text-surface-900 dark:text-white">FinTrack</span>
+            <span className="text-xl font-bold text-surface-900 dark:text-white">FinTrack</span>
           </Link>
 
           <div className="rounded-2xl bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 p-8 shadow-xl shadow-surface-900/5 dark:shadow-none">
-            <h1 className="text-2xl font-bold text-surface-900 dark:text-white">
+            <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">
               Create your account
             </h1>
-            <p className="mt-2 text-sm text-surface-500 dark:text-surface-400">
+            <p className="mt-2 text-base text-surface-500 dark:text-surface-400">
               Already have an account?{' '}
               <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
                 Sign in

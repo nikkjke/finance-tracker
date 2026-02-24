@@ -29,7 +29,7 @@ export default function DashboardPage() {
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-surface-900 dark:text-white">Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Dashboard</h1>
           <p className="text-sm text-surface-500 dark:text-surface-400">
             Here&#39;s what&#39;s happening with your finances this month.
           </p>
@@ -72,7 +72,7 @@ export default function DashboardPage() {
         <div className="card lg:col-span-2 flex flex-col">
           <div className="mb-6 flex items-center justify-between">
             <div>
-              <h2 className="text-base font-semibold text-surface-900 dark:text-white">
+              <h2 className="text-lg font-semibold text-surface-900 dark:text-white">
                 Monthly Spending
               </h2>
               <p className="text-sm text-surface-400">Last 6 months overview</p>
@@ -86,7 +86,7 @@ export default function DashboardPage() {
         {/* Spending By Category */}
         <div className="card">
           <div className="mb-6">
-            <h2 className="text-base font-semibold text-surface-900 dark:text-white">
+            <h2 className="text-lg font-semibold text-surface-900 dark:text-white">
               By Category
             </h2>
             <p className="text-sm text-surface-400">This month</p>
@@ -99,12 +99,12 @@ export default function DashboardPage() {
       <div className="card">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-surface-900 dark:text-white">
+            <h2 className="text-lg font-semibold text-surface-900 dark:text-white">
               Budget Progress
             </h2>
             <p className="text-sm text-surface-400">February 2026</p>
           </div>
-          <Link to="/budgets" className="btn-ghost text-xs">
+          <Link to="/budgets" className="btn-ghost text-sm">
             View All <ArrowRight size={14} />
           </Link>
         </div>
@@ -119,12 +119,12 @@ export default function DashboardPage() {
       <div className="card">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-surface-900 dark:text-white">
+            <h2 className="text-lg font-semibold text-surface-900 dark:text-white">
               Recent Transactions
             </h2>
             <p className="text-sm text-surface-400">Latest activity</p>
           </div>
-          <Link to="/reports" className="btn-ghost text-xs">
+          <Link to="/reports" className="btn-ghost text-sm">
             See All <ArrowRight size={14} />
           </Link>
         </div>

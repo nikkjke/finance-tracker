@@ -11,6 +11,7 @@ import {
 import type { ExpenseCategory } from '../../types';
 import { categoryLabels } from '../../data/mockData';
 import Dropdown from '../../components/ui/Dropdown';
+import DatePicker from '../../components/ui/DatePicker';
 
 interface FormData {
   storeName: string;
@@ -110,7 +111,7 @@ export default function AddExpensePage() {
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-surface-900 dark:text-white">Add Expense</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Add Expense</h1>
         <p className="text-sm text-surface-500 dark:text-surface-400">
           Add a new expense manually or scan a receipt QR code.
         </p>
@@ -324,15 +325,11 @@ export default function AddExpensePage() {
 
               {/* Date */}
               <div>
-                <label htmlFor="date" className="label">
-                  Date
-                </label>
-                <input
-                  id="date"
-                  type="date"
+                <DatePicker
                   value={formData.date}
-                  onChange={(e) => handleChange('date', e.target.value)}
-                  className={`input ${errors.date ? 'border-danger-500' : ''}`}
+                  onChange={(val) => handleChange('date', val)}
+                  label="Date"
+                  error={!!errors.date}
                 />
                 {errors.date && (
                   <p className="mt-1.5 text-xs text-danger-500">{errors.date}</p>

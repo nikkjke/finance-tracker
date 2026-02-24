@@ -28,7 +28,7 @@ export default function ProfilePage() {
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-surface-900 dark:text-white">Profile Settings</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Profile Settings</h1>
         <p className="text-sm text-surface-500 dark:text-surface-400">
           Manage your account settings and preferences.
         </p>

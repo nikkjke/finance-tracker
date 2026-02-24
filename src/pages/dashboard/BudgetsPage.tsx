@@ -64,7 +64,7 @@ export default function BudgetsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-surface-900 dark:text-white">Budget Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Budget Management</h1>
           <p className="text-sm text-surface-500 dark:text-surface-400">
             Set and track monthly spending limits per category.
           </p>

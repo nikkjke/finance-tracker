@@ -78,16 +78,16 @@ export default function LoginPage() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-1">
             <img src={fintrackLogo} alt="FinTrack" className="h-12 w-12" />
-            <span className="text-2xl font-bold text-white">FinTrack</span>
+            <span className="text-xl font-bold text-white">FinTrack</span>
           </Link>
 
           {/* Center content */}
           <div>
-            <h2 className="text-4xl font-bold text-white leading-tight mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white leading-tight mb-4">
               Welcome back to your
               <br />financial dashboard
             </h2>
-            <p className="text-lg text-primary-100/90 max-w-sm">
+            <p className="text-base text-primary-100/90 max-w-sm">
               Track expenses, scan receipts, and stay on top of your budget with real-time analytics.
             </p>
 
@@ -132,14 +132,14 @@ export default function LoginPage() {
           {/* Mobile logo */}
           <Link to="/" className="lg:hidden flex items-center gap-1 mb-8">
             <img src={fintrackLogo} alt="FinTrack" className="h-12 w-12" />
-            <span className="text-lg font-bold text-surface-900 dark:text-white">FinTrack</span>
+            <span className="text-xl font-bold text-surface-900 dark:text-white">FinTrack</span>
           </Link>
 
           <div className="rounded-2xl bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 p-8 shadow-xl shadow-surface-900/5 dark:shadow-none">
-            <h1 className="text-2xl font-bold text-surface-900 dark:text-white">
+            <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">
               Sign in to your account
             </h1>
-            <p className="mt-2 text-sm text-surface-500 dark:text-surface-400">
+            <p className="mt-2 text-base text-surface-500 dark:text-surface-400">
               Don&#39;t have an account?{' '}
               <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
                 Create one free
@@ -151,14 +151,14 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => handleQuickLogin('user')}
-              className="btn-secondary text-xs"
+              className="btn-secondary text-sm"
             >
               Demo User Login
             </button>
             <button
               type="button"
               onClick={() => handleQuickLogin('admin')}
-              className="btn-secondary text-xs"
+              className="btn-secondary text-sm"
             >
               Demo Admin Login
             </button>
@@ -166,7 +166,7 @@ export default function LoginPage() {
 
           <div className="my-6 flex items-center gap-3">
             <div className="h-px flex-1 bg-surface-200 dark:bg-surface-700" />
-            <span className="text-xs text-surface-400">or continue with email</span>
+            <span className="text-sm text-surface-400">or continue with email</span>
             <div className="h-px flex-1 bg-surface-200 dark:bg-surface-700" />
           </div>
 

@@ -32,11 +32,11 @@ export default function Dropdown({ value, onChange, options, icon, placeholder, 
   }, []);
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className={`relative ${fullWidth ? 'w-full' : 'inline-block'}`}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5 text-sm font-medium shadow-sm transition-all ${fullWidth ? 'w-full' : ''} ${
+        className={`flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5 text-sm font-medium shadow-sm transition-all ${fullWidth ? 'w-full' : 'min-w-[160px]'} ${
           open
             ? 'border-primary-500 bg-white ring-2 ring-primary-500/20 dark:border-primary-500 dark:bg-surface-800 dark:ring-primary-500/20'
             : 'border-surface-300 bg-white hover:border-surface-400 dark:border-surface-600 dark:bg-surface-800 dark:hover:border-surface-500'
@@ -48,12 +48,12 @@ export default function Dropdown({ value, onChange, options, icon, placeholder, 
         </span>
         <ChevronDown
           size={14}
-          className={`text-surface-400 shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          className={`text-surface-400 shrink-0 ml-auto transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
         />
       </button>
 
       {open && (
-        <div className={`absolute left-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30 ${fullWidth ? 'w-full' : 'min-w-[200px]'}`}>
+        <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30">
           <div className="p-1.5">
             {options.map((option) => {
               const isActive = option.value === value;
