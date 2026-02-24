@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   Users,
   Search,
@@ -44,23 +44,23 @@ export default function AdminUsers() {
     [users, searchQuery, roleFilter, sortConfig],
   );
 
-  const handleDeleteUser = (id: string) => {
+  const handleDeleteUser = useCallback((id: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       setUsers((prev) => prev.filter((u) => u.id !== id));
     }
-  };
+  }, []);
 
-  const handleToggleRole = (id: string) => {
+  const handleToggleRole = useCallback((id: string) => {
     setUsers((prev) =>
       prev.map((u) =>
         u.id === id ? { ...u, role: u.role === 'admin' ? 'user' : 'admin' } : u
       )
     );
-  };
+  }, []);
 
-  const handleExport = () => {
+  const handleExport = useCallback(() => {
     alert('Exporting user data... (Feature in development)');
-  };
+  }, []);
 
   // Memoize stats — recalculates only when users array changes
   const stats = useMemo(

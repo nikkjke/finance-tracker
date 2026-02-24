@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Plus, Edit2, Trash2, PiggyBank, Receipt, TrendingUp, Tag, Loader2, AlertCircle } from 'lucide-react';
 import BudgetProgress from '../../components/ui/BudgetProgress';
 import Modal from '../../components/ui/Modal';
@@ -48,27 +48,28 @@ export default function BudgetsPage() {
     return () => { cancelled = true; };
   }, [userId]);
 
-  const totalBudget = budgets.reduce((sum, b) => sum + b.limit, 0);
-  const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0);
+  // Memoize totals — recalculates only when budgets array changes
+  const totalBudget = useMemo(() => budgets.reduce((sum, b) => sum + b.limit, 0), [budgets]);
+  const totalSpent = useMemo(() => budgets.reduce((sum, b) => sum + b.spent, 0), [budgets]);
 
-  // ─── Handlers ──────────────────────────────────────────────
-  const handleAdd = () => {
+  // ─── Handlers (stabilised with useCallback) ────────────────
+  const handleAdd = useCallback(() => {
     setEditingBudget(null);
     setFormCategory('food');
     setFormLimit('');
     setFormError(null);
     setShowModal(true);
-  };
+  }, []);
 
-  const handleEdit = (budget: Budget) => {
+  const handleEdit = useCallback((budget: Budget) => {
     setEditingBudget(budget);
     setFormCategory(budget.category);
     setFormLimit(budget.limit.toString());
     setFormError(null);
     setShowModal(true);
-  };
+  }, []);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this budget?')) return;
 
     const result = await deleteBudget(id);
@@ -77,9 +78,9 @@ export default function BudgetsPage() {
     } else {
       setError(result.error ?? 'Failed to delete budget.');
     }
-  };
+  }, []);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!formLimit || parseFloat(formLimit) <= 0) return;
 
     setIsSaving(true);
@@ -117,7 +118,7 @@ export default function BudgetsPage() {
     }
 
     setIsSaving(false);
-  };
+  }, [formLimit, formCategory, editingBudget, userId]);
 
   return (
     <div className="space-y-6">

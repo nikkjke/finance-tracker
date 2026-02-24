@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   Activity,
   Search,
@@ -48,13 +48,13 @@ export default function AdminTransactions() {
     [transactions],
   );
 
-  const handleExport = () => {
+  const handleExport = useCallback(() => {
     alert('Exporting transaction data... (Feature in development)');
-  };
+  }, []);
 
-  const handleExportReport = (type: string) => {
+  const handleExportReport = useCallback((type: string) => {
     alert(`Exporting ${type} report... (Feature in development)`);
-  };
+  }, []);
 
   const revenueData = [
     { label: 'Sep', value: 2450 },

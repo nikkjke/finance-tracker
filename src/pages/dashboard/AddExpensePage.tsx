@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   ScanLine,
   Upload,
@@ -58,21 +58,19 @@ export default function AddExpensePage() {
 
   const categories = Object.entries(categoryLabels) as [ExpenseCategory, string][];
 
-  const validate = (): boolean => {
+  const validate = useCallback((): boolean => {
     const newErrors: FormErrors = {};
     if (!formData.storeName.trim()) newErrors.storeName = 'Store name is required';
     if (!formData.amount || parseFloat(formData.amount) <= 0) newErrors.amount = 'Valid amount is required';
     if (!formData.date) newErrors.date = 'Date is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData.storeName, formData.amount, formData.date]);
 
-  const handleChange = (field: keyof FormData, value: string) => {
+  const handleChange = useCallback((field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    if (field in errors) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,7 +104,7 @@ export default function AddExpensePage() {
     }, 3000);
   };
 
-  const handleScan = async () => {
+  const handleScan = useCallback(async () => {
     setScanState('scanning');
     // Simulate QR scan
     await new Promise((resolve) => setTimeout(resolve, 2500));
@@ -122,11 +120,11 @@ export default function AddExpensePage() {
       paymentMethod: 'card',
     });
     setActiveTab('manual');
-  };
+  }, []);
 
-  const resetScan = () => {
+  const resetScan = useCallback(() => {
     setScanState('idle');
-  };
+  }, []);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
