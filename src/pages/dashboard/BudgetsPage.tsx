@@ -1,124 +1,86 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Plus, Edit2, Trash2, PiggyBank, Receipt, TrendingUp, Tag, Loader2, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Edit2, Trash2, PiggyBank, Receipt, TrendingUp, Tag } from 'lucide-react';
 import BudgetProgress from '../../components/ui/BudgetProgress';
 import Modal from '../../components/ui/Modal';
 import Dropdown from '../../components/ui/Dropdown';
 import Spinner from '../../components/ui/Spinner';
-import { categoryLabels } from '../../data/mockData';
-import { useAuth } from '../../contexts/AuthContext';
-import { getBudgets, addBudget, updateBudget, deleteBudget } from '../../services/budgetService';
+import EmptyState from '../../components/ui/EmptyState';
+import ErrorState from '../../components/ui/ErrorState';
+import { mockBudgets, categoryLabels } from '../../data/mockData';
 import type { Budget, ExpenseCategory } from '../../types';
 
 export default function BudgetsPage() {
-  const { user } = useAuth();
-  const userId = user?.id ?? 'guest';
-
-  // ─── Data state ────────────────────────────────────────────
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // ─── Modal / form state ────────────────────────────────────
   const [showModal, setShowModal] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [formCategory, setFormCategory] = useState<ExpenseCategory>('food');
   const [formLimit, setFormLimit] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
 
-  // ─── Load budgets on mount ─────────────────────────────────
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchBudgets() {
-      setIsLoading(true);
-      setError(null);
-      const result = await getBudgets(userId);
-      if (cancelled) return;
-
-      if (result.success && result.data) {
-        setBudgets(result.data);
-      } else {
-        setError(result.error ?? 'Failed to load budgets.');
+  const fetchBudgets = () => {
+    setIsLoading(true);
+    setError(null);
+    setTimeout(() => {
+      try {
+        setBudgets(mockBudgets);
+        setIsLoading(false);
+      } catch {
+        setError('Failed to load budgets. The service might be unavailable.');
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    }
+    }, 800);
+  };
 
+  useEffect(() => {
     fetchBudgets();
-    return () => { cancelled = true; };
-  }, [userId]);
+  }, []);
 
-  // Memoize totals — recalculates only when budgets array changes
-  const totalBudget = useMemo(() => budgets.reduce((sum, b) => sum + b.limit, 0), [budgets]);
-  const totalSpent = useMemo(() => budgets.reduce((sum, b) => sum + b.spent, 0), [budgets]);
+  const totalBudget = budgets.reduce((sum, b) => sum + b.limit, 0);
+  const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0);
 
-  // ─── Handlers (stabilised with useCallback) ────────────────
-  const handleAdd = useCallback(() => {
+  const handleAdd = () => {
     setEditingBudget(null);
     setFormCategory('food');
     setFormLimit('');
-    setFormError(null);
     setShowModal(true);
-  }, []);
+  };
 
-  const handleEdit = useCallback((budget: Budget) => {
+  const handleEdit = (budget: Budget) => {
     setEditingBudget(budget);
     setFormCategory(budget.category);
     setFormLimit(budget.limit.toString());
-    setFormError(null);
     setShowModal(true);
-  }, []);
+  };
 
-  const handleDelete = useCallback(async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this budget?')) return;
+  const handleDelete = (id: string) => {
+    setBudgets((prev) => prev.filter((b) => b.id !== id));
+  };
 
-    const result = await deleteBudget(id);
-    if (result.success) {
-      setBudgets((prev) => prev.filter((b) => b.id !== id));
-    } else {
-      setError(result.error ?? 'Failed to delete budget.');
-    }
-  }, []);
-
-  const handleSave = useCallback(async () => {
+  const handleSave = () => {
     if (!formLimit || parseFloat(formLimit) <= 0) return;
 
-    setIsSaving(true);
-    setFormError(null);
-
-    const currentMonth = new Date().toISOString().slice(0, 7); // "YYYY-MM"
-
     if (editingBudget) {
-      const result = await updateBudget(editingBudget.id, {
-        category: formCategory,
-        limit: parseFloat(formLimit),
-      });
-
-      if (result.success && result.data) {
-        setBudgets((prev) =>
-          prev.map((b) => (b.id === editingBudget.id ? result.data! : b)),
-        );
-        setShowModal(false);
-      } else {
-        setFormError(result.error ?? 'Failed to update budget.');
-      }
+      setBudgets((prev) =>
+        prev.map((b) =>
+          b.id === editingBudget.id
+            ? { ...b, category: formCategory, limit: parseFloat(formLimit) }
+            : b
+        )
+      );
     } else {
-      const result = await addBudget(userId, {
+      const newBudget: Budget = {
+        id: `b-${Date.now()}`,
+        userId: '1',
         category: formCategory,
         limit: parseFloat(formLimit),
-        month: currentMonth,
-      });
-
-      if (result.success && result.data) {
-        setBudgets((prev) => [...prev, result.data!]);
-        setShowModal(false);
-      } else {
-        setFormError(result.error ?? 'Failed to create budget.');
-      }
+        spent: 0,
+        month: '2026-02',
+      };
+      setBudgets((prev) => [...prev, newBudget]);
     }
-
-    setIsSaving(false);
-  }, [formLimit, formCategory, editingBudget, userId]);
+    setShowModal(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -136,6 +98,30 @@ export default function BudgetsPage() {
         </button>
       </div>
 
+      {/* Loading State */}
+      {isLoading && (
+        <div className="card flex items-center justify-center py-20">
+          <div className="flex flex-col items-center gap-3">
+            <Spinner size={32} />
+            <p className="text-sm text-surface-500 dark:text-surface-400">Loading budgets...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {!isLoading && error && (
+        <div className="card">
+          <ErrorState
+            title="Failed to load budgets"
+            message={error}
+            onRetry={fetchBudgets}
+          />
+        </div>
+      )}
+
+      {/* Content (only when loaded and no error) */}
+      {!isLoading && !error && (
+        <>
       {/* Summary */}
       <div className="grid gap-4 sm:grid-cols-3">
         {[
@@ -186,54 +172,45 @@ export default function BudgetsPage() {
         ))}
       </div>
 
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex flex-col items-center justify-center gap-3 py-12">
-          <Spinner size={28} />
-          <p className="text-sm text-surface-500 dark:text-surface-400">Loading budgets...</p>
-        </div>
-      )}
-
-      {/* Error Banner */}
-      {error && !isLoading && (
-        <div className="flex items-center gap-2 rounded-lg border border-danger-200 bg-danger-50 px-4 py-3 text-sm text-danger-700 dark:border-danger-500/30 dark:bg-danger-500/10 dark:text-danger-400">
-          <AlertCircle size={16} className="shrink-0" />
-          {error}
-        </div>
-      )}
-
       {/* Budget Cards */}
-      {!isLoading && (
-        <div className="grid gap-5 sm:grid-cols-2">
-          {budgets.length === 0 && !error && (
-            <div className="col-span-2 py-12 text-center text-sm text-surface-400 dark:text-surface-500">
-              No budgets yet. Click "Add Budget" to create one.
-            </div>
-          )}
-          {budgets.map((budget) => (
-            <div key={budget.id} className="card hover:shadow-md transition-shadow duration-200">
-              <div className="flex items-start justify-between">
-                <div className="flex-1 pr-4">
-                  <BudgetProgress budget={budget} />
-                </div>
-                <div className="flex items-center gap-1 shrink-0 pt-1">
-                  <button
-                    onClick={() => handleEdit(budget)}
-                    className="rounded-lg p-2 text-surface-400 hover:bg-surface-100 hover:text-surface-600 dark:hover:bg-surface-700 dark:hover:text-surface-300 transition-colors"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(budget.id)}
-                    className="rounded-lg p-2 text-surface-400 hover:bg-danger-50 hover:text-danger-500 dark:hover:bg-danger-500/10 transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+      {budgets.length === 0 ? (
+        <EmptyState
+          icon={PiggyBank}
+          title="No budgets yet"
+          description="Create your first budget to start tracking your spending limits by category."
+          action={
+            <button onClick={handleAdd} className="btn-primary">
+              <Plus size={18} />
+              Add Budget
+            </button>
+          }
+        />
+      ) : (
+      <div className="grid gap-5 sm:grid-cols-2">
+        {budgets.map((budget) => (
+          <div key={budget.id} className="card hover:shadow-md transition-shadow duration-200">
+            <div className="flex items-start justify-between">
+              <div className="flex-1 pr-4">
+                <BudgetProgress budget={budget} />
+              </div>
+              <div className="flex items-center gap-1 shrink-0 pt-1">
+                <button
+                  onClick={() => handleEdit(budget)}
+                  className="rounded-lg p-2 text-surface-400 hover:bg-surface-100 hover:text-surface-600 dark:hover:bg-surface-700 dark:hover:text-surface-300 transition-colors"
+                >
+                  <Edit2 size={16} />
+                </button>
+                <button
+                  onClick={() => handleDelete(budget.id)}
+                  className="rounded-lg p-2 text-surface-400 hover:bg-danger-50 hover:text-danger-500 dark:hover:bg-danger-500/10 transition-colors"
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
+      </div>
       )}
 
       {/* Add/Edit Modal */}
@@ -265,31 +242,18 @@ export default function BudgetsPage() {
               className="input"
             />
           </div>
-          {/* Form Error */}
-          {formError && (
-            <div className="flex items-center gap-2 rounded-lg border border-danger-200 bg-danger-50 px-4 py-3 text-sm text-danger-700 dark:border-danger-500/30 dark:bg-danger-500/10 dark:text-danger-400">
-              <AlertCircle size={16} className="shrink-0" />
-              {formError}
-            </div>
-          )}
-
           <div className="flex gap-3 pt-2">
-            <button onClick={handleSave} disabled={isSaving} className="btn-primary flex-1">
-              {isSaving ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                editingBudget ? 'Save Changes' : 'Create Budget'
-              )}
+            <button onClick={handleSave} className="btn-primary flex-1">
+              {editingBudget ? 'Save Changes' : 'Create Budget'}
             </button>
-            <button onClick={() => setShowModal(false)} disabled={isSaving} className="btn-secondary">
+            <button onClick={() => setShowModal(false)} className="btn-secondary">
               Cancel
             </button>
           </div>
         </div>
       </Modal>
+        </>
+      )}
     </div>
   );
 }
