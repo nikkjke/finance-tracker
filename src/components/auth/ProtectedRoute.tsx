@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import Spinner from '../ui/Spinner';
 import type { UserRole } from '../../types';
 import type { ReactNode } from 'react';
 
@@ -11,7 +12,19 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, requiredRole, adminOnly, userOnly }: ProtectedRouteProps) {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isLoading } = useAuth();
+
+  // Show loading spinner while session is being restored from localStorage
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-surface-50 dark:bg-surface-950">
+        <div className="text-center space-y-3">
+          <Spinner size={32} />
+          <p className="text-sm text-surface-500 dark:text-surface-400">Restoring session...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Unauthenticated users → 401 Unauthorized
   if (!isAuthenticated) {

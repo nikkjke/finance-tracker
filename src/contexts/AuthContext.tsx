@@ -1,12 +1,19 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { User, UserRole } from '../types';
-import { mockUsers } from '../data/mockData';
+import {
+  loginUser,
+  registerUser,
+  logoutUser,
+  switchUserRole,
+  restoreSession,
+} from '../services/authService';
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => boolean;
-  register: (name: string, email: string, password: string) => boolean;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   switchRole: (role: UserRole) => void;
 }
@@ -15,54 +22,53 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const login = (email: string, _password: string): boolean => {
-    const found = mockUsers.find((u) => u.email === email);
-    if (found) {
-      setUser(found);
-      return true;
+  // Restore session from localStorage on mount
+  useEffect(() => {
+    const savedUser = restoreSession();
+    if (savedUser) {
+      setUser(savedUser);
     }
-    // Allow any email/password for demo
-    const newUser: User = {
-      id: crypto.randomUUID(),
-      name: email.split('@')[0],
-      email,
-      role: 'user',
-      createdAt: new Date().toISOString(),
-    };
-    setUser(newUser);
-    return true;
-  };
+    setIsLoading(false);
+  }, []);
 
-  const register = (name: string, email: string, _password: string): boolean => {
-    const exists = mockUsers.find((u) => u.email === email);
-    if (exists) return false;
-    const newUser: User = {
-      id: crypto.randomUUID(),
-      name,
-      email,
-      role: 'user',
-      createdAt: new Date().toISOString(),
-    };
-    setUser(newUser);
-    return true;
-  };
+  const login = useCallback(async (email: string, password: string) => {
+    const result = await loginUser(email, password);
+    if (result.success && result.user) {
+      setUser(result.user);
+      return { success: true };
+    }
+    return { success: false, error: result.error };
+  }, []);
 
-  const logout = () => {
+  const register = useCallback(async (name: string, email: string, password: string) => {
+    const result = await registerUser(name, email, password);
+    if (result.success && result.user) {
+      setUser(result.user);
+      return { success: true };
+    }
+    return { success: false, error: result.error };
+  }, []);
+
+  const logout = useCallback(() => {
+    logoutUser();
     setUser(null);
-  };
+  }, []);
 
-  const switchRole = (role: UserRole) => {
+  const switchRole = useCallback((role: UserRole) => {
     if (user) {
-      setUser({ ...user, role });
+      const updatedUser = switchUserRole(user, role);
+      setUser(updatedUser);
     }
-  };
+  }, [user]);
 
   return (
     <AuthContext.Provider
       value={{
         user,
         isAuthenticated: !!user,
+        isLoading,
         login,
         register,
         logout,

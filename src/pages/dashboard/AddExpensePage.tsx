@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   ScanLine,
   Upload,
@@ -7,11 +7,15 @@ import {
   X,
   Loader2,
   Tag,
+  CreditCard,
+  AlertCircle,
 } from 'lucide-react';
-import type { ExpenseCategory } from '../../types';
+import type { Expense, ExpenseCategory } from '../../types';
 import { categoryLabels } from '../../data/mockData';
 import Dropdown from '../../components/ui/Dropdown';
 import DatePicker from '../../components/ui/DatePicker';
+import { useAuth } from '../../contexts/AuthContext';
+import { addExpense } from '../../services/expenseService';
 
 interface FormData {
   storeName: string;
@@ -19,6 +23,7 @@ interface FormData {
   category: ExpenseCategory;
   date: string;
   notes: string;
+  paymentMethod: Expense['paymentMethod'];
 }
 
 interface FormErrors {
@@ -30,63 +35,76 @@ interface FormErrors {
 
 type ScanState = 'idle' | 'scanning' | 'success' | 'error';
 
+const initialFormData: FormData = {
+  storeName: '',
+  amount: '',
+  category: 'food',
+  date: new Date().toISOString().split('T')[0],
+  notes: '',
+  paymentMethod: 'card',
+};
+
 export default function AddExpensePage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'manual' | 'scan'>('manual');
-  const [formData, setFormData] = useState<FormData>({
-    storeName: '',
-    amount: '',
-    category: 'food',
-    date: new Date().toISOString().split('T')[0],
-    notes: '',
-  });
+  const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [serviceError, setServiceError] = useState<string | null>(null);
 
   // QR Scan states
   const [scanState, setScanState] = useState<ScanState>('idle');
 
   const categories = Object.entries(categoryLabels) as [ExpenseCategory, string][];
 
-  const validate = (): boolean => {
+  const validate = useCallback((): boolean => {
     const newErrors: FormErrors = {};
     if (!formData.storeName.trim()) newErrors.storeName = 'Store name is required';
     if (!formData.amount || parseFloat(formData.amount) <= 0) newErrors.amount = 'Valid amount is required';
     if (!formData.date) newErrors.date = 'Date is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData.storeName, formData.amount, formData.date]);
 
-  const handleChange = (field: keyof FormData, value: string) => {
+  const handleChange = useCallback((field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    if (field in errors) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setServiceError(null);
+
+    const result = await addExpense(user?.id ?? 'guest', {
+      storeName: formData.storeName.trim(),
+      amount: parseFloat(formData.amount),
+      category: formData.category,
+      date: formData.date,
+      notes: formData.notes || undefined,
+      paymentMethod: formData.paymentMethod,
+    });
+
     setIsSubmitting(false);
+
+    if (!result.success) {
+      setServiceError(result.error ?? 'Failed to save expense. Please try again.');
+      return;
+    }
+
     setSubmitted(true);
 
     // Reset after showing success
     setTimeout(() => {
       setSubmitted(false);
-      setFormData({
-        storeName: '',
-        amount: '',
-        category: 'food',
-        date: new Date().toISOString().split('T')[0],
-        notes: '',
-      });
+      setFormData({ ...initialFormData, date: new Date().toISOString().split('T')[0] });
     }, 3000);
   };
 
-  const handleScan = async () => {
+  const handleScan = useCallback(async () => {
     setScanState('scanning');
     // Simulate QR scan
     await new Promise((resolve) => setTimeout(resolve, 2500));
@@ -99,13 +117,14 @@ export default function AddExpensePage() {
       category: 'food',
       date: '2026-02-15',
       notes: 'Auto-scanned receipt - Weekly groceries',
+      paymentMethod: 'card',
     });
     setActiveTab('manual');
-  };
+  }, []);
 
-  const resetScan = () => {
+  const resetScan = useCallback(() => {
     setScanState('idle');
-  };
+  }, []);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -270,6 +289,14 @@ export default function AddExpensePage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Service Error Banner */}
+              {serviceError && (
+                <div className="flex items-center gap-2 rounded-lg border border-danger-200 bg-danger-50 px-4 py-3 text-sm text-danger-700 dark:border-danger-500/30 dark:bg-danger-500/10 dark:text-danger-400">
+                  <AlertCircle size={16} className="shrink-0" />
+                  {serviceError}
+                </div>
+              )}
+
               {/* Store Name */}
               <div>
                 <label htmlFor="storeName" className="label">
@@ -336,6 +363,23 @@ export default function AddExpensePage() {
                 )}
               </div>
 
+              {/* Payment Method */}
+              <div>
+                <label className="label">Payment Method</label>
+                <Dropdown
+                  value={formData.paymentMethod}
+                  onChange={(val) => handleChange('paymentMethod', val)}
+                  options={[
+                    { value: 'card', label: 'Card' },
+                    { value: 'cash', label: 'Cash' },
+                    { value: 'bank_transfer', label: 'Bank Transfer' },
+                    { value: 'qr_scan', label: 'QR Scan' },
+                  ]}
+                  icon={<CreditCard size={16} />}
+                  fullWidth
+                />
+              </div>
+
               {/* Notes */}
               <div>
                 <label htmlFor="notes" className="label">
@@ -369,15 +413,10 @@ export default function AddExpensePage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() =>
-                    setFormData({
-                      storeName: '',
-                      amount: '',
-                      category: 'food',
-                      date: new Date().toISOString().split('T')[0],
-                      notes: '',
-                    })
-                  }
+                  onClick={() => {
+                    setFormData({ ...initialFormData, date: new Date().toISOString().split('T')[0] });
+                    setServiceError(null);
+                  }}
                   className="btn-secondary"
                 >
                   Clear
