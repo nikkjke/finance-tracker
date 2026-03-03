@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Download, Filter, Calendar, CalendarDays, ArrowUpRight, Hash, BarChart3 } from 'lucide-react';
+import { Download, Filter, Calendar, CalendarDays, ArrowUpRight, Hash, BarChart3, Search, ArrowUpDown } from 'lucide-react';
 import TransactionTable from '../../components/ui/TransactionTable';
 import BarChart from '../../components/ui/BarChart';
 import DonutChart from '../../components/ui/DonutChart';
@@ -13,6 +13,8 @@ import {
   mockSpendingByCategory,
 } from '../../data/mockData';
 import { useExpenses } from '../../contexts/ExpenseContext';
+import { applyFilters, presetToDateRange } from '../../services';
+import type { SortConfig } from '../../services/filterService';
 import type { Expense } from '../../types';
 
 export default function ReportsPage() {
@@ -20,8 +22,11 @@ export default function ReportsPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState('6months');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending' | 'cancelled'>('all');
+  const [sortBy, setSortBy] = useState('date-desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
@@ -43,19 +48,39 @@ export default function ReportsPage() {
     fetchReports();
   }, [storeExpenses]);
 
-  const filteredExpenses = categoryFilter === 'all'
-    ? expenses
-    : expenses.filter((e) => e.category === categoryFilter);
+  const sortConfig: SortConfig<Expense> =
+    sortBy === 'amount-asc'
+      ? { key: 'amount', direction: 'asc' as const }
+      : sortBy === 'amount-desc'
+        ? { key: 'amount', direction: 'desc' as const }
+        : sortBy === 'date-asc'
+          ? { key: 'date', direction: 'asc' as const }
+          : sortBy === 'store-asc'
+            ? { key: 'storeName', direction: 'asc' as const }
+            : { key: 'date', direction: 'desc' as const };
+
+  const pipelineResult = applyFilters(expenses, {
+    searchQuery,
+    searchFields: ['storeName', 'notes'],
+    filters: {
+      category: categoryFilter,
+      status: statusFilter,
+    },
+    sort: sortConfig,
+    dateField: 'date',
+    dateRange: presetToDateRange(dateRange as '7days' | '30days' | '6months' | '1year'),
+    page: currentPage,
+    pageSize: itemsPerPage,
+  });
+
+  const filteredExpensesCount = pipelineResult.totalItems;
+  const paginatedExpenses = pipelineResult.items;
+  const totalPages = pipelineResult.pagination?.totalPages ?? 1;
 
   // Reset to page 1 when filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [categoryFilter, dateRange]);
-
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
-  const startIdx = (currentPage - 1) * itemsPerPage;
-  const paginatedExpenses = filteredExpenses.slice(startIdx, startIdx + itemsPerPage);
+  }, [searchQuery, categoryFilter, statusFilter, dateRange, sortBy]);
 
   return (
     <div className="space-y-6">
@@ -75,6 +100,16 @@ export default function ReportsPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
+        <div className="relative min-w-[220px] flex-1">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search store or notes..."
+            className="input w-full pl-9"
+          />
+        </div>
         <Dropdown
           value={dateRange}
           onChange={setDateRange}
@@ -102,9 +137,33 @@ export default function ReportsPage() {
             { value: 'travel', label: 'Travel' },
           ]}
         />
+        <Dropdown
+          value={statusFilter}
+          onChange={(val) => setStatusFilter(val as typeof statusFilter)}
+          icon={<Filter size={16} />}
+          options={[
+            { value: 'all', label: 'All Statuses' },
+            { value: 'completed', label: 'Completed' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'cancelled', label: 'Cancelled' },
+          ]}
+        />
+        <Dropdown
+          value={sortBy}
+          onChange={setSortBy}
+          icon={<ArrowUpDown size={16} />}
+          options={[
+            { value: 'date-desc', label: 'Date: Newest First' },
+            { value: 'date-asc', label: 'Date: Oldest First' },
+            { value: 'amount-desc', label: 'Amount: High to Low' },
+            { value: 'amount-asc', label: 'Amount: Low to High' },
+            { value: 'store-asc', label: 'Store: A-Z' },
+          ]}
+          minWidth="min-w-[220px]"
+        />
         <div className="ml-auto hidden sm:flex items-center gap-1.5 text-xs text-surface-400 dark:text-surface-500">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-success-500" />
-          {filteredExpenses.length} transactions found
+          {filteredExpensesCount} transactions found
         </div>
       </div>
 
@@ -184,7 +243,7 @@ export default function ReportsPage() {
           },
           {
             label: 'Total Transactions',
-            value: filteredExpenses.length.toString(),
+            value: filteredExpensesCount.toString(),
             icon: Hash,
             valueColor: 'text-surface-900 dark:text-white',
           },
@@ -224,7 +283,7 @@ export default function ReportsPage() {
         </h2>
         <div className="space-y-4">
           <TransactionTable expenses={paginatedExpenses} />
-          {filteredExpenses.length > 0 && (
+          {filteredExpensesCount > 0 && (
             <div className="border-t border-surface-200 pt-4 dark:border-surface-700">
               <Pagination
                 currentPage={currentPage}
@@ -235,7 +294,7 @@ export default function ReportsPage() {
                   setItemsPerPage(count);
                   setCurrentPage(1);
                 }}
-                totalItems={filteredExpenses.length}
+                totalItems={filteredExpensesCount}
                 loading={isLoading}
               />
             </div>
