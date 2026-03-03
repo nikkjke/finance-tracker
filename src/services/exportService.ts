@@ -28,10 +28,18 @@ function convertToCSV<T extends Record<string, any>>(data: T[]): string {
       headers
         .map((header) => {
           const value = row[header];
-          // Escape quotes and wrap in quotes if contains comma, quote, or newline
           if (value === null || value === undefined) return '';
+          
           const stringValue = String(value);
-          if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+          
+          // Always quote values that contain special characters or are dates
+          const needsQuoting = 
+            stringValue.includes(',') || 
+            stringValue.includes('"') || 
+            stringValue.includes('\n') ||
+            stringValue.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/); // Date format MM/DD/YYYY
+          
+          if (needsQuoting) {
             return `"${stringValue.replace(/"/g, '""')}"`;
           }
           return stringValue;
@@ -40,6 +48,22 @@ function convertToCSV<T extends Record<string, any>>(data: T[]): string {
     ),
   ];
   return csvRows.join('\n');
+}
+
+/**
+ * Format date for CSV/Excel compatibility
+ */
+function formatDateForExport(dateString: string): string {
+  try {
+    const date = new Date(dateString);
+    // Format as MM/DD/YYYY for better Excel compatibility
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
+  } catch {
+    return dateString;
+  }
 }
 
 /**
@@ -77,7 +101,7 @@ export function exportTransactions(
   if (format === 'csv') {
     const dataForCSV = expenses.map((exp) => ({
       ID: exp.id,
-      Date: exp.date,
+      Date: formatDateForExport(exp.date),
       Store: exp.storeName,
       Amount: exp.amount,
       Category: exp.category,
@@ -116,7 +140,7 @@ export function exportUsers(
       Name: user.name,
       Email: user.email,
       Role: user.role,
-      'Created At': new Date(user.createdAt).toLocaleDateString(),
+      'Created At': formatDateForExport(user.createdAt),
     }));
     const csvContent = convertToCSV(dataForCSV);
     downloadFile(csvContent, fullFilename, 'text/csv;charset=utf-8;');
@@ -146,7 +170,7 @@ export function exportIncome(
   if (format === 'csv') {
     const dataForCSV = income.map((inc) => ({
       ID: inc.id,
-      Date: inc.date,
+      Date: formatDateForExport(inc.date),
       Source: inc.source,
       Amount: inc.amount,
       Category: inc.category,
