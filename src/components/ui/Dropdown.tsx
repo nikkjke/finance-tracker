@@ -13,9 +13,11 @@ interface DropdownProps {
   icon?: ReactNode;
   placeholder?: string;
   fullWidth?: boolean;
+  minWidth?: string;
+  openDirection?: 'up' | 'down';
 }
 
-export default function Dropdown({ value, onChange, options, icon, placeholder, fullWidth }: DropdownProps) {
+export default function Dropdown({ value, onChange, options, icon, placeholder, fullWidth, minWidth = 'min-w-[160px]', openDirection = 'down' }: DropdownProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -36,7 +38,7 @@ export default function Dropdown({ value, onChange, options, icon, placeholder, 
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5 text-sm font-medium shadow-sm transition-all ${fullWidth ? 'w-full' : 'min-w-[160px]'} ${
+        className={`flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5 text-sm font-medium shadow-sm transition-all ${fullWidth ? 'w-full' : minWidth} ${
           open
             ? 'border-primary-500 bg-white ring-2 ring-primary-500/20 dark:border-primary-500 dark:bg-surface-800 dark:ring-primary-500/20'
             : 'border-surface-300 bg-white hover:border-surface-400 dark:border-surface-600 dark:bg-surface-800 dark:hover:border-surface-500'
@@ -53,7 +55,7 @@ export default function Dropdown({ value, onChange, options, icon, placeholder, 
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30">
+        <div className={`absolute left-0 z-50 w-full overflow-hidden rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30 ${openDirection === 'up' ? 'bottom-full mb-2' : 'top-full mt-2'}`}>
           <div className="p-1.5">
             {options.map((option) => {
               const isActive = option.value === value;

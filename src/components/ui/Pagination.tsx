@@ -78,6 +78,8 @@ export default function Pagination({
             value={itemsPerPage.toString()}
             onChange={(value) => onItemsPerPageChange(parseInt(value))}
             options={itemsPerPageOptions}
+            minWidth="min-w-[70px]"
+            openDirection="up"
           />
         </div>
       )}
