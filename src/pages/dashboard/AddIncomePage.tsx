@@ -20,6 +20,7 @@ interface FormErrors {
   amount?: string;
   category?: string;
   date?: string;
+  notes?: string;
 }
 
 const initialFormData: FormData = {
@@ -41,14 +42,86 @@ export default function AddIncomePage() {
 
   const categories = Object.entries(incomeLabels) as [IncomeCategory, string][];
 
+  const isFormValid = useCallback((): boolean => {
+    // Source validation
+    if (!formData.source.trim() || formData.source.trim().length < 2 || formData.source.trim().length > 100) {
+      return false;
+    }
+
+    // Amount validation
+    if (!formData.amount || parseFloat(formData.amount) <= 0 || isNaN(parseFloat(formData.amount))) {
+      return false;
+    }
+
+    // Category validation
+    if (!formData.category) {
+      return false;
+    }
+
+    // Date validation
+    if (!formData.date) {
+      return false;
+    }
+    const selectedDate = new Date(formData.date);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    if (selectedDate > today) {
+      return false;
+    }
+
+    // Notes validation
+    if (formData.notes && formData.notes.length > 300) {
+      return false;
+    }
+
+    return true;
+  }, [formData]);
+
   const validate = useCallback((): boolean => {
     const newErrors: FormErrors = {};
-    if (!formData.source.trim()) newErrors.source = 'Income source is required';
-    if (!formData.amount || parseFloat(formData.amount) <= 0) newErrors.amount = 'Valid amount is required';
-    if (!formData.date) newErrors.date = 'Date is required';
+
+    // Source validation (required, 2-100 chars)
+    if (!formData.source.trim()) {
+      newErrors.source = 'Income source is required';
+    } else if (formData.source.trim().length < 2) {
+      newErrors.source = 'Income source must be at least 2 characters';
+    } else if (formData.source.trim().length > 100) {
+      newErrors.source = 'Income source must not exceed 100 characters';
+    }
+
+    // Amount validation (required, > 0)
+    if (!formData.amount || parseFloat(formData.amount) <= 0) {
+      newErrors.amount = 'Valid amount is required (must be greater than 0)';
+    } else if (isNaN(parseFloat(formData.amount))) {
+      newErrors.amount = 'Amount must be a valid number';
+    }
+
+    // Category validation (required)
+    if (!formData.category) {
+      newErrors.category = 'Category is required';
+    }
+
+    // Date validation (required, not future)
+    if (!formData.date) {
+      newErrors.date = 'Date is required';
+    } else {
+      const selectedDate = new Date(formData.date);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      
+      if (selectedDate > today) {
+        newErrors.date = 'Date cannot be in the future';
+      }
+    }
+
+    // Notes validation (max 300 chars)
+    if (formData.notes && formData.notes.length > 300) {
+      newErrors.notes = 'Notes must not exceed 300 characters';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData.source, formData.amount, formData.date]);
+  }, [formData.source, formData.amount, formData.category, formData.date, formData.notes]);
 
   const handleChange = useCallback((field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -128,6 +201,7 @@ export default function AddIncomePage() {
               <input
                 id="source"
                 type="text"
+                maxLength={100}
                 value={formData.source}
                 onChange={(e) => handleChange('source', e.target.value)}
                 placeholder="e.g. Acme Corp, Freelance Project, Investment"
@@ -170,6 +244,9 @@ export default function AddIncomePage() {
                   icon={<Tag size={16} />}
                   fullWidth
                 />
+                {errors.category && (
+                  <p className="mt-1.5 text-xs text-danger-500">{errors.category}</p>
+                )}
               </div>
             </div>
 
@@ -188,24 +265,33 @@ export default function AddIncomePage() {
 
             {/* Notes */}
             <div>
-              <label htmlFor="notes" className="label">
-                Notes <span className="text-surface-400 font-normal">(optional)</span>
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="notes" className="label">
+                  Notes <span className="text-surface-400 font-normal">(optional)</span>
+                </label>
+                <span className={`text-xs ${formData.notes.length > 270 ? 'text-warning-500' : 'text-surface-400'}`}>
+                  {formData.notes.length}/300
+                </span>
+              </div>
               <textarea
                 id="notes"
                 rows={3}
+                maxLength={300}
                 value={formData.notes}
                 onChange={(e) => handleChange('notes', e.target.value)}
                 placeholder="Add any additional details about this income..."
-                className="input resize-none"
+                className={`input resize-none ${errors.notes ? 'border-danger-500' : ''}`}
               />
+              {errors.notes && (
+                <p className="mt-1.5 text-xs text-danger-500">{errors.notes}</p>
+              )}
             </div>
 
             {/* Submit */}
             <div className="flex gap-3 pt-2">
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !isFormValid()}
                 className="btn-primary flex-1"
               >
                 {isSubmitting ? (
@@ -222,6 +308,7 @@ export default function AddIncomePage() {
                 onClick={() => {
                   setFormData({ ...initialFormData, date: new Date().toISOString().split('T')[0] });
                   setServiceError(null);
+                  setErrors({});
                 }}
                 className="btn-secondary"
               >
