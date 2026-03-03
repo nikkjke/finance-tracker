@@ -1,10 +1,12 @@
-import { CreditCard, Banknote, Building2, ScanLine, ShoppingBag, Car, Film, Zap, Heart, GraduationCap, Plane, UtensilsCrossed, MoreHorizontal } from 'lucide-react';
+import { CreditCard, Banknote, Building2, ScanLine, ShoppingBag, Car, Film, Zap, Heart, GraduationCap, Plane, UtensilsCrossed, MoreHorizontal, Edit2, Trash2 } from 'lucide-react';
 import type { Expense } from '../../types';
 import { categoryLabels, categoryColors } from '../../data/mockData';
 
 interface TransactionTableProps {
   expenses: Expense[];
   limit?: number;
+  onEdit?: (expense: Expense) => void;
+  onDelete?: (expense: Expense) => void;
 }
 
 const categoryIcons: Record<string, typeof ShoppingBag> = {
@@ -26,7 +28,8 @@ const methodConfig: Record<string, { icon: typeof CreditCard; label: string }> =
   qr_scan: { icon: ScanLine, label: 'QR Scan' },
 };
 
-export default function TransactionTable({ expenses, limit }: TransactionTableProps) {
+export default function TransactionTable({ expenses, limit, onEdit, onDelete }: TransactionTableProps) {
+  const hasActions = !!(onEdit || onDelete);
   const displayed = limit ? expenses.slice(0, limit) : expenses;
 
   const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
@@ -104,6 +107,30 @@ export default function TransactionTable({ expenses, limit }: TransactionTablePr
                 {new Date(expense.date).toLocaleDateString('en-US', { year: 'numeric' })}
               </p>
             </div>
+
+            {/* Actions */}
+            {hasActions && (
+              <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                {onEdit && (
+                  <button
+                    onClick={() => onEdit(expense)}
+                    className="rounded-lg p-1.5 text-surface-400 hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-500/10 dark:hover:text-primary-400 transition-colors"
+                    title="Edit"
+                  >
+                    <Edit2 size={15} />
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    onClick={() => onDelete(expense)}
+                    className="rounded-lg p-1.5 text-surface-400 hover:bg-danger-50 hover:text-danger-600 dark:hover:bg-danger-500/10 dark:hover:text-danger-400 transition-colors"
+                    title="Delete"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         );
       })}
