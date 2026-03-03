@@ -31,7 +31,7 @@ export default function AdminAlerts() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 500);
+    }, 250);
 
     return () => clearTimeout(timer);
   }, []);

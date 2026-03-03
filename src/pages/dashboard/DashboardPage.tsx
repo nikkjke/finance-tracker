@@ -39,7 +39,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 500);
+    }, 250);
 
     return () => clearTimeout(timer);
   }, []);
