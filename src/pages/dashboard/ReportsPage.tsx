@@ -9,7 +9,7 @@ import Pagination from '../../components/ui/Pagination';
 import { categoryLabels, incomeLabels } from '../../data/mockData';
 import { useExpenses } from '../../contexts/ExpenseContext';
 import { useIncome } from '../../contexts/IncomeContext';
-import { applyFilters, presetToDateRange } from '../../services';
+import { applyFilters, presetToDateRange, exportReport } from '../../services';
 import type { FilterPipelineConfig, SortConfig } from '../../services/filterService';
 import type { Expense, Income } from '../../types';
 
@@ -187,6 +187,19 @@ export default function ReportsPage() {
     setIncomePage(1);
   }, [incomeSearchQuery, incomeCategoryFilter, incomeStatusFilter, incomeDateRange, incomeSortBy]);
 
+  const handleExportReport = async () => {
+    await exportReport('financial', {
+      expenses: filteredExpenses,
+      income: paginatedIncome,
+      summary: {
+        totalSpent,
+        totalIncome: paginatedIncome.reduce((sum, inc) => sum + inc.amount, 0),
+        periodStart: presetToDateRange(dateRange as '7days' | '30days' | '6months' | '1year').start,
+        periodEnd: presetToDateRange(dateRange as '7days' | '30days' | '6months' | '1year').end,
+      }
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -197,7 +210,7 @@ export default function ReportsPage() {
             Analyze your spending patterns and trends.
           </p>
         </div>
-        <button className="btn-secondary">
+        <button className="btn-secondary" onClick={handleExportReport}>
           <Download size={16} />
           Export Report
         </button>
