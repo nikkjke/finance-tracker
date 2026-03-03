@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Download, Filter, Calendar, CalendarDays, ArrowUpRight, Hash, BarChart3, Search, ArrowUpDown, Wallet, CircleAlert, ListFilter } from 'lucide-react';
+import { Download, Filter, Calendar, CalendarDays, ArrowUpRight, Hash, BarChart3, Search, ArrowUpDown, Wallet, ListFilter } from 'lucide-react';
 import TransactionTable from '../../components/ui/TransactionTable';
 import Dropdown from '../../components/ui/Dropdown';
 import Spinner from '../../components/ui/Spinner';
@@ -165,12 +165,6 @@ export default function ReportsPage() {
       amount,
       share: totalSpent > 0 ? (amount / totalSpent) * 100 : 0,
     }))
-    .sort((a, b) => b.amount - a.amount)
-    .slice(0, 5);
-
-  const outlierThreshold = averageExpense * 2;
-  const outliers = filteredExpenses
-    .filter((expense) => expense.amount >= outlierThreshold && outlierThreshold > 0)
     .sort((a, b) => b.amount - a.amount)
     .slice(0, 5);
 
@@ -579,47 +573,22 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="card">
-          <h2 className="mb-5 text-base font-semibold text-surface-900 dark:text-white">Top Merchants</h2>
-          <div className="space-y-3">
-            {topMerchants.length === 0 ? (
-              <p className="text-sm text-surface-400">No merchant data for the selected filters.</p>
-            ) : (
-              topMerchants.map((merchant) => (
-                <div key={merchant.name} className="flex items-center justify-between rounded-lg border border-surface-200 px-3 py-2 dark:border-surface-700">
-                  <div>
-                    <p className="text-sm font-medium text-surface-900 dark:text-white">{merchant.name}</p>
-                    <p className="text-xs text-surface-400">{merchant.count} transactions</p>
-                  </div>
-                  <p className="text-sm font-semibold text-surface-900 dark:text-white">${merchant.total.toFixed(2)}</p>
+      <div className="card">
+        <h2 className="mb-5 text-base font-semibold text-surface-900 dark:text-white">Top Merchants</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {topMerchants.length === 0 ? (
+            <p className="text-sm text-surface-400 col-span-full">No merchant data for the selected filters.</p>
+          ) : (
+            topMerchants.map((merchant) => (
+              <div key={merchant.name} className="flex items-center justify-between rounded-lg border border-surface-200 px-3 py-2 dark:border-surface-700">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-surface-900 dark:text-white truncate">{merchant.name}</p>
+                  <p className="text-xs text-surface-400">{merchant.count} transactions</p>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="mb-5 flex items-center gap-2">
-            <CircleAlert size={18} className="text-warning-500" />
-            <h2 className="text-base font-semibold text-surface-900 dark:text-white">Outlier Expenses</h2>
-          </div>
-          <p className="mb-3 text-xs text-surface-400">Threshold: 2× average expense (${outlierThreshold.toFixed(2)})</p>
-          <div className="space-y-3">
-            {outliers.length === 0 ? (
-              <p className="text-sm text-surface-400">No outliers found for current filters.</p>
-            ) : (
-              outliers.map((expense) => (
-                <div key={expense.id} className="flex items-center justify-between rounded-lg border border-warning-200 bg-warning-50/40 px-3 py-2 dark:border-warning-500/30 dark:bg-warning-500/10">
-                  <div>
-                    <p className="text-sm font-medium text-surface-900 dark:text-white">{expense.storeName}</p>
-                    <p className="text-xs text-surface-500">{new Date(expense.date).toLocaleDateString('en-US')}</p>
-                  </div>
-                  <p className="text-sm font-semibold text-warning-700 dark:text-warning-400">${expense.amount.toFixed(2)}</p>
-                </div>
-              ))
-            )}
-          </div>
+                <p className="text-sm font-semibold text-surface-900 dark:text-white ml-2">${merchant.total.toFixed(2)}</p>
+              </div>
+            ))
+          )}
         </div>
       </div>
         </>
