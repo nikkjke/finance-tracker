@@ -327,7 +327,7 @@ export default function AdminUsers() {
                       </button>
                       <button
                         onClick={() => handleDeleteUser(user.id)}
-                        className="rounded-lg p-2 text-surface-400 hover:bg-danger-50 hover:text-danger-500 dark:hover:bg-danger-500/10 transition-colors"
+                        className="rounded-lg p-2 text-danger-500 hover:bg-danger-50 hover:text-danger-600 dark:text-danger-400 dark:hover:bg-danger-500/10 dark:hover:text-danger-300 transition-colors"
                         title="Delete user"
                       >
                         <Trash2 size={16} />
