@@ -35,6 +35,47 @@ export default function DashboardPage() {
     return { totalIncome: total, netIncome: net };
   }, [stats.totalSpent]);
 
+  // Memoized budget utilization with percentages
+  const budgetData = useMemo(() => {
+    return mockBudgets.map(budget => {
+      const percentage = budget.limit > 0 ? (budget.spent / budget.limit) * 100 : 0;
+      const remaining = budget.limit - budget.spent;
+      const status = percentage >= 100 ? 'over' : percentage >= 80 ? 'warning' : 'good';
+      
+      return {
+        ...budget,
+        percentage: percentage.toFixed(1),
+        remaining,
+        status
+      };
+    });
+  }, []);
+
+  // Memoized monthly spending trends
+  const monthlyTrendsData = useMemo(() => {
+    const sorted = [...mockMonthlySpending].sort((a, b) => a.value - b.value);
+    const avgSpending = mockMonthlySpending.reduce((sum, m) => sum + m.value, 0) / mockMonthlySpending.length;
+    
+    return {
+      data: mockMonthlySpending,
+      average: avgSpending,
+      highest: sorted[sorted.length - 1],
+      lowest: sorted[0]
+    };
+  }, []);
+
+  // Memoized recent transactions summary
+  const transactionsData = useMemo(() => {
+    const recent = mockExpenses.slice(0, 5);
+    const totalRecent = recent.reduce((sum, exp) => sum + exp.amount, 0);
+    
+    return {
+      transactions: recent,
+      total: totalRecent,
+      count: recent.length
+    };
+  }, []);
+
   // Simulate loading statistics with setTimeout
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -112,7 +153,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="flex-1 flex flex-col justify-end">
-                <BarChart data={mockMonthlySpending} height={220} />
+                <BarChart data={monthlyTrendsData.data} height={220} />
               </div>
             </div>
 
@@ -142,7 +183,7 @@ export default function DashboardPage() {
               </Link>
             </div>
             <div className="grid gap-6 sm:grid-cols-2">
-              {mockBudgets.slice(0, 4).map((budget) => (
+              {budgetData.slice(0, 4).map((budget) => (
                 <BudgetProgress key={budget.id} budget={budget} />
               ))}
             </div>
@@ -161,7 +202,7 @@ export default function DashboardPage() {
                 See All <ArrowRight size={14} />
               </Link>
             </div>
-            <TransactionTable expenses={mockExpenses} limit={5} />
+            <TransactionTable expenses={transactionsData.transactions} limit={5} />
           </div>
         </>
       )}
