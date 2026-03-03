@@ -45,7 +45,6 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
     { to: '/admin/transactions', label: 'Transactions', icon: Activity },
     { to: '/admin/alerts', label: 'Alerts', icon: AlertCircle },
     { to: '/admin/content', label: 'Content', icon: FileText },
-    { to: '/admin/settings', label: 'Settings', icon: Settings },
   ];
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -142,18 +141,16 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
 
         {/* Bottom actions */}
         <div className={`border-t border-surface-200 dark:border-surface-700 ${collapsed ? 'p-2' : 'p-3'}`}>
-          {/* Settings link for users, Admin settings in main nav for admins */}
-          {user?.role !== 'admin' && (
-            <NavLink
-              to="/profile"
-              className={`flex items-center rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700/50 transition-colors ${collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2'}`}
-              onClick={onClose}
-              title={collapsed ? 'Settings' : undefined}
-            >
-              <Settings size={18} className="text-surface-400" />
-              {!collapsed && <span className="text-sm text-surface-600 dark:text-surface-400">Settings</span>}
-            </NavLink>
-          )}
+          {/* Settings link for both users and admins */}
+          <NavLink
+            to={user?.role === 'admin' ? '/admin/settings' : '/profile'}
+            className={`flex items-center rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700/50 transition-colors ${collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2'}`}
+            onClick={onClose}
+            title={collapsed ? 'Settings' : undefined}
+          >
+            <Settings size={18} className="text-surface-400" />
+            {!collapsed && <span className="text-sm text-surface-600 dark:text-surface-400">Settings</span>}
+          </NavLink>
           <button
             onClick={handleLogout}
             className={`flex w-full items-center rounded-lg text-danger-500 hover:bg-danger-50 dark:hover:bg-danger-500/10 transition-colors ${collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2'}`}
