@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useMemo, useState, useEffect } from 'react';
 import {
   Users,
   DollarSign,
@@ -13,14 +14,32 @@ import {
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import BarChart from '../../components/ui/BarChart';
+import Spinner from '../../components/ui/Spinner';
 import { mockUsers, mockAdminStats, mockExpenses } from '../../data/mockData';
 import { exportUsers, exportTransactions } from '../../services';
 
 export default function AdminDashboard() {
-  const users = mockUsers;
-  const stats = mockAdminStats;
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Simulate loading admin statistics with setTimeout
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
 
-  const recentTransactions = mockExpenses.slice(0, 5);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Memoized admin statistics calculation
+  const { users, stats, recentTransactions, recentUsers } = useMemo(() => {
+    const usersList = mockUsers;
+    const adminStats = mockAdminStats;
+    const transactions = mockExpenses.slice(0, 5);
+    const recentUsersList = usersList.slice(0, 5);
+    
+    return { users: usersList, stats: adminStats, recentTransactions: transactions, recentUsers: recentUsersList };
+  }, []);
+
   const activityLog = [
     { id: 1, user: 'Mariana Popescu', action: 'Added expense', details: '€245.50 at Kaufland', time: '2 hours ago', type: 'expense' },
     { id: 2, user: 'Admin User', action: 'Created new user', details: 'Andrei Vasile', time: '5 hours ago', type: 'admin' },
@@ -28,8 +47,6 @@ export default function AdminDashboard() {
     { id: 4, user: 'Ion Ionescu', action: 'Deleted expense', details: '€89.00 transaction', time: '2 days ago', type: 'expense' },
     { id: 5, user: 'Admin User', action: 'Changed user role', details: 'Promoted to admin', time: '3 days ago', type: 'admin' },
   ];
-
-  const recentUsers = users.slice(0, 5);
 
   const handleExportData = (type: 'users' | 'transactions' | 'all') => {
     if (type === 'users') {
@@ -65,66 +82,73 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Shield size={20} className="text-primary-600 dark:text-primary-400" />
-            <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Admin Dashboard</h1>
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <Spinner size={40} />
+          <p className="mt-4 text-surface-600 dark:text-surface-300">Loading admin dashboard...</p>
+        </div>
+      ) : (
+        <>
+          {/* Header */}
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Shield size={20} className="text-primary-600 dark:text-primary-400" />
+                <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Admin Dashboard</h1>
+              </div>
+              <p className="text-sm text-surface-500 dark:text-surface-400">
+                System overview and key metrics.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleExportData('users')}
+                className="btn-secondary flex items-center gap-2"
+              >
+                <Download size={16} />
+                <span className="hidden sm:inline">Export Users</span>
+              </button>
+              <button
+                onClick={() => handleExportData('all')}
+                className="btn-primary flex items-center gap-2"
+              >
+                <Download size={16} />
+                <span className="hidden sm:inline">Export All</span>
+              </button>
+            </div>
           </div>
-          <p className="text-sm text-surface-500 dark:text-surface-400">
-            System overview and key metrics.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => handleExportData('users')}
-            className="btn-secondary flex items-center gap-2"
-          >
-            <Download size={16} />
-            <span className="hidden sm:inline">Export Users</span>
-          </button>
-          <button
-            onClick={() => handleExportData('all')}
-            className="btn-primary flex items-center gap-2"
-          >
-            <Download size={16} />
-            <span className="hidden sm:inline">Export All</span>
-          </button>
-        </div>
-      </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Total Users"
-          value={stats.totalUsers.toLocaleString()}
-          icon={<Users size={20} />}
-          change={7.2}
-          changeLabel="this month"
-        />
-        <StatCard
-          title="Active Users"
-          value={stats.activeUsers.toLocaleString()}
-          icon={<Activity size={20} />}
-          change={3.1}
-          changeLabel="this month"
-        />
-        <StatCard
-          title="Total Revenue"
-          value={`€${stats.totalRevenue.toLocaleString()}`}
-          icon={<DollarSign size={20} />}
-          change={12.5}
-          changeLabel="this month"
-        />
-        <StatCard
-          title="New Users"
-          value={stats.newUsersThisMonth.toString()}
-          icon={<UserPlus size={20} />}
-          change={-2.3}
-          changeLabel="vs last month"
-        />
-      </div>
+          {/* Stats */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              title="Total Users"
+              value={stats.totalUsers.toLocaleString()}
+              icon={<Users size={20} />}
+              change={7.2}
+              changeLabel="this month"
+            />
+            <StatCard
+              title="Active Users"
+              value={stats.activeUsers.toLocaleString()}
+              icon={<Activity size={20} />}
+              change={3.1}
+              changeLabel="this month"
+            />
+            <StatCard
+              title="Total Revenue"
+              value={`€${stats.totalRevenue.toLocaleString()}`}
+              icon={<DollarSign size={20} />}
+              change={12.5}
+              changeLabel="this month"
+            />
+            <StatCard
+              title="New Users"
+              value={stats.newUsersThisMonth.toString()}
+              icon={<UserPlus size={20} />}
+              change={-2.3}
+              changeLabel="vs last month"
+            />
+          </div>
 
       {/* Charts Row */}
       <div className="grid gap-4 lg:grid-cols-2">
@@ -315,6 +339,8 @@ export default function AdminDashboard() {
           ))}
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }
