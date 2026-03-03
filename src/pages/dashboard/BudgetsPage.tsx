@@ -17,6 +17,7 @@ export default function BudgetsPage() {
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [formCategory, setFormCategory] = useState<ExpenseCategory>('food');
   const [formLimit, setFormLimit] = useState('');
+  const [formErrors, setFormErrors] = useState<{ category?: string; limit?: string }>({});
 
   const fetchBudgets = () => {
     setIsLoading(true);
@@ -43,22 +44,31 @@ export default function BudgetsPage() {
     setEditingBudget(null);
     setFormCategory('food');
     setFormLimit('');
+    setFormErrors({});
     setShowModal(true);
   };
 
-  const handleEdit = (budget: Budget) => {
-    setEditingBudget(budget);
-    setFormCategory(budget.category);
-    setFormLimit(budget.limit.toString());
-    setShowModal(true);
-  };
+  const validateForm = (): boolean => {
+    const newErrors: { category?: string; limit?: string } = {};
 
-  const handleDelete = (id: string) => {
-    setBudgets((prev) => prev.filter((b) => b.id !== id));
+    if (!formCategory) {
+      newErrors.category = 'Category is required';
+    }
+
+    if (!formLimit.trim()) {
+      newErrors.limit = 'Limit is required';
+    } else if (isNaN(parseFloat(formLimit))) {
+      newErrors.limit = 'Limit must be a valid number';
+    } else if (parseFloat(formLimit) <= 0) {
+      newErrors.limit = 'Limit must be greater than $0';
+    }
+
+    setFormErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSave = () => {
-    if (!formLimit || parseFloat(formLimit) <= 0) return;
+    if (!validateForm()) return;
 
     if (editingBudget) {
       setBudgets((prev) =>
@@ -80,6 +90,19 @@ export default function BudgetsPage() {
       setBudgets((prev) => [...prev, newBudget]);
     }
     setShowModal(false);
+    setFormErrors({});
+  };
+
+  const handleEdit = (budget: Budget) => {
+    setEditingBudget(budget);
+    setFormCategory(budget.category);
+    setFormLimit(budget.limit.toString());
+    setFormErrors({});
+    setShowModal(true);
+  };
+
+  const handleDelete = (id: string) => {
+    setBudgets((prev) => prev.filter((b) => b.id !== id));
   };
 
   return (
@@ -229,6 +252,9 @@ export default function BudgetsPage() {
               icon={<Tag size={16} />}
               fullWidth
             />
+            {formErrors.category && (
+              <p className="mt-1 text-sm text-danger-500">{formErrors.category}</p>
+            )}
           </div>
           <div>
             <label className="label">Monthly Limit ($)</label>
@@ -239,8 +265,11 @@ export default function BudgetsPage() {
               value={formLimit}
               onChange={(e) => setFormLimit(e.target.value)}
               placeholder="0.00"
-              className="input"
+              className={`input ${formErrors.limit ? 'border-danger-300 dark:border-danger-500' : ''}`}
             />
+            {formErrors.limit && (
+              <p className="mt-1 text-sm text-danger-500">{formErrors.limit}</p>
+            )}
           </div>
           <div className="flex gap-3 pt-2">
             <button onClick={handleSave} className="btn-primary flex-1">
