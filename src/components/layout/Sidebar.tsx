@@ -12,6 +12,7 @@ import {
   Activity,
   AlertCircle,
   TrendingUp,
+  FileText,
 } from 'lucide-react';
 import fintrackLogo from '../../assets/fintrack-logo.svg';
 import { useAuth } from '../../contexts/AuthContext';
@@ -45,6 +46,7 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
     { to: '/admin/users', label: 'User Management', icon: Users },
     { to: '/admin/transactions', label: 'Transactions', icon: Activity },
     { to: '/admin/alerts', label: 'Alerts', icon: AlertCircle },
+    { to: '/admin/content', label: 'Content', icon: FileText },
     { to: '/admin/settings', label: 'Settings', icon: Settings },
   ];
 

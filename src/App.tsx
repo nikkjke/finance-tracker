@@ -22,6 +22,7 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminTransactions from './pages/admin/AdminTransactions';
 import AdminAlerts from './pages/admin/AdminAlerts';
 import AdminSettings from './pages/admin/AdminSettings';
+import AdminContent from './pages/admin/AdminContent';
 import { NotFoundPage, UnauthorizedPage, ForbiddenPage, ServerErrorPage } from './pages/errors';
 
 function App() {
@@ -65,6 +66,7 @@ function App() {
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/transactions" element={<AdminTransactions />} />
               <Route path="/admin/alerts" element={<AdminAlerts />} />
+              <Route path="/admin/content" element={<AdminContent />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
             </Route>
 
