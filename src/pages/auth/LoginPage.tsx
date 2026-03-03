@@ -52,7 +52,9 @@ export default function LoginPage() {
     setIsLoading(false);
 
     if (result.success) {
-      navigate('/dashboard');
+      // Navigate based on user role — admin goes to /admin, user goes to /dashboard
+      const targetPath = result.user?.role === 'admin' ? '/admin' : '/dashboard';
+      navigate(targetPath);
     } else {
       setErrors({ email: result.error || 'Login failed' });
     }
