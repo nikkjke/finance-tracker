@@ -1,28 +1,22 @@
-import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Users,
   DollarSign,
-  TrendingUp,
   Activity,
   UserPlus,
-  Search,
-  MoreHorizontal,
-  Shield,
-  Trash2,
   Download,
   ArrowUpRight,
   ArrowDownRight,
   Clock,
+  Shield,
+  ExternalLink,
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import BarChart from '../../components/ui/BarChart';
 import { mockUsers, mockAdminStats, mockExpenses } from '../../data/mockData';
-import type { User } from '../../types';
 
 export default function AdminDashboard() {
-  const [users, setUsers] = useState<User[]>(mockUsers);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'active' | 'admin'>('all');
+  const users = mockUsers;
   const stats = mockAdminStats;
 
   const recentTransactions = mockExpenses.slice(0, 5);
@@ -34,30 +28,7 @@ export default function AdminDashboard() {
     { id: 5, user: 'Admin User', action: 'Changed user role', details: 'Promoted to admin', time: '3 days ago', type: 'admin' },
   ];
 
-  const filteredUsers = users.filter((u) => {
-    const matchesSearch =
-      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter =
-      selectedFilter === 'all' ||
-      (selectedFilter === 'admin' && u.role === 'admin') ||
-      (selectedFilter === 'active' && u.role === 'user');
-    return matchesSearch && matchesFilter;
-  });
-
-  const handleDeleteUser = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      setUsers((prev) => prev.filter((u) => u.id !== id));
-    }
-  };
-
-  const handleToggleRole = (id: string) => {
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === id ? { ...u, role: u.role === 'admin' ? 'user' : 'admin' } : u
-      )
-    );
-  };
+  const recentUsers = users.slice(0, 5);
 
   const handleExportData = (type: 'users' | 'transactions' | 'all') => {
     alert(`Exporting ${type} data... (Feature in development)`);
@@ -91,7 +62,7 @@ export default function AdminDashboard() {
             <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Admin Dashboard</h1>
           </div>
           <p className="text-sm text-surface-500 dark:text-surface-400">
-            System overview and user management.
+            System overview and key metrics.
           </p>
         </div>
         <div className="flex gap-2">
@@ -285,142 +256,52 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* User Management */}
+      {/* Recent Users */}
       <div className="card">
-        <div className="flex flex-col gap-4 mb-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-base font-semibold text-surface-900 dark:text-white">
-                User Management
-              </h2>
-              <p className="text-sm text-surface-400">{filteredUsers.length} users found</p>
-            </div>
-            <div className="flex gap-2">
-              <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search users..."
-                  className="input pl-9 w-full sm:w-64"
-                />
-              </div>
-              <button
-                onClick={() => handleExportData('users')}
-                className="btn-secondary p-2"
-                title="Export users"
-              >
-                <Download size={16} />
-              </button>
-            </div>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-base font-semibold text-surface-900 dark:text-white">
+              Recent Users
+            </h2>
+            <p className="text-sm text-surface-400">Latest registered users</p>
           </div>
-          
-          {/* Filters */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => setSelectedFilter('all')}
-              className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                selectedFilter === 'all'
-                  ? 'bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400'
-                  : 'bg-surface-100 text-surface-600 dark:bg-surface-800 dark:text-surface-400'
-              }`}
-            >
-              All Users
-            </button>
-            <button
-              onClick={() => setSelectedFilter('active')}
-              className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                selectedFilter === 'active'
-                  ? 'bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400'
-                  : 'bg-surface-100 text-surface-600 dark:bg-surface-800 dark:text-surface-400'
-              }`}
-            >
-              Active
-            </button>
-            <button
-              onClick={() => setSelectedFilter('admin')}
-              className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                selectedFilter === 'admin'
-                  ? 'bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400'
-                  : 'bg-surface-100 text-surface-600 dark:bg-surface-800 dark:text-surface-400'
-              }`}
-            >
-              Admins
-            </button>
-          </div>
+          <Link
+            to="/admin/users"
+            className="btn-secondary btn-sm flex items-center gap-2"
+          >
+            View All
+            <ExternalLink size={14} />
+          </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-surface-200 dark:border-surface-700">
-                <th className="pb-3 text-xs font-semibold uppercase tracking-wider text-surface-500">User</th>
-                <th className="pb-3 text-xs font-semibold uppercase tracking-wider text-surface-500 hidden sm:table-cell">Role</th>
-                <th className="pb-3 text-xs font-semibold uppercase tracking-wider text-surface-500 hidden md:table-cell">Joined</th>
-                <th className="pb-3 text-xs font-semibold uppercase tracking-wider text-surface-500 hidden lg:table-cell">Status</th>
-                <th className="pb-3 text-xs font-semibold uppercase tracking-wider text-surface-500">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-surface-100 dark:divide-surface-700">
-              {filteredUsers.map((u) => (
-                <tr key={u.id} className="hover:bg-surface-50 dark:hover:bg-surface-700/50">
-                  <td className="py-3.5 pr-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400">
-                        <span className="text-sm font-semibold">{u.name.charAt(0)}</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-surface-900 dark:text-white">{u.name}</p>
-                        <p className="text-xs text-surface-400">{u.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-3.5 pr-4 hidden sm:table-cell">
-                    <span className={u.role === 'admin' ? 'badge-primary' : 'badge-success'}>
-                      {u.role}
-                    </span>
-                  </td>
-                  <td className="py-3.5 pr-4 hidden md:table-cell">
-                    <span className="text-sm text-surface-500">
-                      {new Date(u.createdAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </span>
-                  </td>
-                  <td className="py-3.5 pr-4 hidden lg:table-cell">
-                    <span className="inline-flex items-center gap-1.5 text-xs">
-                      <div className="h-2 w-2 rounded-full bg-success-500" />
-                      <span className="text-surface-500">Active</span>
-                    </span>
-                  </td>
-                  <td className="py-3.5">
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => handleToggleRole(u.id)}
-                        className="rounded-lg p-1.5 text-surface-400 hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-500/10 dark:hover:text-primary-400 transition-colors"
-                        title={`Change to ${u.role === 'admin' ? 'user' : 'admin'}`}
-                      >
-                        <TrendingUp size={14} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteUser(u.id)}
-                        className="rounded-lg p-1.5 text-surface-400 hover:bg-danger-50 hover:text-danger-500 dark:hover:bg-danger-500/10 transition-colors"
-                        title="Delete user"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                      <button className="rounded-lg p-1.5 text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors">
-                        <MoreHorizontal size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-3">
+          {recentUsers.map((u) => (
+            <div
+              key={u.id}
+              className="flex items-center justify-between p-3 rounded-lg border border-surface-200 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-500/20 dark:text-primary-400">
+                  <span className="text-sm font-semibold">{u.name.charAt(0)}</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-surface-900 dark:text-white">{u.name}</p>
+                  <p className="text-xs text-surface-400">{u.email}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className={`badge-sm ${u.role === 'admin' ? 'badge-primary' : 'badge-success'}`}>
+                  {u.role}
+                </span>
+                <span className="text-xs text-surface-400 hidden sm:block">
+                  {new Date(u.createdAt).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
