@@ -86,9 +86,28 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
     ? `${String(selectedDate.month + 1).padStart(2, '0')}/${String(selectedDate.day).padStart(2, '0')}/${selectedDate.year}`
     : 'Select date...';
 
+  const handleToday = () => {
+    const now = new Date();
+    onChange(now.toISOString().split('T')[0]);
+    setMonth(now.getMonth());
+    setYear(now.getFullYear());
+    setOpen(false);
+  };
+
   return (
     <div ref={ref} className="relative">
-      {label && <label className="label">{label}</label>}
+      {label && (
+        <div className="mb-1.5 flex items-center justify-between">
+          <label className="label mb-0">{label}</label>
+          <button
+            type="button"
+            onClick={handleToday}
+            className="text-xs font-medium text-primary-500 hover:text-primary-600 transition-colors"
+          >
+            Today
+          </button>
+        </div>
+      )}
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -136,18 +155,6 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
                   <p className="text-sm font-semibold text-surface-900 dark:text-white">
                     {monthNames[month]} {year}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const today = new Date().toISOString().split('T')[0];
-                      onChange(today);
-                      setMonth(new Date().getMonth());
-                      setYear(new Date().getFullYear());
-                    }}
-                    className="rounded px-2 py-1 text-xs font-medium text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-colors"
-                  >
-                    Today
-                  </button>
                 </div>
                 <div className="flex items-center gap-1">
                   <button
