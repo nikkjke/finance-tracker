@@ -197,6 +197,7 @@ export default function BudgetsPage() {
                 { value: 'spent-asc', label: 'Spent: Low to High' },
                 { value: 'spent-desc', label: 'Spent: High to Low' },
               ]}
+              minWidth="min-w-[195px]"
             />
           </div>
         </div>
