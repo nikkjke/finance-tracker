@@ -201,7 +201,7 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -215,6 +215,14 @@ export default function ReportsPage() {
           Export Report
         </button>
       </div>
+
+      {/* Results Count */}
+      {!isLoading && !error && (
+        <div className="flex items-center gap-1.5 text-xs text-surface-500 dark:text-surface-400">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-success-500" />
+          {filteredExpensesCount} transactions found
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
@@ -279,10 +287,6 @@ export default function ReportsPage() {
           ]}
           minWidth="min-w-[220px]"
         />
-        <div className="ml-auto hidden sm:flex items-center gap-1.5 text-xs text-surface-400 dark:text-surface-500">
-          <span className="inline-block h-1.5 w-1.5 rounded-full bg-success-500" />
-          {filteredExpensesCount} transactions found
-        </div>
       </div>
 
       {/* Loading State */}
