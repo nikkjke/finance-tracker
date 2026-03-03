@@ -19,7 +19,6 @@ import {
   mockMonthlySpending,
   mockSpendingByCategory,
   mockBudgets,
-  categoryLabels,
 } from '../../data/mockData';
 
 export default function DashboardPage() {
@@ -52,7 +51,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Income"
           value={totalIncome}
@@ -74,11 +73,6 @@ export default function DashboardPage() {
           title="Budget Remaining"
           value={stats.budgetRemaining}
           icon={<Wallet size={20} />}
-        />
-        <StatCard
-          title="Top Category"
-          value={categoryLabels[stats.topCategory]}
-          icon={<TrendingUp size={20} />}
         />
       </div>
 
