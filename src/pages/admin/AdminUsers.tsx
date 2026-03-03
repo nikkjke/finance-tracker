@@ -4,7 +4,6 @@ import {
   Search,
   UserPlus,
   Download,
-  MoreVertical,
   Shield,
   Trash2,
   Edit,
@@ -466,12 +465,6 @@ export default function AdminUsers() {
                         title="Delete user"
                       >
                         <Trash2 size={16} />
-                      </button>
-                      <button
-                        className="rounded-lg p-2 text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
-                        title="More options"
-                      >
-                        <MoreVertical size={16} />
                       </button>
                     </div>
                   </td>
