@@ -384,16 +384,13 @@ export default function ReportsPage() {
       </div>
 
       <div className="card">
-        <h2 className="text-base font-semibold text-surface-900 dark:text-white mb-6">
-          All Income
-        </h2>
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-base font-semibold text-surface-900 dark:text-white">
+            All Income
+          </h2>
+          <p className="text-xs text-surface-400 dark:text-surface-500">{filteredIncomeCount} entries found</p>
+        </div>
         <div className="space-y-5">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-surface-500 dark:text-surface-400">Filter and browse your income records.</p>
-            </div>
-            <p className="text-xs text-surface-400 dark:text-surface-500">{filteredIncomeCount} entries found</p>
-          </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative min-w-[220px] flex-1">
