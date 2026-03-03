@@ -12,8 +12,8 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   logout: () => void;
   switchRole: (role: UserRole) => void;
 }
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const result = await loginUser(email, password);
     if (result.success && result.user) {
       setUser(result.user);
-      return { success: true };
+      return { success: true, user: result.user };
     }
     return { success: false, error: result.error };
   }, []);
@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const result = await registerUser(name, email, password);
     if (result.success && result.user) {
       setUser(result.user);
-      return { success: true };
+      return { success: true, user: result.user };
     }
     return { success: false, error: result.error };
   }, []);
