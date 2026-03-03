@@ -50,7 +50,6 @@ function App() {
               <Route path="/add-income" element={<AddIncomePage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/budgets" element={<BudgetsPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
             </Route>
 
             {/* Protected Admin Routes */}
@@ -65,6 +64,17 @@ function App() {
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/transactions" element={<AdminTransactions />} />
               <Route path="/admin/alerts" element={<AdminAlerts />} />
+            </Route>
+
+            {/* Shared Routes (accessible by both users and admins) */}
+            <Route
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/profile" element={<ProfilePage />} />
             </Route>
 
             {/* Error Pages */}
