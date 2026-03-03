@@ -78,13 +78,13 @@ export default function AdminSettings() {
             </div>
             <button
               onClick={() => setMaintenanceMode(!maintenanceMode)}
-              className={`relative h-6 w-11 rounded-full transition-colors ${
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 maintenanceMode ? 'bg-primary-600' : 'bg-surface-300 dark:bg-surface-600'
               }`}
             >
               <span
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
-                  maintenanceMode ? 'translate-x-5' : 'translate-x-0.5'
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  maintenanceMode ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
             </button>
@@ -125,30 +125,23 @@ export default function AdminSettings() {
             </div>
           </div>
 
-          <div>
-            <label className="label">Theme</label>
-            <div className="flex gap-3">
-              <button
-                onClick={toggleTheme}
-                className={`flex-1 rounded-lg border p-3 text-sm font-medium transition-all ${
-                  theme === 'light'
-                    ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-400'
-                    : 'border-surface-200 text-surface-600 hover:border-surface-300 dark:border-surface-700 dark:text-surface-400'
-                }`}
-              >
-                Light
-              </button>
-              <button
-                onClick={toggleTheme}
-                className={`flex-1 rounded-lg border p-3 text-sm font-medium transition-all ${
-                  theme === 'dark'
-                    ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-400'
-                    : 'border-surface-200 text-surface-600 hover:border-surface-300 dark:border-surface-700 dark:text-surface-400'
-                }`}
-              >
-                Dark
-              </button>
+          <div className="flex items-center justify-between rounded-lg border border-surface-200 p-4 dark:border-surface-700">
+            <div>
+              <p className="text-sm font-medium text-surface-900 dark:text-white">Dark Mode</p>
+              <p className="text-xs text-surface-400">Toggle between light and dark themes</p>
             </div>
+            <button
+              onClick={toggleTheme}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                theme === 'dark' ? 'bg-primary-600' : 'bg-surface-300 dark:bg-surface-600'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
           </div>
         </div>
       </div>
@@ -202,13 +195,13 @@ export default function AdminSettings() {
             </div>
             <button
               onClick={() => setRequireSpecialChars(!requireSpecialChars)}
-              className={`relative h-6 w-11 rounded-full transition-colors ${
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 requireSpecialChars ? 'bg-primary-600' : 'bg-surface-300 dark:bg-surface-600'
               }`}
             >
               <span
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
-                  requireSpecialChars ? 'translate-x-5' : 'translate-x-0.5'
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  requireSpecialChars ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
             </button>
@@ -221,13 +214,13 @@ export default function AdminSettings() {
             </div>
             <button
               onClick={() => setTwoFactorAuth(!twoFactorAuth)}
-              className={`relative h-6 w-11 rounded-full transition-colors ${
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 twoFactorAuth ? 'bg-primary-600' : 'bg-surface-300 dark:bg-surface-600'
               }`}
             >
               <span
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
-                  twoFactorAuth ? 'translate-x-5' : 'translate-x-0.5'
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  twoFactorAuth ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
             </button>
@@ -251,13 +244,13 @@ export default function AdminSettings() {
             </div>
             <button
               onClick={() => setSuspiciousActivityAlerts(!suspiciousActivityAlerts)}
-              className={`relative h-6 w-11 rounded-full transition-colors ${
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 suspiciousActivityAlerts ? 'bg-primary-600' : 'bg-surface-300 dark:bg-surface-600'
               }`}
             >
               <span
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
-                  suspiciousActivityAlerts ? 'translate-x-5' : 'translate-x-0.5'
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  suspiciousActivityAlerts ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
             </button>
@@ -270,13 +263,13 @@ export default function AdminSettings() {
             </div>
             <button
               onClick={() => setSystemErrorAlerts(!systemErrorAlerts)}
-              className={`relative h-6 w-11 rounded-full transition-colors ${
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 systemErrorAlerts ? 'bg-primary-600' : 'bg-surface-300 dark:bg-surface-600'
               }`}
             >
               <span
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
-                  systemErrorAlerts ? 'translate-x-5' : 'translate-x-0.5'
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  systemErrorAlerts ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
             </button>
@@ -289,13 +282,13 @@ export default function AdminSettings() {
             </div>
             <button
               onClick={() => setUserRegistrationAlerts(!userRegistrationAlerts)}
-              className={`relative h-6 w-11 rounded-full transition-colors ${
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 userRegistrationAlerts ? 'bg-primary-600' : 'bg-surface-300 dark:bg-surface-600'
               }`}
             >
               <span
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
-                  userRegistrationAlerts ? 'translate-x-5' : 'translate-x-0.5'
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  userRegistrationAlerts ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
             </button>
@@ -308,13 +301,13 @@ export default function AdminSettings() {
             </div>
             <button
               onClick={() => setDailyDigest(!dailyDigest)}
-              className={`relative h-6 w-11 rounded-full transition-colors ${
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 dailyDigest ? 'bg-primary-600' : 'bg-surface-300 dark:bg-surface-600'
               }`}
             >
               <span
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
-                  dailyDigest ? 'translate-x-5' : 'translate-x-0.5'
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  dailyDigest ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
             </button>
@@ -338,13 +331,13 @@ export default function AdminSettings() {
             </div>
             <button
               onClick={() => setAutoBackup(!autoBackup)}
-              className={`relative h-6 w-11 rounded-full transition-colors ${
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 autoBackup ? 'bg-primary-600' : 'bg-surface-300 dark:bg-surface-600'
               }`}
             >
               <span
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
-                  autoBackup ? 'translate-x-5' : 'translate-x-0.5'
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  autoBackup ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
             </button>
