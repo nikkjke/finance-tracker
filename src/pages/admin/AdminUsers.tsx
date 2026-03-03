@@ -47,7 +47,7 @@ export default function AdminUsers() {
   const [roleFilter, setRoleFilter] = useState<'all' | 'user' | 'admin'>('all');
   const [sortBy, setSortBy] = useState<'name-asc' | 'date-desc' | 'date-asc' | 'role-asc'>('date-desc');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
 
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
