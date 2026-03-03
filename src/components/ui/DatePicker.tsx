@@ -112,26 +112,25 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
             onClick={(e) => e.stopPropagation()}
             className="absolute w-72 rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30 overflow-hidden"
             style={(() => {
-              if (!ref.current) return { top: '100%', right: 0, maxHeight: '420px' };
+              if (!ref.current) return { top: '100%', right: 0 };
               
               const rect = ref.current.getBoundingClientRect();
               
               return {
                 top: `${rect.bottom + 8}px`,
                 left: `${rect.right - 288}px`,
-                maxHeight: '420px'
               };
             })()}
           >
-            <div className="p-4">
+            <div className="p-3">
               {/* Month/Year Navigation */}
-              <div className="flex items-center justify-between mb-4 flex-shrink-0">
+              <div className="flex items-center justify-between mb-3">
                 <button
                   type="button"
                   onClick={handlePrevMonth}
-                  className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
+                  className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors"
                 >
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={18} />
                 </button>
                 <div className="text-center">
                   <p className="text-sm font-semibold text-surface-900 dark:text-white">
@@ -141,30 +140,30 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
                 <button
                   type="button"
                   onClick={handleNextMonth}
-                  className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
+                  className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors"
                 >
-                  <ChevronRight size={20} />
+                  <ChevronRight size={18} />
                 </button>
               </div>
 
               {/* Day Headers */}
-              <div className="grid grid-cols-7 gap-1 mb-2 flex-shrink-0">
+              <div className="grid grid-cols-7 gap-1 mb-1.5">
                 {dayNames.map((day) => (
-                  <div key={day} className="text-center text-xs font-semibold text-surface-500 py-1">
+                  <div key={day} className="text-center text-xs font-semibold text-surface-500 py-0.5">
                     {day}
                   </div>
                 ))}
               </div>
 
               {/* Calendar Days */}
-              <div className="grid grid-cols-7 gap-1 mb-4">
+              <div className="grid grid-cols-7 gap-1 mb-2">
                 {days.map((day, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => day && handleDateClick(day)}
                     disabled={!day}
-                    className={`p-2 text-sm rounded-lg transition-colors ${
+                    className={`p-1.5 text-sm rounded transition-colors ${
                       !day
                         ? 'text-transparent cursor-default'
                         : selectedDate && selectedDate.day === day && selectedDate.month === month && selectedDate.year === year
@@ -177,12 +176,12 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
                 ))}
               </div>
 
-              {/* Footer Buttons */}
+              {/* Footer Buttons - Compact inline */}
               <div className="flex gap-2 pt-2 border-t border-surface-200 dark:border-surface-700">
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="flex-1 text-center text-sm text-primary-500 hover:text-primary-600 py-2 font-medium transition-colors"
+                  className="flex-1 text-center text-xs text-primary-500 hover:text-primary-600 py-1.5 font-medium transition-colors"
                 >
                   Close
                 </button>
@@ -195,7 +194,7 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
                     setYear(new Date().getFullYear());
                     setOpen(false);
                   }}
-                  className="flex-1 text-center text-sm text-primary-500 hover:text-primary-600 py-2 font-medium transition-colors"
+                  className="flex-1 text-center text-xs text-primary-500 hover:text-primary-600 py-1.5 font-medium transition-colors"
                 >
                   Today
                 </button>
