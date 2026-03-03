@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import Dropdown from './Dropdown';
 
 interface PaginationProps {
   currentPage: number;
@@ -58,26 +59,26 @@ export default function Pagination({
 
   const pageNumbers = getPageNumbers();
 
+  const itemsPerPageOptions = [
+    { value: '10', label: '10' },
+    { value: '20', label: '20' },
+    { value: '50', label: '50' },
+    { value: '100', label: '100' },
+  ];
+
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       {/* Items per page selector */}
       {onItemsPerPageChange && (
         <div className="flex items-center gap-3">
-          <label htmlFor="items-per-page" className="text-sm font-medium text-surface-600 dark:text-surface-400">
+          <label className="text-sm font-medium text-surface-600 dark:text-surface-400">
             Items per page:
           </label>
-          <select
-            id="items-per-page"
-            value={itemsPerPage}
-            onChange={(e) => onItemsPerPageChange(parseInt(e.target.value))}
-            disabled={loading}
-            className="rounded-lg border border-surface-300 bg-white px-3 py-1.5 text-sm text-surface-900 shadow-sm transition-all hover:border-surface-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 disabled:opacity-50 dark:border-surface-600 dark:bg-surface-800 dark:text-white dark:hover:border-surface-500"
-          >
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
+          <Dropdown
+            value={itemsPerPage.toString()}
+            onChange={(value) => onItemsPerPageChange(parseInt(value))}
+            options={itemsPerPageOptions}
+          />
         </div>
       )}
 
