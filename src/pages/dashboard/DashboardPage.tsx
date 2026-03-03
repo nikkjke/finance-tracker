@@ -15,25 +15,53 @@ import DonutChart from '../../components/ui/DonutChart';
 import BudgetProgress from '../../components/ui/BudgetProgress';
 import Spinner from '../../components/ui/Spinner';
 import {
-  mockExpenses,
-  mockIncome,
-  mockMonthlyStats,
   mockMonthlySpending,
-  mockSpendingByCategory,
   mockBudgets,
+  categoryLabels,
 } from '../../data/mockData';
+import { useExpenses } from '../../contexts/ExpenseContext';
+import { useIncome } from '../../contexts/IncomeContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
-  
-  const stats = mockMonthlyStats;
-  
-  // Memoized income stats calculation
+  const { expenses } = useExpenses();
+  const { income } = useIncome();
+  const { user } = useAuth();
+
+  // Filter data for the current user
+  const userExpenses = useMemo(() => {
+    return user ? expenses.filter((e) => e.userId === user.id) : expenses;
+  }, [expenses, user]);
+
+  const userIncome = useMemo(() => {
+    return user ? income.filter((i) => i.userId === user.id) : income;
+  }, [income, user]);
+
+  // Compute live stats from context data
+  const totalSpent = useMemo(() => userExpenses.reduce((sum, e) => sum + e.amount, 0), [userExpenses]);
+
   const { totalIncome, netIncome } = useMemo(() => {
-    const total = mockIncome.reduce((sum, income) => sum + income.amount, 0);
-    const net = total - stats.totalSpent;
+    const total = userIncome.reduce((sum, inc) => sum + inc.amount, 0);
+    const net = total - totalSpent;
     return { totalIncome: total, netIncome: net };
-  }, [stats.totalSpent]);
+  }, [userIncome, totalSpent]);
+
+  const budgetRemaining = useMemo(() => {
+    const totalLimit = mockBudgets.reduce((sum, b) => sum + b.limit, 0);
+    return totalLimit - totalSpent;
+  }, [totalSpent]);
+
+  // Spending by category (live from context)
+  const spendingByCategory = useMemo(() => {
+    const map: Record<string, number> = {};
+    userExpenses.forEach((e) => {
+      map[e.category] = (map[e.category] || 0) + e.amount;
+    });
+    return Object.entries(map)
+      .map(([key, value]) => ({ label: categoryLabels[key as keyof typeof categoryLabels] || key, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [userExpenses]);
 
   // Memoized budget utilization with percentages
   const budgetData = useMemo(() => {
@@ -64,9 +92,9 @@ export default function DashboardPage() {
     };
   }, []);
 
-  // Memoized recent transactions summary
+  // Memoized recent transactions summary (live from context)
   const transactionsData = useMemo(() => {
-    const recent = mockExpenses.slice(0, 5);
+    const recent = userExpenses.slice(0, 5);
     const totalRecent = recent.reduce((sum, exp) => sum + exp.amount, 0);
     
     return {
@@ -74,7 +102,7 @@ export default function DashboardPage() {
       total: totalRecent,
       count: recent.length
     };
-  }, []);
+  }, [userExpenses]);
 
   // Simulate loading statistics with setTimeout
   useEffect(() => {
@@ -123,10 +151,8 @@ export default function DashboardPage() {
             />
             <StatCard
               title="Total Expenses"
-              value={stats.totalSpent}
+              value={totalSpent}
               icon={<TrendingDown size={20} />}
-              change={stats.comparedToLastMonth}
-              changeLabel="vs last month"
             />
             <StatCard
               title="Net Income"
@@ -135,7 +161,7 @@ export default function DashboardPage() {
             />
             <StatCard
               title="Budget Remaining"
-              value={stats.budgetRemaining}
+              value={budgetRemaining}
               icon={<Wallet size={20} />}
             />
           </div>
@@ -165,7 +191,7 @@ export default function DashboardPage() {
                 </h2>
                 <p className="text-sm text-surface-400">This month</p>
               </div>
-              <DonutChart data={mockSpendingByCategory} />
+              <DonutChart data={spendingByCategory} />
             </div>
           </div>
 
