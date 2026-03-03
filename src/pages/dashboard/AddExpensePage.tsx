@@ -31,6 +31,8 @@ interface FormErrors {
   amount?: string;
   category?: string;
   date?: string;
+  paymentMethod?: string;
+  notes?: string;
 }
 
 type ScanState = 'idle' | 'scanning' | 'success' | 'error';
@@ -58,20 +60,68 @@ export default function AddExpensePage() {
   const [scanState, setScanState] = useState<ScanState>('idle');
 
   const categories = Object.entries(categoryLabels) as [ExpenseCategory, string][];
+  const validPaymentMethods: Expense['paymentMethod'][] = ['card', 'cash', 'bank_transfer', 'qr_scan'];
 
   const validate = useCallback((): boolean => {
     const newErrors: FormErrors = {};
-    if (!formData.storeName.trim()) newErrors.storeName = 'Store name is required';
-    if (!formData.amount || parseFloat(formData.amount) <= 0) newErrors.amount = 'Valid amount is required';
-    if (!formData.date) newErrors.date = 'Date is required';
+    const trimmedStoreName = formData.storeName.trim();
+    const parsedAmount = parseFloat(formData.amount);
+    const parsedDate = new Date(formData.date);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    if (!trimmedStoreName) {
+      newErrors.storeName = 'Store name is required';
+    } else if (trimmedStoreName.length < 2) {
+      newErrors.storeName = 'Store name must be at least 2 characters';
+    } else if (trimmedStoreName.length > 100) {
+      newErrors.storeName = 'Store name must be at most 100 characters';
+    }
+
+    if (!formData.amount.trim()) {
+      newErrors.amount = 'Amount is required';
+    } else if (!Number.isFinite(parsedAmount)) {
+      newErrors.amount = 'Amount must be a valid number';
+    } else if (parsedAmount <= 0) {
+      newErrors.amount = 'Amount must be greater than 0';
+    }
+
+    if (!formData.category) {
+      newErrors.category = 'Category is required';
+    }
+
+    if (!formData.date) {
+      newErrors.date = 'Date is required';
+    } else if (Number.isNaN(parsedDate.getTime())) {
+      newErrors.date = 'Date is invalid';
+    } else if (parsedDate > today) {
+      newErrors.date = 'Date cannot be in the future';
+    }
+
+    if (!validPaymentMethods.includes(formData.paymentMethod)) {
+      newErrors.paymentMethod = 'Payment method is required';
+    }
+
+    if (formData.notes.trim().length > 300) {
+      newErrors.notes = 'Notes must be at most 300 characters';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData.storeName, formData.amount, formData.date]);
+  }, [formData.storeName, formData.amount, formData.category, formData.date, formData.paymentMethod, formData.notes, validPaymentMethods]);
 
   const handleChange = useCallback((field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
+    setServiceError(null);
   }, []);
+
+  const isBasicInvalid =
+    !formData.storeName.trim() ||
+    !formData.amount.trim() ||
+    !formData.date ||
+    Number.isNaN(parseFloat(formData.amount)) ||
+    parseFloat(formData.amount) <= 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,6 +170,8 @@ export default function AddExpensePage() {
       notes: 'Auto-scanned receipt - Weekly groceries',
       paymentMethod: 'card',
     });
+    setErrors({});
+    setServiceError(null);
     setActiveTab('manual');
   }, []);
 
@@ -306,6 +358,7 @@ export default function AddExpensePage() {
                 <input
                   id="storeName"
                   type="text"
+                  maxLength={100}
                   value={formData.storeName}
                   onChange={(e) => handleChange('storeName', e.target.value)}
                   placeholder="e.g. Kaufland, Amazon, Bolt"
@@ -348,6 +401,9 @@ export default function AddExpensePage() {
                     icon={<Tag size={16} />}
                     fullWidth
                   />
+                  {errors.category && (
+                    <p className="mt-1.5 text-xs text-danger-500">{errors.category}</p>
+                  )}
                 </div>
               </div>
 
@@ -379,6 +435,9 @@ export default function AddExpensePage() {
                   icon={<CreditCard size={16} />}
                   fullWidth
                 />
+                {errors.paymentMethod && (
+                  <p className="mt-1.5 text-xs text-danger-500">{errors.paymentMethod}</p>
+                )}
               </div>
 
               {/* Notes */}
@@ -389,18 +448,27 @@ export default function AddExpensePage() {
                 <textarea
                   id="notes"
                   rows={3}
+                  maxLength={300}
                   value={formData.notes}
                   onChange={(e) => handleChange('notes', e.target.value)}
                   placeholder="Add any additional details..."
-                  className="input resize-none"
+                  className={`input resize-none ${errors.notes ? 'border-danger-500' : ''}`}
                 />
+                <div className="mt-1.5 flex items-center justify-between">
+                  {errors.notes ? (
+                    <p className="text-xs text-danger-500">{errors.notes}</p>
+                  ) : (
+                    <span className="text-xs text-surface-400">Optional</span>
+                  )}
+                  <span className="text-xs text-surface-400">{formData.notes.length}/300</span>
+                </div>
               </div>
 
               {/* Submit */}
               <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isBasicInvalid}
                   className="btn-primary flex-1"
                 >
                   {isSubmitting ? (
@@ -416,6 +484,7 @@ export default function AddExpensePage() {
                   type="button"
                   onClick={() => {
                     setFormData({ ...initialFormData, date: new Date().toISOString().split('T')[0] });
+                    setErrors({});
                     setServiceError(null);
                   }}
                   className="btn-secondary"
