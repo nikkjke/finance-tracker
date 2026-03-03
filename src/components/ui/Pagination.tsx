@@ -60,6 +60,7 @@ export default function Pagination({
   const pageNumbers = getPageNumbers();
 
   const itemsPerPageOptions = [
+    { value: '5', label: '5' },
     { value: '10', label: '10' },
     { value: '20', label: '20' },
     { value: '50', label: '50' },
@@ -100,7 +101,7 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1 || loading}
-          className="rounded-lg border border-surface-200 bg-white p-2 text-surface-600 shadow-sm transition-all hover:border-surface-300 hover:bg-surface-50 hover:text-surface-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-400 dark:hover:border-surface-600 dark:hover:bg-surface-700/50 dark:hover:text-surface-300"
+          className="rounded-lg border border-surface-200 bg-white p-2 text-surface-600 shadow-sm transition-colors hover:border-surface-300 hover:bg-surface-50 hover:text-surface-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-400 dark:hover:border-surface-600 dark:hover:bg-surface-700/50 dark:hover:text-surface-300"
           aria-label="First page"
         >
           <ChevronsLeft size={16} />
@@ -110,7 +111,7 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1 || loading}
-          className="rounded-lg border border-surface-200 bg-white p-2 text-surface-600 shadow-sm transition-all hover:border-surface-300 hover:bg-surface-50 hover:text-surface-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-400 dark:hover:border-surface-600 dark:hover:bg-surface-700/50 dark:hover:text-surface-300"
+          className="rounded-lg border border-surface-200 bg-white p-2 text-surface-600 shadow-sm transition-colors hover:border-surface-300 hover:bg-surface-50 hover:text-surface-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-400 dark:hover:border-surface-600 dark:hover:bg-surface-700/50 dark:hover:text-surface-300"
           aria-label="Previous page"
         >
           <ChevronLeft size={16} />
@@ -128,7 +129,7 @@ export default function Pagination({
                 key={pageNum}
                 onClick={() => onPageChange(pageNum as number)}
                 disabled={loading}
-                className={`min-w-10 rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
+                className={`min-w-10 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                   currentPage === pageNum
                     ? 'bg-primary-500 text-white shadow-sm'
                     : 'border border-surface-200 bg-white text-surface-600 hover:border-surface-300 hover:bg-surface-50 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-400 dark:hover:border-surface-600 dark:hover:bg-surface-700/50'
@@ -146,7 +147,7 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages || loading}
-          className="rounded-lg border border-surface-200 bg-white p-2 text-surface-600 shadow-sm transition-all hover:border-surface-300 hover:bg-surface-50 hover:text-surface-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-400 dark:hover:border-surface-600 dark:hover:bg-surface-700/50 dark:hover:text-surface-300"
+          className="rounded-lg border border-surface-200 bg-white p-2 text-surface-600 shadow-sm transition-colors hover:border-surface-300 hover:bg-surface-50 hover:text-surface-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-400 dark:hover:border-surface-600 dark:hover:bg-surface-700/50 dark:hover:text-surface-300"
           aria-label="Next page"
         >
           <ChevronRight size={16} />
@@ -156,7 +157,7 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages || loading}
-          className="rounded-lg border border-surface-200 bg-white p-2 text-surface-600 shadow-sm transition-all hover:border-surface-300 hover:bg-surface-50 hover:text-surface-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-400 dark:hover:border-surface-600 dark:hover:bg-surface-700/50 dark:hover:text-surface-300"
+          className="rounded-lg border border-surface-200 bg-white p-2 text-surface-600 shadow-sm transition-colors hover:border-surface-300 hover:bg-surface-50 hover:text-surface-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-400 dark:hover:border-surface-600 dark:hover:bg-surface-700/50 dark:hover:text-surface-300"
           aria-label="Last page"
         >
           <ChevronsRight size={16} />

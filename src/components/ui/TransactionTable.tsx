@@ -36,7 +36,7 @@ export default function TransactionTable({ expenses, limit }: TransactionTablePr
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 animate-in fade-in duration-200">
       {displayed.map((expense) => {
         const status = statusConfig[expense.status];
         const CategoryIcon = categoryIcons[expense.category] || MoreHorizontal;
@@ -47,7 +47,7 @@ export default function TransactionTable({ expenses, limit }: TransactionTablePr
         return (
           <div
             key={expense.id}
-            className="group flex items-center gap-4 rounded-xl border border-surface-100 bg-white p-4 transition-all duration-200 hover:border-surface-200 hover:shadow-sm dark:border-surface-700/50 dark:bg-surface-800/50 dark:hover:border-surface-600 dark:hover:bg-surface-800"
+            className="group flex items-center gap-4 rounded-xl border border-surface-100 bg-white p-4 transition-colors duration-150 hover:border-surface-200 hover:shadow-sm dark:border-surface-700/50 dark:bg-surface-800/50 dark:hover:border-surface-600 dark:hover:bg-surface-800"
           >
             {/* Category icon */}
             <div
