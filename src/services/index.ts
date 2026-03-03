@@ -46,6 +46,13 @@ export {
   applyFilters,
 } from './filterService';
 
+export {
+  exportTransactions,
+  exportUsers,
+  exportIncome,
+  exportReport,
+} from './exportService';
+
 // Re-export service-specific types for convenience
 export type { AuthResult } from './authService';
 export type { ServiceResponse, CreateExpenseDTO, UpdateExpenseDTO } from './expenseService';

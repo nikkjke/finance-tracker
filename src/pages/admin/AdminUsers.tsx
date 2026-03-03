@@ -16,7 +16,7 @@ import Pagination from '../../components/ui/Pagination';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
-import { applyFilters } from '../../services';
+import { applyFilters, exportUsers } from '../../services';
 import type { User } from '../../types';
 import type { FilterPipelineConfig, SortConfig } from '../../services/filterService';
 
@@ -206,7 +206,8 @@ export default function AdminUsers() {
   };
 
   const handleExport = () => {
-    alert('Exporting user data... (Feature in development)');
+    // Export filtered users to CSV
+    exportUsers(filteredUsers, { filename: 'users', format: 'csv' });
   };
 
   const stats = {

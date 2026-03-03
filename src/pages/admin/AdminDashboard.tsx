@@ -14,6 +14,7 @@ import {
 import StatCard from '../../components/ui/StatCard';
 import BarChart from '../../components/ui/BarChart';
 import { mockUsers, mockAdminStats, mockExpenses } from '../../data/mockData';
+import { exportUsers, exportTransactions } from '../../services';
 
 export default function AdminDashboard() {
   const users = mockUsers;
@@ -31,7 +32,17 @@ export default function AdminDashboard() {
   const recentUsers = users.slice(0, 5);
 
   const handleExportData = (type: 'users' | 'transactions' | 'all') => {
-    alert(`Exporting ${type} data... (Feature in development)`);
+    if (type === 'users') {
+      exportUsers(users, { filename: 'users', format: 'csv' });
+    } else if (type === 'transactions') {
+      exportTransactions(mockExpenses, { filename: 'transactions', format: 'csv' });
+    } else {
+      // Export both datasets
+      exportUsers(users, { filename: 'users', format: 'csv' });
+      setTimeout(() => {
+        exportTransactions(mockExpenses, { filename: 'transactions', format: 'csv' });
+      }, 100);
+    }
   };
 
   const userGrowthData = [

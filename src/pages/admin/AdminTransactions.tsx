@@ -22,7 +22,7 @@ import Pagination from '../../components/ui/Pagination';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
-import { applyFilters, presetToDateRange } from '../../services';
+import { applyFilters, presetToDateRange, exportTransactions, exportReport } from '../../services';
 import { categoryLabels } from '../../data/mockData';
 import type { Expense, ExpenseStatus } from '../../types';
 import type { FilterPipelineConfig, SortConfig } from '../../services/filterService';
@@ -126,11 +126,13 @@ export default function AdminTransactions() {
   }, [searchQuery, statusFilter, categoryFilter, dateRange, sortBy]);
 
   const handleExport = () => {
-    alert('Exporting transaction data... (Feature in development)');
+    // Export filtered transactions to CSV
+    exportTransactions(filteredTransactions, { filename: 'transactions', format: 'csv' });
   };
 
   const handleExportReport = (type: string) => {
-    alert(`Exporting ${type} report... (Feature in development)`);
+    // Export formatted report (PDF/Excel in production)
+    exportReport(type as any);
   };
 
   const revenueData = [
