@@ -524,52 +524,50 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="card lg:col-span-2">
-          <div className="mb-5 flex items-center gap-2">
-            <Wallet size={18} className="text-primary-500" />
-            <h2 className="text-base font-semibold text-surface-900 dark:text-white">
-              Spending Diagnostics
-            </h2>
+      <div className="card">
+        <div className="mb-5 flex items-center gap-2">
+          <Wallet size={18} className="text-primary-500" />
+          <h2 className="text-base font-semibold text-surface-900 dark:text-white">
+            Spending Diagnostics
+          </h2>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-surface-200 p-4 dark:border-surface-700">
+            <p className="text-xs uppercase tracking-wide text-surface-400">Total Spend</p>
+            <p className="mt-2 text-xl font-bold text-surface-900 dark:text-white">${totalSpent.toFixed(2)}</p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl border border-surface-200 p-4 dark:border-surface-700">
-              <p className="text-xs uppercase tracking-wide text-surface-400">Total Spend</p>
-              <p className="mt-2 text-xl font-bold text-surface-900 dark:text-white">${totalSpent.toFixed(2)}</p>
-            </div>
-            <div className="rounded-xl border border-surface-200 p-4 dark:border-surface-700">
-              <p className="text-xs uppercase tracking-wide text-surface-400">Average Expense</p>
-              <p className="mt-2 text-xl font-bold text-surface-900 dark:text-white">${averageExpense.toFixed(2)}</p>
-            </div>
-            <div className="rounded-xl border border-surface-200 p-4 dark:border-surface-700">
-              <p className="text-xs uppercase tracking-wide text-surface-400">Median Expense</p>
-              <p className="mt-2 text-xl font-bold text-surface-900 dark:text-white">${medianExpense.toFixed(2)}</p>
-            </div>
+          <div className="rounded-xl border border-surface-200 p-4 dark:border-surface-700">
+            <p className="text-xs uppercase tracking-wide text-surface-400">Average Expense</p>
+            <p className="mt-2 text-xl font-bold text-surface-900 dark:text-white">${averageExpense.toFixed(2)}</p>
+          </div>
+          <div className="rounded-xl border border-surface-200 p-4 dark:border-surface-700">
+            <p className="text-xs uppercase tracking-wide text-surface-400">Median Expense</p>
+            <p className="mt-2 text-xl font-bold text-surface-900 dark:text-white">${medianExpense.toFixed(2)}</p>
           </div>
         </div>
+      </div>
 
-        <div className="card">
-          <div className="mb-5 flex items-center gap-2">
-            <ListFilter size={18} className="text-primary-500" />
-            <h2 className="text-base font-semibold text-surface-900 dark:text-white">Category Concentration</h2>
-          </div>
-          <div className="space-y-3">
-            {categoryBreakdown.length === 0 ? (
-              <p className="text-sm text-surface-400">No category data for the selected filters.</p>
-            ) : (
-              categoryBreakdown.map((item) => (
-                <div key={item.category}>
-                  <div className="mb-1 flex items-center justify-between text-xs">
-                    <span className="text-surface-600 dark:text-surface-300">{categoryLabels[item.category as keyof typeof categoryLabels]}</span>
-                    <span className="text-surface-500">{item.share.toFixed(1)}%</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-surface-100 dark:bg-surface-700">
-                    <div className="h-2 rounded-full bg-primary-500" style={{ width: `${Math.min(item.share, 100)}%` }} />
-                  </div>
+      <div className="card">
+        <div className="mb-5 flex items-center gap-2">
+          <ListFilter size={18} className="text-primary-500" />
+          <h2 className="text-base font-semibold text-surface-900 dark:text-white">Category Concentration</h2>
+        </div>
+        <div className="space-y-3">
+          {categoryBreakdown.length === 0 ? (
+            <p className="text-sm text-surface-400">No category data for the selected filters.</p>
+          ) : (
+            categoryBreakdown.map((item) => (
+              <div key={item.category}>
+                <div className="mb-1 flex items-center justify-between text-xs">
+                  <span className="text-surface-600 dark:text-surface-300">{categoryLabels[item.category as keyof typeof categoryLabels]}</span>
+                  <span className="text-surface-500">{item.share.toFixed(1)}%</span>
                 </div>
-              ))
-            )}
-          </div>
+                <div className="h-2 rounded-full bg-surface-100 dark:bg-surface-700">
+                  <div className="h-2 rounded-full bg-primary-500" style={{ width: `${Math.min(item.share, 100)}%` }} />
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
