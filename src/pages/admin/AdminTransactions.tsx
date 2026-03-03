@@ -72,7 +72,7 @@ export default function AdminTransactions() {
         setError('Failed to load transactions. The service might be unavailable.');
         setIsLoading(false);
       }
-    }, 800);
+    }, 500);
   };
 
   useEffect(() => {

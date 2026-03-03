@@ -45,7 +45,7 @@ export default function ReportsPage() {
         setError('Failed to load report data. The service might be unavailable.');
         setIsLoading(false);
       }
-    }, 800);
+    }, 500);
   };
 
   useEffect(() => {

@@ -36,7 +36,7 @@ export default function BudgetsPage() {
         setError('Failed to load budgets. The service might be unavailable.');
         setIsLoading(false);
       }
-    }, 800);
+    }, 500);
   };
 
   useEffect(() => {

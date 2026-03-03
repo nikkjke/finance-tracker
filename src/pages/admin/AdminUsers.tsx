@@ -66,7 +66,7 @@ export default function AdminUsers() {
         setError('Failed to load users. The service might be unavailable.');
         setIsLoading(false);
       }
-    }, 800);
+    }, 500);
   };
 
   useEffect(() => {
