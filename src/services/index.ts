@@ -28,6 +28,14 @@ export {
 } from './budgetService';
 
 export {
+  getIncome,
+  getIncomeById,
+  addIncome,
+  updateIncome,
+  deleteIncome,
+} from './incomeService';
+
+export {
   searchByText,
   filterByField,
   filterByFields,
@@ -42,6 +50,7 @@ export {
 export type { AuthResult } from './authService';
 export type { ServiceResponse, CreateExpenseDTO, UpdateExpenseDTO } from './expenseService';
 export type { CreateBudgetDTO, UpdateBudgetDTO } from './budgetService';
+export type { CreateIncomeDTO, UpdateIncomeDTO } from './incomeService';
 export type {
   SortDirection,
   SortConfig,

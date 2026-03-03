@@ -2,10 +2,10 @@ import { Link } from 'react-router-dom';
 import {
   DollarSign,
   Wallet,
-  ScanLine,
   TrendingUp,
   ArrowRight,
   PlusCircle,
+  TrendingDown,
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import TransactionTable from '../../components/ui/TransactionTable';
@@ -14,6 +14,7 @@ import DonutChart from '../../components/ui/DonutChart';
 import BudgetProgress from '../../components/ui/BudgetProgress';
 import {
   mockExpenses,
+  mockIncome,
   mockMonthlyStats,
   mockMonthlySpending,
   mockSpendingByCategory,
@@ -23,6 +24,10 @@ import {
 
 export default function DashboardPage() {
   const stats = mockMonthlyStats;
+  
+  // Calculate income stats
+  const totalIncome = mockIncome.reduce((sum, income) => sum + income.amount, 0);
+  const netIncome = totalIncome - stats.totalSpent;
 
   return (
     <div className="space-y-6">
@@ -34,30 +39,41 @@ export default function DashboardPage() {
             Here&#39;s what&#39;s happening with your finances this month.
           </p>
         </div>
-        <Link to="/add-expense" className="btn-primary">
-          <PlusCircle size={18} />
-          Add Expense
-        </Link>
+        <div className="flex gap-3">
+          <Link to="/add-income" className="btn-secondary">
+            <TrendingUp size={18} />
+            Record Income
+          </Link>
+          <Link to="/add-expense" className="btn-primary">
+            <PlusCircle size={18} />
+            Add Expense
+          </Link>
+        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard
-          title="Total This Month"
+          title="Total Income"
+          value={totalIncome}
+          icon={<TrendingUp size={20} />}
+        />
+        <StatCard
+          title="Total Expenses"
           value={stats.totalSpent}
-          icon={<DollarSign size={20} />}
+          icon={<TrendingDown size={20} />}
           change={stats.comparedToLastMonth}
           changeLabel="vs last month"
+        />
+        <StatCard
+          title="Net Income"
+          value={netIncome}
+          icon={<DollarSign size={20} />}
         />
         <StatCard
           title="Budget Remaining"
           value={stats.budgetRemaining}
           icon={<Wallet size={20} />}
-        />
-        <StatCard
-          title="Receipts Scanned"
-          value={stats.receiptsScanned.toString()}
-          icon={<ScanLine size={20} />}
         />
         <StatCard
           title="Top Category"

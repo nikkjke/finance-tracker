@@ -11,6 +11,7 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import AddExpensePage from './pages/dashboard/AddExpensePage';
+import AddIncomePage from './pages/dashboard/AddIncomePage';
 import ReportsPage from './pages/dashboard/ReportsPage';
 import BudgetsPage from './pages/dashboard/BudgetsPage';
 import ProfilePage from './pages/dashboard/ProfilePage';
@@ -42,6 +43,7 @@ function App() {
             >
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/add-expense" element={<AddExpensePage />} />
+              <Route path="/add-income" element={<AddIncomePage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/budgets" element={<BudgetsPage />} />
               <Route path="/profile" element={<ProfilePage />} />

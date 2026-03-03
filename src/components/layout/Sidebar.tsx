@@ -11,6 +11,7 @@ import {
   Users,
   Activity,
   AlertCircle,
+  TrendingUp,
 } from 'lucide-react';
 import fintrackLogo from '../../assets/fintrack-logo.svg';
 import { useAuth } from '../../contexts/AuthContext';
@@ -33,6 +34,7 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
   const userLinks = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/add-expense', label: 'Add Expense', icon: PlusCircle },
+    { to: '/add-income', label: 'Record Income', icon: TrendingUp },
     { to: '/reports', label: 'Reports', icon: BarChart3 },
     { to: '/budgets', label: 'Budgets', icon: Wallet },
     { to: '/profile', label: 'Profile', icon: User },
