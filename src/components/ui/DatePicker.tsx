@@ -126,21 +126,10 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[100]" onClick={() => setOpen(false)}>
-          <div 
-            onClick={(e) => e.stopPropagation()}
-            className="absolute w-72 rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30 overflow-hidden"
-            style={(() => {
-              if (!ref.current) return { top: '100%', right: 0 };
-              
-              const rect = ref.current.getBoundingClientRect();
-              
-              return {
-                top: `${rect.bottom + 8}px`,
-                left: `${rect.right - 288}px`,
-              };
-            })()}
-          >
+        <div
+          className="absolute right-0 top-full z-[100] mt-2 w-72 overflow-hidden rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30"
+          onClick={(e) => e.stopPropagation()}
+        >
             <div className="p-3">
               {/* Month/Year Navigation */}
               <div className="flex items-center justify-between mb-2 gap-2">
@@ -205,7 +194,6 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
                 ))}
               </div>
             </div>
-          </div>
         </div>
       )}
     </div>
