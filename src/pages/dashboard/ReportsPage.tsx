@@ -1,21 +1,22 @@
-import { useState, useEffect } from 'react';
-import { Download, Filter, Calendar, CalendarDays, ArrowUpRight, Hash, BarChart3, Search, ArrowUpDown, Wallet, ListFilter } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Download, Filter, Calendar, CalendarDays, ArrowUpRight, Hash, BarChart3, Search, ArrowUpDown, Wallet, ListFilter, AlertTriangle, Edit2, Trash2 } from 'lucide-react';
 import TransactionTable from '../../components/ui/TransactionTable';
 import Dropdown from '../../components/ui/Dropdown';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
 import Pagination from '../../components/ui/Pagination';
+import Modal from '../../components/ui/Modal';
 import { categoryLabels, incomeLabels } from '../../data/mockData';
 import { useExpenses } from '../../contexts/ExpenseContext';
 import { useIncome } from '../../contexts/IncomeContext';
 import { applyFilters, presetToDateRange, exportReport } from '../../services';
 import type { FilterPipelineConfig, SortConfig } from '../../services/filterService';
-import type { Expense, Income } from '../../types';
+import type { Expense, Income, ExpenseCategory, PaymentMethod, IncomeCategory } from '../../types';
 
 export default function ReportsPage() {
-  const { expenses: storeExpenses } = useExpenses();
-  const { income: storeIncome } = useIncome();
+  const { expenses: storeExpenses, updateExpense, deleteExpense } = useExpenses();
+  const { income: storeIncome, updateIncome, deleteIncome } = useIncome();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +34,86 @@ export default function ReportsPage() {
   const [incomeSortBy, setIncomeSortBy] = useState('date-desc');
   const [incomePage, setIncomePage] = useState(1);
   const [incomeItemsPerPage, setIncomeItemsPerPage] = useState(5);
+
+  // ── Expense edit / delete state ──
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
+  const [expenseForm, setExpenseForm] = useState({ storeName: '', amount: '', category: 'food' as ExpenseCategory, date: '', notes: '', paymentMethod: 'card' as PaymentMethod });
+
+  // ── Income edit / delete state ──
+  const [editingIncome, setEditingIncome] = useState<Income | null>(null);
+  const [deletingIncome, setDeletingIncome] = useState<Income | null>(null);
+  const [incomeForm, setIncomeForm] = useState({ source: '', amount: '', category: 'salary' as IncomeCategory, date: '', notes: '' });
+
+  // ── Expense handlers ──
+  const handleEditExpense = useCallback((expense: Expense) => {
+    setExpenseForm({
+      storeName: expense.storeName,
+      amount: expense.amount.toString(),
+      category: expense.category,
+      date: expense.date,
+      notes: expense.notes ?? '',
+      paymentMethod: expense.paymentMethod,
+    });
+    setEditingExpense(expense);
+  }, []);
+
+  const handleSaveExpense = useCallback(async () => {
+    if (!editingExpense) return;
+    await updateExpense(editingExpense.id, {
+      storeName: expenseForm.storeName.trim(),
+      amount: parseFloat(expenseForm.amount),
+      category: expenseForm.category,
+      date: expenseForm.date,
+      notes: expenseForm.notes || undefined,
+      paymentMethod: expenseForm.paymentMethod,
+    });
+    setEditingExpense(null);
+  }, [editingExpense, expenseForm, updateExpense]);
+
+  const handleDeleteExpense = useCallback((expense: Expense) => {
+    setDeletingExpense(expense);
+  }, []);
+
+  const confirmDeleteExpense = useCallback(async () => {
+    if (!deletingExpense) return;
+    await deleteExpense(deletingExpense.id);
+    setDeletingExpense(null);
+  }, [deletingExpense, deleteExpense]);
+
+  // ── Income handlers ──
+  const handleEditIncome = useCallback((income: Income) => {
+    setIncomeForm({
+      source: income.source,
+      amount: income.amount.toString(),
+      category: income.category,
+      date: income.date,
+      notes: income.notes ?? '',
+    });
+    setEditingIncome(income);
+  }, []);
+
+  const handleSaveIncome = useCallback(async () => {
+    if (!editingIncome) return;
+    await updateIncome(editingIncome.id, {
+      source: incomeForm.source.trim(),
+      amount: parseFloat(incomeForm.amount),
+      category: incomeForm.category,
+      date: incomeForm.date,
+      notes: incomeForm.notes || undefined,
+    });
+    setEditingIncome(null);
+  }, [editingIncome, incomeForm, updateIncome]);
+
+  const handleDeleteIncome = useCallback((income: Income) => {
+    setDeletingIncome(income);
+  }, []);
+
+  const confirmDeleteIncome = useCallback(async () => {
+    if (!deletingIncome) return;
+    await deleteIncome(deletingIncome.id);
+    setDeletingIncome(null);
+  }, [deletingIncome, deleteIncome]);
 
   const fetchReports = () => {
     setIsLoading(true);
@@ -374,7 +455,7 @@ export default function ReportsPage() {
           All Transactions
         </h2>
         <div className="space-y-4">
-          <TransactionTable expenses={paginatedExpenses} />
+          <TransactionTable expenses={paginatedExpenses} onEdit={handleEditExpense} onDelete={handleDeleteExpense} />
           {filteredExpensesCount > 0 && (
             <div className="border-t border-surface-200 pt-4 dark:border-surface-700">
               <Pagination
@@ -478,7 +559,7 @@ export default function ReportsPage() {
               paginatedIncome.map((entry) => (
                 <div
                   key={entry.id}
-                  className="flex items-center justify-between rounded-xl border border-surface-200 bg-white px-4 py-3 dark:border-surface-700 dark:bg-surface-800/60"
+                  className="group flex items-center justify-between rounded-xl border border-surface-200 bg-white px-4 py-3 dark:border-surface-700 dark:bg-surface-800/60"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-surface-900 dark:text-white">{entry.source}</p>
@@ -494,11 +575,29 @@ export default function ReportsPage() {
                       )}
                     </div>
                   </div>
-                  <div className="ml-4 text-right">
-                    <p className="text-sm font-bold text-success-600 dark:text-success-500">+${entry.amount.toFixed(2)}</p>
-                    <p className={`mt-1 text-[11px] font-medium ${entry.status === 'completed' ? 'text-success-600 dark:text-success-500' : 'text-warning-600 dark:text-warning-500'}`}>
-                      {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
-                    </p>
+                  <div className="ml-4 flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-success-600 dark:text-success-500">+${entry.amount.toFixed(2)}</p>
+                      <p className={`mt-1 text-[11px] font-medium ${entry.status === 'completed' ? 'text-success-600 dark:text-success-500' : 'text-warning-600 dark:text-warning-500'}`}>
+                        {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                      <button
+                        onClick={() => handleEditIncome(entry)}
+                        className="rounded-lg p-1.5 text-surface-400 hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-500/10 dark:hover:text-primary-400 transition-colors"
+                        title="Edit"
+                      >
+                        <Edit2 size={15} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteIncome(entry)}
+                        className="rounded-lg p-1.5 text-surface-400 hover:bg-danger-50 hover:text-danger-600 dark:hover:bg-danger-500/10 dark:hover:text-danger-400 transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))
@@ -591,6 +690,117 @@ export default function ReportsPage() {
       </div>
         </>
       )}
+
+      {/* ── Edit Expense Modal ── */}
+      <Modal open={!!editingExpense} onClose={() => setEditingExpense(null)} title="Edit Expense">
+        <div className="space-y-4">
+          <div>
+            <label className="label">Store Name</label>
+            <input className="input w-full" value={expenseForm.storeName} onChange={(e) => setExpenseForm((f) => ({ ...f, storeName: e.target.value }))} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Amount ($)</label>
+              <input type="number" min="0.01" step="0.01" className="input w-full" value={expenseForm.amount} onChange={(e) => setExpenseForm((f) => ({ ...f, amount: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label">Date</label>
+              <input type="date" className="input w-full" value={expenseForm.date} onChange={(e) => setExpenseForm((f) => ({ ...f, date: e.target.value }))} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Category</label>
+              <select className="input w-full" value={expenseForm.category} onChange={(e) => setExpenseForm((f) => ({ ...f, category: e.target.value as ExpenseCategory }))}>
+                {Object.entries(categoryLabels).map(([val, lab]) => <option key={val} value={val}>{lab}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="label">Payment Method</label>
+              <select className="input w-full" value={expenseForm.paymentMethod} onChange={(e) => setExpenseForm((f) => ({ ...f, paymentMethod: e.target.value as PaymentMethod }))}>
+                <option value="card">Card</option>
+                <option value="cash">Cash</option>
+                <option value="bank_transfer">Bank Transfer</option>
+                <option value="qr_scan">QR Scan</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="label">Notes</label>
+            <input className="input w-full" value={expenseForm.notes} onChange={(e) => setExpenseForm((f) => ({ ...f, notes: e.target.value }))} />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button className="btn-secondary" onClick={() => setEditingExpense(null)}>Cancel</button>
+            <button className="btn-primary" onClick={handleSaveExpense} disabled={!expenseForm.storeName.trim() || !expenseForm.amount || parseFloat(expenseForm.amount) <= 0 || !expenseForm.date}>Save Changes</button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ── Delete Expense Confirmation ── */}
+      <Modal open={!!deletingExpense} onClose={() => setDeletingExpense(null)} title="Delete Expense">
+        <div className="text-center space-y-4">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-danger-50 dark:bg-danger-500/10">
+            <AlertTriangle size={24} className="text-danger-500" />
+          </div>
+          <p className="text-sm text-surface-600 dark:text-surface-300">
+            Are you sure you want to delete the expense <strong className="text-surface-900 dark:text-white">&quot;{deletingExpense?.storeName}&quot;</strong> for <strong className="text-surface-900 dark:text-white">${deletingExpense?.amount.toFixed(2)}</strong>?
+          </p>
+          <div className="flex justify-center gap-3 pt-2">
+            <button className="btn-secondary" onClick={() => setDeletingExpense(null)}>Cancel</button>
+            <button className="rounded-lg bg-danger-500 px-4 py-2 text-sm font-medium text-white hover:bg-danger-600 transition-colors" onClick={confirmDeleteExpense}>Delete</button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ── Edit Income Modal ── */}
+      <Modal open={!!editingIncome} onClose={() => setEditingIncome(null)} title="Edit Income">
+        <div className="space-y-4">
+          <div>
+            <label className="label">Source</label>
+            <input className="input w-full" value={incomeForm.source} onChange={(e) => setIncomeForm((f) => ({ ...f, source: e.target.value }))} />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Amount ($)</label>
+              <input type="number" min="0.01" step="0.01" className="input w-full" value={incomeForm.amount} onChange={(e) => setIncomeForm((f) => ({ ...f, amount: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label">Date</label>
+              <input type="date" className="input w-full" value={incomeForm.date} onChange={(e) => setIncomeForm((f) => ({ ...f, date: e.target.value }))} />
+            </div>
+          </div>
+          <div>
+            <label className="label">Category</label>
+            <select className="input w-full" value={incomeForm.category} onChange={(e) => setIncomeForm((f) => ({ ...f, category: e.target.value as IncomeCategory }))}>
+              {Object.entries(incomeLabels).map(([val, lab]) => <option key={val} value={val}>{lab}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="label">Notes</label>
+            <input className="input w-full" value={incomeForm.notes} onChange={(e) => setIncomeForm((f) => ({ ...f, notes: e.target.value }))} />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button className="btn-secondary" onClick={() => setEditingIncome(null)}>Cancel</button>
+            <button className="btn-primary" onClick={handleSaveIncome} disabled={!incomeForm.source.trim() || !incomeForm.amount || parseFloat(incomeForm.amount) <= 0 || !incomeForm.date}>Save Changes</button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ── Delete Income Confirmation ── */}
+      <Modal open={!!deletingIncome} onClose={() => setDeletingIncome(null)} title="Delete Income">
+        <div className="text-center space-y-4">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-danger-50 dark:bg-danger-500/10">
+            <AlertTriangle size={24} className="text-danger-500" />
+          </div>
+          <p className="text-sm text-surface-600 dark:text-surface-300">
+            Are you sure you want to delete the income <strong className="text-surface-900 dark:text-white">&quot;{deletingIncome?.source}&quot;</strong> for <strong className="text-surface-900 dark:text-white">${deletingIncome?.amount.toFixed(2)}</strong>?
+          </p>
+          <div className="flex justify-center gap-3 pt-2">
+            <button className="btn-secondary" onClick={() => setDeletingIncome(null)}>Cancel</button>
+            <button className="rounded-lg bg-danger-500 px-4 py-2 text-sm font-medium text-white hover:bg-danger-600 transition-colors" onClick={confirmDeleteIncome}>Delete</button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
