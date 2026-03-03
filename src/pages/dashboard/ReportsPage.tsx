@@ -1,20 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Download, Filter, Calendar, CalendarDays, ArrowUpRight, Hash, BarChart3, Search, ArrowUpDown } from 'lucide-react';
+import { Download, Filter, Calendar, CalendarDays, ArrowUpRight, Hash, BarChart3, Search, ArrowUpDown, Wallet, CircleAlert, ListFilter } from 'lucide-react';
 import TransactionTable from '../../components/ui/TransactionTable';
-import BarChart from '../../components/ui/BarChart';
-import DonutChart from '../../components/ui/DonutChart';
 import Dropdown from '../../components/ui/Dropdown';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
 import Pagination from '../../components/ui/Pagination';
-import {
-  mockMonthlySpending,
-  mockSpendingByCategory,
-} from '../../data/mockData';
+import { categoryLabels } from '../../data/mockData';
 import { useExpenses } from '../../contexts/ExpenseContext';
 import { applyFilters, presetToDateRange } from '../../services';
-import type { SortConfig } from '../../services/filterService';
+import type { FilterPipelineConfig, SortConfig } from '../../services/filterService';
 import type { Expense } from '../../types';
 
 export default function ReportsPage() {
@@ -59,7 +54,7 @@ export default function ReportsPage() {
             ? { key: 'storeName', direction: 'asc' as const }
             : { key: 'date', direction: 'desc' as const };
 
-  const pipelineResult = applyFilters(expenses, {
+  const filterConfig: FilterPipelineConfig<Expense> = {
     searchQuery,
     searchFields: ['storeName', 'notes'],
     filters: {
@@ -69,13 +64,71 @@ export default function ReportsPage() {
     sort: sortConfig,
     dateField: 'date',
     dateRange: presetToDateRange(dateRange as '7days' | '30days' | '6months' | '1year'),
+  };
+
+  const filteredResult = applyFilters(expenses, filterConfig);
+
+  const pipelineResult = applyFilters(expenses, {
+    ...filterConfig,
     page: currentPage,
     pageSize: itemsPerPage,
   });
 
-  const filteredExpensesCount = pipelineResult.totalItems;
+  const filteredExpenses = filteredResult.items;
+  const filteredExpensesCount = filteredResult.totalItems;
   const paginatedExpenses = pipelineResult.items;
   const totalPages = pipelineResult.pagination?.totalPages ?? 1;
+
+  const totalSpent = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const highestExpense = filteredExpenses.reduce((max, expense) => Math.max(max, expense.amount), 0);
+  const averageExpense = filteredExpensesCount > 0 ? totalSpent / filteredExpensesCount : 0;
+
+  const sortedAmounts = [...filteredExpenses].map((expense) => expense.amount).sort((a, b) => a - b);
+  const medianExpense =
+    sortedAmounts.length === 0
+      ? 0
+      : sortedAmounts.length % 2 === 0
+        ? (sortedAmounts[sortedAmounts.length / 2 - 1] + sortedAmounts[sortedAmounts.length / 2]) / 2
+        : sortedAmounts[Math.floor(sortedAmounts.length / 2)];
+
+  const activeDateRange = presetToDateRange(dateRange as '7days' | '30days' | '6months' | '1year');
+  const daysInRange = Math.max(1, Math.ceil((activeDateRange.end.getTime() - activeDateRange.start.getTime()) / (1000 * 60 * 60 * 24)));
+  const averageDaily = totalSpent / daysInRange;
+
+  const merchantMap = filteredExpenses.reduce<Record<string, { total: number; count: number }>>((acc, expense) => {
+    const key = expense.storeName.trim() || 'Unknown';
+    if (!acc[key]) {
+      acc[key] = { total: 0, count: 0 };
+    }
+    acc[key].total += expense.amount;
+    acc[key].count += 1;
+    return acc;
+  }, {});
+
+  const topMerchants = Object.entries(merchantMap)
+    .map(([name, data]) => ({ name, ...data }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5);
+
+  const categoryMap = filteredExpenses.reduce<Record<string, number>>((acc, expense) => {
+    acc[expense.category] = (acc[expense.category] ?? 0) + expense.amount;
+    return acc;
+  }, {});
+
+  const categoryBreakdown = Object.entries(categoryMap)
+    .map(([category, amount]) => ({
+      category,
+      amount,
+      share: totalSpent > 0 ? (amount / totalSpent) * 100 : 0,
+    }))
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5);
+
+  const outlierThreshold = averageExpense * 2;
+  const outliers = filteredExpenses
+    .filter((expense) => expense.amount >= outlierThreshold && outlierThreshold > 0)
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5);
 
   // Reset to page 1 when filter changes
   useEffect(() => {
@@ -202,42 +255,18 @@ export default function ReportsPage() {
       {/* Content (only when loaded, no error, and has data) */}
       {!isLoading && !error && expenses.length > 0 && (
         <>
-      {/* Charts */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="card lg:col-span-2 flex flex-col">
-          <div className="mb-6">
-            <h2 className="text-base font-semibold text-surface-900 dark:text-white">
-              Spending Over Time
-            </h2>
-            <p className="text-sm text-surface-400">Last 6 months overview</p>
-          </div>
-          <div className="flex-1 flex flex-col justify-end">
-            <BarChart data={mockMonthlySpending} height={220} />
-          </div>
-        </div>
-        <div className="card">
-          <div className="mb-6">
-            <h2 className="text-base font-semibold text-surface-900 dark:text-white">
-              Category Breakdown
-            </h2>
-            <p className="text-sm text-surface-400">This month</p>
-          </div>
-          <DonutChart data={mockSpendingByCategory} />
-        </div>
-      </div>
-
       {/* Summary Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
         {[
           {
             label: 'Average Daily',
-            value: '$54.56',
+            value: `$${averageDaily.toFixed(2)}`,
             icon: CalendarDays,
             valueColor: 'text-surface-900 dark:text-white',
           },
           {
             label: 'Highest Expense',
-            value: '$450.00',
+            value: `$${highestExpense.toFixed(2)}`,
             icon: ArrowUpRight,
             valueColor: 'text-surface-900 dark:text-white',
           },
@@ -274,6 +303,99 @@ export default function ReportsPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="card lg:col-span-2">
+          <div className="mb-5 flex items-center gap-2">
+            <Wallet size={18} className="text-primary-500" />
+            <h2 className="text-base font-semibold text-surface-900 dark:text-white">
+              Spending Diagnostics
+            </h2>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="rounded-xl border border-surface-200 p-4 dark:border-surface-700">
+              <p className="text-xs uppercase tracking-wide text-surface-400">Total Spend</p>
+              <p className="mt-2 text-xl font-bold text-surface-900 dark:text-white">${totalSpent.toFixed(2)}</p>
+            </div>
+            <div className="rounded-xl border border-surface-200 p-4 dark:border-surface-700">
+              <p className="text-xs uppercase tracking-wide text-surface-400">Average Expense</p>
+              <p className="mt-2 text-xl font-bold text-surface-900 dark:text-white">${averageExpense.toFixed(2)}</p>
+            </div>
+            <div className="rounded-xl border border-surface-200 p-4 dark:border-surface-700">
+              <p className="text-xs uppercase tracking-wide text-surface-400">Median Expense</p>
+              <p className="mt-2 text-xl font-bold text-surface-900 dark:text-white">${medianExpense.toFixed(2)}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="mb-5 flex items-center gap-2">
+            <ListFilter size={18} className="text-primary-500" />
+            <h2 className="text-base font-semibold text-surface-900 dark:text-white">Category Concentration</h2>
+          </div>
+          <div className="space-y-3">
+            {categoryBreakdown.length === 0 ? (
+              <p className="text-sm text-surface-400">No category data for the selected filters.</p>
+            ) : (
+              categoryBreakdown.map((item) => (
+                <div key={item.category}>
+                  <div className="mb-1 flex items-center justify-between text-xs">
+                    <span className="text-surface-600 dark:text-surface-300">{categoryLabels[item.category as keyof typeof categoryLabels]}</span>
+                    <span className="text-surface-500">{item.share.toFixed(1)}%</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-surface-100 dark:bg-surface-700">
+                    <div className="h-2 rounded-full bg-primary-500" style={{ width: `${Math.min(item.share, 100)}%` }} />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="card">
+          <h2 className="mb-5 text-base font-semibold text-surface-900 dark:text-white">Top Merchants</h2>
+          <div className="space-y-3">
+            {topMerchants.length === 0 ? (
+              <p className="text-sm text-surface-400">No merchant data for the selected filters.</p>
+            ) : (
+              topMerchants.map((merchant) => (
+                <div key={merchant.name} className="flex items-center justify-between rounded-lg border border-surface-200 px-3 py-2 dark:border-surface-700">
+                  <div>
+                    <p className="text-sm font-medium text-surface-900 dark:text-white">{merchant.name}</p>
+                    <p className="text-xs text-surface-400">{merchant.count} transactions</p>
+                  </div>
+                  <p className="text-sm font-semibold text-surface-900 dark:text-white">${merchant.total.toFixed(2)}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="mb-5 flex items-center gap-2">
+            <CircleAlert size={18} className="text-warning-500" />
+            <h2 className="text-base font-semibold text-surface-900 dark:text-white">Outlier Expenses</h2>
+          </div>
+          <p className="mb-3 text-xs text-surface-400">Threshold: 2× average expense (${outlierThreshold.toFixed(2)})</p>
+          <div className="space-y-3">
+            {outliers.length === 0 ? (
+              <p className="text-sm text-surface-400">No outliers found for current filters.</p>
+            ) : (
+              outliers.map((expense) => (
+                <div key={expense.id} className="flex items-center justify-between rounded-lg border border-warning-200 bg-warning-50/40 px-3 py-2 dark:border-warning-500/30 dark:bg-warning-500/10">
+                  <div>
+                    <p className="text-sm font-medium text-surface-900 dark:text-white">{expense.storeName}</p>
+                    <p className="text-xs text-surface-500">{new Date(expense.date).toLocaleDateString('en-US')}</p>
+                  </div>
+                  <p className="text-sm font-semibold text-warning-700 dark:text-warning-400">${expense.amount.toFixed(2)}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
 
       {/* All Transactions */}
