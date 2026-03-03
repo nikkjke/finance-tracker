@@ -21,6 +21,15 @@ export type ExpenseCategory =
   | 'travel'
   | 'other';
 
+/** Categories for income sources. */
+export type IncomeCategory =
+  | 'salary'
+  | 'freelance'
+  | 'investment'
+  | 'bonus'
+  | 'gift'
+  | 'other_income';
+
 /** Represents a registered user in the system. */
 export interface User {
   id: string;
@@ -54,6 +63,18 @@ export interface Budget {
   spent: number;
   /** Format: "YYYY-MM" */
   month: string;
+}
+
+/** A single income record. */
+export interface Income {
+  id: string;
+  userId: string;
+  source: string;
+  amount: number;
+  category: IncomeCategory;
+  date: string;
+  notes?: string;
+  status: 'completed' | 'pending';
 }
 
 /** An in-app notification shown to users. */
@@ -145,6 +166,20 @@ export interface UpdateBudgetDTO {
   month?: string;
 }
 
+/** Payload required to create a new income. */
+export interface CreateIncomeDTO {
+  source: string;
+  amount: number;
+  category: IncomeCategory;
+  date: string;
+  notes?: string;
+}
+
+/** Payload for updating an existing income (all fields optional). */
+export interface UpdateIncomeDTO extends Partial<CreateIncomeDTO> {
+  status?: 'completed' | 'pending';
+}
+
 // ─── Constants ──────────────────────────────────────────────────
 
 /**
@@ -155,5 +190,6 @@ export const STORAGE_KEYS = {
   CURRENT_USER: 'currentUser',
   EXPENSES: 'expenses',
   BUDGETS: 'budgets',
+  INCOME: 'income',
   THEME: 'theme',
 } as const;

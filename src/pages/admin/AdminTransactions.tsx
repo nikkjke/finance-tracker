@@ -10,17 +10,40 @@ import {
   ArrowDownRight,
   BarChart3,
   FileText,
+  Settings,
+  ArrowUpDown,
 } from 'lucide-react';
-import { mockExpenses } from '../../data/mockData';
+import { useExpenses } from '../../contexts/ExpenseContext';
 import BarChart from '../../components/ui/BarChart';
 import DonutChart from '../../components/ui/DonutChart';
 import Dropdown from '../../components/ui/Dropdown';
+import Modal from '../../components/ui/Modal';
+import Pagination from '../../components/ui/Pagination';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
-import type { Expense } from '../../types';
+import { applyFilters, presetToDateRange, exportTransactions, exportReport } from '../../services';
+import { categoryLabels } from '../../data/mockData';
+import type { Expense, ExpenseStatus } from '../../types';
+import type { FilterPipelineConfig, SortConfig } from '../../services/filterService';
+
+interface StatusChangeFormData {
+  status: ExpenseStatus;
+  adminNotes: string;
+}
+
+interface StatusChangeFormErrors {
+  status?: string;
+  adminNotes?: string;
+}
+
+const initialStatusForm: StatusChangeFormData = {
+  status: 'completed',
+  adminNotes: '',
+};
 
 export default function AdminTransactions() {
+  const { expenses: storeExpenses, updateExpense } = useExpenses();
   const [transactions, setTransactions] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,33 +51,68 @@ export default function AdminTransactions() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending' | 'cancelled'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState('month');
+  const [sortBy, setSortBy] = useState<'date-desc' | 'date-asc' | 'amount-desc' | 'amount-asc' | 'store-asc'>('date-desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+
+  const [showModal, setShowModal] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Expense | null>(null);
+  const [statusForm, setStatusForm] = useState<StatusChangeFormData>(initialStatusForm);
+  const [formErrors, setFormErrors] = useState<StatusChangeFormErrors>({});
+  const [isSaving, setIsSaving] = useState(false);
 
   const fetchTransactions = () => {
     setIsLoading(true);
     setError(null);
     setTimeout(() => {
       try {
-        setTransactions(mockExpenses);
+        setTransactions(storeExpenses);
         setIsLoading(false);
       } catch {
         setError('Failed to load transactions. The service might be unavailable.');
         setIsLoading(false);
       }
-    }, 800);
+    }, 250);
   };
 
   useEffect(() => {
     fetchTransactions();
-  }, []);
+  }, [storeExpenses]);
 
-  const filteredTransactions = transactions.filter((tx) => {
-    const matchesSearch =
-      tx.storeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tx.notes?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || tx.status === statusFilter;
-    const matchesCategory = categoryFilter === 'all' || tx.category === categoryFilter;
-    return matchesSearch && matchesStatus && matchesCategory;
+  const sortConfig: SortConfig<Expense> =
+    sortBy === 'amount-asc'
+      ? { key: 'amount', direction: 'asc' as const }
+      : sortBy === 'amount-desc'
+        ? { key: 'amount', direction: 'desc' as const }
+        : sortBy === 'date-asc'
+          ? { key: 'date', direction: 'asc' as const }
+          : sortBy === 'store-asc'
+            ? { key: 'storeName', direction: 'asc' as const }
+            : { key: 'date', direction: 'desc' as const };
+
+  const filterConfig: FilterPipelineConfig<Expense> = {
+    searchQuery,
+    searchFields: ['storeName', 'notes'],
+    filters: {
+      status: statusFilter,
+      category: categoryFilter,
+    },
+    sort: sortConfig,
+    dateField: 'date',
+    dateRange: presetToDateRange(dateRange as 'week' | 'month' | 'quarter' | 'year'),
+  };
+
+  const filteredResult = applyFilters(transactions, filterConfig);
+  const pipelineResult = applyFilters(transactions, {
+    ...filterConfig,
+    page: currentPage,
+    pageSize: itemsPerPage,
   });
+
+  const filteredTransactions = filteredResult.items;
+  const filteredTransactionsCount = filteredResult.totalItems;
+  const paginatedTransactions = pipelineResult.items;
+  const totalPages = pipelineResult.pagination?.totalPages ?? 1;
 
   const stats = {
     total: transactions.reduce((sum, tx) => sum + tx.amount, 0),
@@ -63,12 +121,18 @@ export default function AdminTransactions() {
     cancelled: transactions.filter((tx) => tx.status === 'cancelled').length,
   };
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, categoryFilter, dateRange, sortBy]);
+
   const handleExport = () => {
-    alert('Exporting transaction data... (Feature in development)');
+    // Export filtered transactions to CSV
+    exportTransactions(filteredTransactions, { filename: 'transactions', format: 'csv' });
   };
 
   const handleExportReport = (type: string) => {
-    alert(`Exporting ${type} report... (Feature in development)`);
+    // Export formatted report (PDF/Excel in production)
+    exportReport(type as any);
   };
 
   const revenueData = [
@@ -110,6 +174,49 @@ export default function AdminTransactions() {
       travel: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400',
     };
     return colors[category] || 'bg-surface-100 text-surface-700 dark:bg-surface-700 dark:text-surface-400';
+  };
+
+  const validateForm = () => {
+    const nextErrors: StatusChangeFormErrors = {};
+
+    if (!statusForm.status) {
+      nextErrors.status = 'Status is required';
+    }
+
+    if (statusForm.adminNotes.trim().length > 500) {
+      nextErrors.adminNotes = 'Admin notes must be at most 500 characters';
+    }
+
+    setFormErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleOpenChangeStatus = (transaction: Expense) => {
+    setSelectedTransaction(transaction);
+    setStatusForm({
+      status: transaction.status,
+      adminNotes: '',
+    });
+    setFormErrors({});
+    setShowModal(true);
+  };
+
+  const handleSave = async () => {
+    if (!validateForm() || !selectedTransaction) return;
+
+    setIsSaving(true);
+
+    const updateResult = await updateExpense(selectedTransaction.id, {
+      status: statusForm.status,
+    });
+
+    if (!updateResult.success) {
+      setError(updateResult.error ?? 'Failed to update transaction status.');
+    }
+
+    setIsSaving(false);
+    setShowModal(false);
+    setSelectedTransaction(null);
   };
 
   return (
@@ -299,7 +406,7 @@ export default function AdminTransactions() {
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Dropdown
               value={categoryFilter}
               onChange={setCategoryFilter}
@@ -315,8 +422,25 @@ export default function AdminTransactions() {
                 { value: 'travel', label: 'Travel' },
               ]}
             />
+            <Dropdown
+              value={sortBy}
+              onChange={(val) => setSortBy(val as typeof sortBy)}
+              icon={<ArrowUpDown size={16} />}
+              options={[
+                { value: 'date-desc', label: 'Date: Newest First' },
+                { value: 'date-asc', label: 'Date: Oldest First' },
+                { value: 'amount-desc', label: 'Amount: High to Low' },
+                { value: 'amount-asc', label: 'Amount: Low to High' },
+                { value: 'store-asc', label: 'Store: A-Z' },
+              ]}
+              minWidth="min-w-[220px]"
+            />
           </div>
         </div>
+
+        <p className="mb-4 text-xs text-surface-400 dark:text-surface-500">
+          {filteredTransactionsCount} transactions found
+        </p>
 
         {/* Transaction Table */}
         <div className="overflow-x-auto">
@@ -341,10 +465,13 @@ export default function AdminTransactions() {
                 <th className="pb-3 text-xs font-semibold uppercase tracking-wider text-surface-500">
                   Status
                 </th>
+                <th className="pb-3 text-xs font-semibold uppercase tracking-wider text-surface-500 text-right">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-100 dark:divide-surface-700">
-              {filteredTransactions.map((tx) => (
+              {paginatedTransactions.map((tx) => (
                 <tr key={tx.id} className="hover:bg-surface-50 dark:hover:bg-surface-700/50">
                   <td className="py-4 pr-4">
                     <div>
@@ -392,6 +519,16 @@ export default function AdminTransactions() {
                       {tx.status}
                     </span>
                   </td>
+                  <td className="py-4 text-right">
+                    <button
+                      onClick={() => handleOpenChangeStatus(tx)}
+                      className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-surface-700 hover:bg-surface-100 hover:text-surface-900 dark:text-surface-300 dark:hover:bg-surface-700 dark:hover:text-surface-100 transition-colors"
+                      aria-label="Change transaction status"
+                    >
+                      <Settings size={14} />
+                      <span>Change Status</span>
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -413,7 +550,158 @@ export default function AdminTransactions() {
             }
           />
         )}
+
+        {filteredTransactionsCount > 0 && (
+          <div className="mt-4 border-t border-surface-200 pt-4 dark:border-surface-700">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={(count) => {
+                setItemsPerPage(count);
+                setCurrentPage(1);
+              }}
+              totalItems={filteredTransactionsCount}
+              loading={isLoading}
+            />
+          </div>
+        )}
       </div>
+
+      <Modal
+        open={showModal}
+        onClose={() => {
+          setShowModal(false);
+          setSelectedTransaction(null);
+          setFormErrors({});
+        }}
+        title="Change Transaction Status"
+      >
+        <div className="space-y-4">
+          {/* Transaction Details (Read-Only) */}
+          {selectedTransaction && (
+            <div className="rounded-lg border border-surface-200 bg-surface-50 p-4 dark:border-surface-700 dark:bg-surface-800/50">
+              <h3 className="mb-3 text-sm font-semibold text-surface-900 dark:text-white">
+                Transaction Details
+              </h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-surface-500 dark:text-surface-400">Store:</span>
+                  <span className="font-medium text-surface-900 dark:text-white">
+                    {selectedTransaction.storeName}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-surface-500 dark:text-surface-400">Amount:</span>
+                  <span className="font-semibold text-surface-900 dark:text-white">
+                    €{selectedTransaction.amount.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-surface-500 dark:text-surface-400">Category:</span>
+                  <span className="text-surface-900 dark:text-white">
+                    {categoryLabels[selectedTransaction.category]}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-surface-500 dark:text-surface-400">Date:</span>
+                  <span className="text-surface-900 dark:text-white">
+                    {new Date(selectedTransaction.date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-surface-500 dark:text-surface-400">Payment Method:</span>
+                  <span className="capitalize text-surface-900 dark:text-white">
+                    {selectedTransaction.paymentMethod.replace('_', ' ')}
+                  </span>
+                </div>
+                {selectedTransaction.notes && (
+                  <div className="mt-3 border-t border-surface-200 pt-2 dark:border-surface-700">
+                    <span className="text-surface-500 dark:text-surface-400">User Notes:</span>
+                    <p className="mt-1 text-surface-700 dark:text-surface-300">
+                      {selectedTransaction.notes}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Status Change */}
+          <div>
+            <label className="label">Change Status</label>
+            <Dropdown
+              value={statusForm.status}
+              onChange={(val) => {
+                setStatusForm((prev) => ({ ...prev, status: val as ExpenseStatus }));
+                setFormErrors((prev) => ({ ...prev, status: undefined }));
+              }}
+              options={[
+                { value: 'completed', label: 'Completed' },
+                { value: 'pending', label: 'Pending' },
+                { value: 'cancelled', label: 'Cancelled' },
+              ]}
+              fullWidth
+            />
+            {formErrors.status && <p className="mt-1 text-xs text-danger-500">{formErrors.status}</p>}
+          </div>
+
+          {/* Admin Notes */}
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <label className="label" htmlFor="admin-notes">
+                Admin Notes <span className="font-normal text-surface-400">(optional, internal only)</span>
+              </label>
+              <span className={`text-xs ${statusForm.adminNotes.length > 450 ? 'text-warning-500' : 'text-surface-400'}`}>
+                {statusForm.adminNotes.length}/500
+              </span>
+            </div>
+            <textarea
+              id="admin-notes"
+              rows={3}
+              maxLength={500}
+              value={statusForm.adminNotes}
+              onChange={(e) => {
+                setStatusForm((prev) => ({ ...prev, adminNotes: e.target.value }));
+                setFormErrors((prev) => ({ ...prev, adminNotes: undefined }));
+              }}
+              className={`input resize-none ${formErrors.adminNotes ? 'border-danger-500' : ''}`}
+              placeholder="Add internal notes about this status change (e.g., reason for marking as cancelled)..."
+            />
+            {formErrors.adminNotes && <p className="mt-1 text-xs text-danger-500">{formErrors.adminNotes}</p>}
+            <p className="mt-1 text-xs text-surface-400">
+              These notes are for internal tracking only and not visible to users.
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                setShowModal(false);
+                setSelectedTransaction(null);
+              }}
+              className="btn-secondary"
+              disabled={isSaving}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              className="btn-primary"
+              disabled={isSaving}
+            >
+              {isSaving ? 'Saving...' : 'Update Status'}
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Analytics Charts */}
       <div className="grid gap-4 lg:grid-cols-2">

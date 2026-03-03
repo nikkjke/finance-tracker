@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   AlertCircle,
   AlertTriangle,
@@ -11,6 +11,7 @@ import {
   Eye,
 } from 'lucide-react';
 import Dropdown from '../../components/ui/Dropdown';
+import Spinner from '../../components/ui/Spinner';
 
 interface Alert {
   id: string;
@@ -24,6 +25,17 @@ interface Alert {
 }
 
 export default function AdminAlerts() {
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Simulate loading alerts with setTimeout
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const [alerts, setAlerts] = useState<Alert[]>([
     {
       id: '1',
@@ -172,23 +184,30 @@ export default function AdminAlerts() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <AlertCircle size={20} className="text-primary-600 dark:text-primary-400" />
-            <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">
-              Alerts & Notifications
-            </h1>
-          </div>
-          <p className="text-sm text-surface-500 dark:text-surface-400">
-            Monitor system alerts and notifications.
-          </p>
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <Spinner size={40} />
+          <p className="mt-4 text-surface-600 dark:text-surface-300">Loading alerts...</p>
         </div>
-        <button onClick={handleMarkAllAsRead} className="btn-secondary">
-          Mark All as Read
-        </button>
-      </div>
+      ) : (
+        <>
+          {/* Header */}
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <AlertCircle size={20} className="text-primary-600 dark:text-primary-400" />
+                <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">
+                  Alerts & Notifications
+                </h1>
+              </div>
+              <p className="text-sm text-surface-500 dark:text-surface-400">
+                Monitor system alerts and notifications.
+              </p>
+            </div>
+            <button onClick={handleMarkAllAsRead} className="btn-secondary">
+              Mark All as Read
+            </button>
+          </div>
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -420,6 +439,8 @@ export default function AdminAlerts() {
           </div>
         )}
       </div>
+        </>
+      )}
     </div>
   );
 }

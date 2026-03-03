@@ -4,7 +4,6 @@ import {
   Search,
   UserPlus,
   Download,
-  MoreVertical,
   Shield,
   Trash2,
   Edit,
@@ -12,10 +11,32 @@ import {
 } from 'lucide-react';
 import { mockUsers } from '../../data/mockData';
 import Dropdown from '../../components/ui/Dropdown';
+import Modal from '../../components/ui/Modal';
+import Pagination from '../../components/ui/Pagination';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
+import { applyFilters, exportUsers } from '../../services';
 import type { User } from '../../types';
+import type { FilterPipelineConfig, SortConfig } from '../../services/filterService';
+
+interface UserFormData {
+  name: string;
+  email: string;
+  role: 'user' | 'admin';
+}
+
+interface UserFormErrors {
+  name?: string;
+  email?: string;
+  role?: string;
+}
+
+const initialFormData: UserFormData = {
+  name: '',
+  email: '',
+  role: 'user',
+};
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
@@ -23,7 +44,15 @@ export default function AdminUsers() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'user' | 'admin'>('all');
-  const [sortBy, setSortBy] = useState<'name' | 'date' | 'role'>('date');
+  const [sortBy, setSortBy] = useState<'name-asc' | 'date-desc' | 'date-asc' | 'role-asc'>('date-desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+
+  const [showModal, setShowModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [formData, setFormData] = useState<UserFormData>(initialFormData);
+  const [formErrors, setFormErrors] = useState<UserFormErrors>({});
+  const [isSaving, setIsSaving] = useState(false);
 
   const fetchUsers = () => {
     setIsLoading(true);
@@ -37,27 +66,130 @@ export default function AdminUsers() {
         setError('Failed to load users. The service might be unavailable.');
         setIsLoading(false);
       }
-    }, 800);
+    }, 250);
   };
 
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  const filteredUsers = users
-    .filter((u) => {
-      const matchesSearch =
-        u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesRole = roleFilter === 'all' || u.role === roleFilter;
-      return matchesSearch && matchesRole;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'name') return a.name.localeCompare(b.name);
-      if (sortBy === 'date') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      if (sortBy === 'role') return a.role.localeCompare(b.role);
-      return 0;
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, roleFilter, sortBy]);
+
+  const sortConfig: SortConfig<User> =
+    sortBy === 'name-asc'
+      ? { key: 'name', direction: 'asc' as const }
+      : sortBy === 'date-asc'
+        ? { key: 'createdAt', direction: 'asc' as const }
+        : sortBy === 'role-asc'
+          ? { key: 'role', direction: 'asc' as const }
+          : { key: 'createdAt', direction: 'desc' as const };
+
+  const filterConfig: FilterPipelineConfig<User> = {
+    searchQuery,
+    searchFields: ['name', 'email'],
+    filters: {
+      role: roleFilter,
+    },
+    sort: sortConfig,
+  };
+
+  const filteredResult = applyFilters(users, filterConfig);
+  const pipelineResult = applyFilters(users, {
+    ...filterConfig,
+    page: currentPage,
+    pageSize: itemsPerPage,
+  });
+
+  const filteredUsers = filteredResult.items;
+  const filteredUsersCount = filteredResult.totalItems;
+  const paginatedUsers = pipelineResult.items;
+  const totalPages = pipelineResult.pagination?.totalPages ?? 1;
+
+  const validateForm = () => {
+    const nextErrors: UserFormErrors = {};
+    const trimmedName = formData.name.trim();
+    const trimmedEmail = formData.email.trim();
+
+    if (!trimmedName) {
+      nextErrors.name = 'Name is required';
+    } else if (trimmedName.length < 2) {
+      nextErrors.name = 'Name must be at least 2 characters';
+    } else if (trimmedName.length > 100) {
+      nextErrors.name = 'Name must be at most 100 characters';
+    }
+
+    if (!trimmedEmail) {
+      nextErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      nextErrors.email = 'Email must be valid';
+    }
+
+    if (!formData.role) {
+      nextErrors.role = 'Role is required';
+    }
+
+    setFormErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleOpenCreate = () => {
+    setEditingUser(null);
+    setFormData(initialFormData);
+    setFormErrors({});
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (user: User) => {
+    setEditingUser(user);
+    setFormData({
+      name: user.name,
+      email: user.email,
+      role: user.role,
     });
+    setFormErrors({});
+    setShowModal(true);
+  };
+
+  const handleSave = async () => {
+    if (!validateForm()) return;
+
+    setIsSaving(true);
+
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    if (editingUser) {
+      // Update existing user
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === editingUser.id
+            ? {
+                ...u,
+                name: formData.name.trim(),
+                email: formData.email.trim(),
+                role: formData.role,
+              }
+            : u
+        )
+      );
+    } else {
+      // Create new user
+      const newUser: User = {
+        id: `user-${Date.now()}`,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        role: formData.role,
+        createdAt: new Date().toISOString(),
+      };
+      setUsers((prev) => [newUser, ...prev]);
+    }
+
+    setIsSaving(false);
+    setShowModal(false);
+    setEditingUser(null);
+  };
 
   const handleDeleteUser = (id: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
@@ -74,7 +206,8 @@ export default function AdminUsers() {
   };
 
   const handleExport = () => {
-    alert('Exporting user data... (Feature in development)');
+    // Export filtered users to CSV
+    exportUsers(filteredUsers, { filename: 'users', format: 'csv' });
   };
 
   const stats = {
@@ -97,7 +230,7 @@ export default function AdminUsers() {
           </p>
         </div>
         <div className="flex gap-2">
-          <button className="btn-secondary flex items-center gap-2">
+          <button onClick={handleOpenCreate} className="btn-secondary flex items-center gap-2">
             <UserPlus size={16} />
             <span className="hidden sm:inline">Add User</span>
           </button>
@@ -230,11 +363,12 @@ export default function AdminUsers() {
             </div>
             <Dropdown
               value={sortBy}
-              onChange={(val) => setSortBy(val as 'name' | 'date' | 'role')}
+              onChange={(val) => setSortBy(val as 'name-asc' | 'date-desc' | 'date-asc' | 'role-asc')}
               options={[
-                { value: 'date', label: 'Sort by Date' },
-                { value: 'name', label: 'Sort by Name' },
-                { value: 'role', label: 'Sort by Role' },
+                { value: 'date-desc', label: 'Newest First' },
+                { value: 'date-asc', label: 'Oldest First' },
+                { value: 'name-asc', label: 'Name (A-Z)' },
+                { value: 'role-asc', label: 'Role (A-Z)' },
               ]}
             />
           </div>
@@ -266,7 +400,7 @@ export default function AdminUsers() {
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-100 dark:divide-surface-700">
-              {filteredUsers.map((user) => (
+              {paginatedUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-surface-50 dark:hover:bg-surface-700/50">
                   <td className="py-4 pr-4">
                     <div className="flex items-center gap-3">
@@ -320,6 +454,7 @@ export default function AdminUsers() {
                         <Shield size={16} />
                       </button>
                       <button
+                        onClick={() => handleOpenEdit(user)}
                         className="rounded-lg p-2 text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
                         title="Edit user"
                       >
@@ -327,16 +462,10 @@ export default function AdminUsers() {
                       </button>
                       <button
                         onClick={() => handleDeleteUser(user.id)}
-                        className="rounded-lg p-2 text-surface-400 hover:bg-danger-50 hover:text-danger-500 dark:hover:bg-danger-500/10 transition-colors"
+                        className="rounded-lg p-2 text-danger-500 hover:bg-danger-50 hover:text-danger-600 dark:text-danger-400 dark:hover:bg-danger-500/10 dark:hover:text-danger-300 transition-colors"
                         title="Delete user"
                       >
                         <Trash2 size={16} />
-                      </button>
-                      <button
-                        className="rounded-lg p-2 text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
-                        title="More options"
-                      >
-                        <MoreVertical size={16} />
                       </button>
                     </div>
                   </td>
@@ -361,7 +490,118 @@ export default function AdminUsers() {
             }
           />
         )}
+
+        {filteredUsersCount > 0 && (
+          <div className="mt-4 border-t border-surface-200 pt-4 dark:border-surface-700">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={(count) => {
+                setItemsPerPage(count);
+                setCurrentPage(1);
+              }}
+              totalItems={filteredUsersCount}
+              loading={isLoading}
+            />
+          </div>
+        )}
       </div>
+
+      <Modal
+        open={showModal}
+        onClose={() => {
+          setShowModal(false);
+          setEditingUser(null);
+          setFormErrors({});
+        }}
+        title={editingUser ? 'Edit User' : 'Create New User'}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="label" htmlFor="user-name">
+              Full Name
+            </label>
+            <input
+              id="user-name"
+              type="text"
+              maxLength={100}
+              value={formData.name}
+              onChange={(e) => {
+                setFormData((prev) => ({ ...prev, name: e.target.value }));
+                setFormErrors((prev) => ({ ...prev, name: undefined }));
+              }}
+              className={`input ${formErrors.name ? 'border-danger-500' : ''}`}
+              placeholder="e.g. John Doe"
+            />
+            {formErrors.name && (
+              <p className="mt-1 text-xs text-danger-500">{formErrors.name}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="label" htmlFor="user-email">
+              Email Address
+            </label>
+            <input
+              id="user-email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => {
+                setFormData((prev) => ({ ...prev, email: e.target.value }));
+                setFormErrors((prev) => ({ ...prev, email: undefined }));
+              }}
+              className={`input ${formErrors.email ? 'border-danger-500' : ''}`}
+              placeholder="e.g. john@example.com"
+            />
+            {formErrors.email && (
+              <p className="mt-1 text-xs text-danger-500">{formErrors.email}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="label">Role</label>
+            <Dropdown
+              value={formData.role}
+              onChange={(val) => {
+                setFormData((prev) => ({ ...prev, role: val as 'user' | 'admin' }));
+                setFormErrors((prev) => ({ ...prev, role: undefined }));
+              }}
+              options={[
+                { value: 'user', label: 'Regular User' },
+                { value: 'admin', label: 'Administrator' },
+              ]}
+              fullWidth
+            />
+            {formErrors.role && (
+              <p className="mt-1 text-xs text-danger-500">{formErrors.role}</p>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                setShowModal(false);
+                setEditingUser(null);
+              }}
+              className="btn-secondary"
+              disabled={isSaving}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              className="btn-primary"
+              disabled={isSaving}
+            >
+              {isSaving ? 'Saving...' : editingUser ? 'Save Changes' : 'Create User'}
+            </button>
+          </div>
+        </div>
+      </Modal>
         </>
       )}
     </div>

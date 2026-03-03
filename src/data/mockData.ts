@@ -2,6 +2,7 @@ import type {
   User,
   Expense,
   Budget,
+  Income,
   Notification,
   MonthlyStats,
   ChartDataPoint,
@@ -174,6 +175,59 @@ export const mockBudgets: Budget[] = [
   { id: 'b8', userId: '1', category: 'travel', limit: 1000, spent: 0, month: '2026-02' },
 ];
 
+export const mockIncome: Income[] = [
+  {
+    id: 'inc1',
+    userId: '1',
+    source: 'Acme Corp',
+    amount: 4500.0,
+    category: 'salary',
+    date: '2026-02-01',
+    notes: 'Monthly salary',
+    status: 'completed',
+  },
+  {
+    id: 'inc2',
+    userId: '1',
+    source: 'Freelance Project',
+    amount: 850.0,
+    category: 'freelance',
+    date: '2026-02-10',
+    notes: 'Web design project',
+    status: 'completed',
+  },
+  {
+    id: 'inc3',
+    userId: '1',
+    source: 'Investment Returns',
+    amount: 320.5,
+    category: 'investment',
+    date: '2026-02-05',
+    notes: 'Dividend payment',
+    status: 'completed',
+  },
+  {
+    id: 'inc4',
+    userId: '1',
+    source: 'Acme Corp',
+    amount: 1200.0,
+    category: 'bonus',
+    date: '2026-02-15',
+    notes: 'Performance bonus',
+    status: 'completed',
+  },
+  {
+    id: 'inc5',
+    userId: '1',
+    source: 'Birthday Gift',
+    amount: 200.0,
+    category: 'gift',
+    date: '2026-02-03',
+    notes: 'From family',
+    status: 'completed',
+  },
+];
+
 export const mockNotifications: Notification[] = [
   {
     id: 'n1',
@@ -266,4 +320,22 @@ export const categoryLabels: Record<string, string> = {
   education: 'Education',
   travel: 'Travel',
   other: 'Other',
+};
+
+export const incomeColors: Record<string, string> = {
+  salary: '#10b981',
+  freelance: '#8b5cf6',
+  investment: '#f59e0b',
+  bonus: '#06b6d4',
+  gift: '#ec4899',
+  other_income: '#6b7280',
+};
+
+export const incomeLabels: Record<string, string> = {
+  salary: 'Salary',
+  freelance: 'Freelance',
+  investment: 'Investment',
+  bonus: 'Bonus',
+  gift: 'Gift',
+  other_income: 'Other Income',
 };

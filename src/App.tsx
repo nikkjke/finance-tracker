@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { ExpenseProvider } from './contexts/ExpenseContext';
+import { IncomeProvider } from './contexts/IncomeContext';
 
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -11,6 +13,7 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import AddExpensePage from './pages/dashboard/AddExpensePage';
+import AddIncomePage from './pages/dashboard/AddIncomePage';
 import ReportsPage from './pages/dashboard/ReportsPage';
 import BudgetsPage from './pages/dashboard/BudgetsPage';
 import ProfilePage from './pages/dashboard/ProfilePage';
@@ -18,6 +21,8 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminTransactions from './pages/admin/AdminTransactions';
 import AdminAlerts from './pages/admin/AdminAlerts';
+import AdminSettings from './pages/admin/AdminSettings';
+import AdminContent from './pages/admin/AdminContent';
 import { NotFoundPage, UnauthorizedPage, ForbiddenPage, ServerErrorPage } from './pages/errors';
 
 function App() {
@@ -25,7 +30,9 @@ function App() {
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-          <ErrorBoundary>
+          <ExpenseProvider>
+            <IncomeProvider>
+              <ErrorBoundary>
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
@@ -42,9 +49,9 @@ function App() {
             >
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/add-expense" element={<AddExpensePage />} />
+              <Route path="/add-income" element={<AddIncomePage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/budgets" element={<BudgetsPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
             </Route>
 
             {/* Protected Admin Routes */}
@@ -59,6 +66,19 @@ function App() {
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/transactions" element={<AdminTransactions />} />
               <Route path="/admin/alerts" element={<AdminAlerts />} />
+              <Route path="/admin/content" element={<AdminContent />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
+            </Route>
+
+            {/* Shared Routes (accessible by both users and admins) */}
+            <Route
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/profile" element={<ProfilePage />} />
             </Route>
 
             {/* Error Pages */}
@@ -70,7 +90,9 @@ function App() {
             {/* Catch-all: any unknown route → 404 */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
-          </ErrorBoundary>
+            </ErrorBoundary>
+            </IncomeProvider>
+          </ExpenseProvider>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

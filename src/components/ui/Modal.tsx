@@ -1,4 +1,5 @@
 import { X } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 
 interface ModalProps {
@@ -11,13 +12,13 @@ interface ModalProps {
 export default function Modal({ open, onClose, title, children }: ModalProps) {
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto">
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/60 backdrop-blur-md"
         onClick={onClose}
       />
-      <div className="relative w-full max-w-lg mx-4 rounded-xl border border-surface-200 bg-white p-6 shadow-xl dark:border-surface-700 dark:bg-surface-800 animate-in fade-in zoom-in duration-200">
+      <div className="relative w-full max-w-lg mx-4 my-8 rounded-xl border border-surface-200 bg-white p-6 shadow-xl dark:border-surface-700 dark:bg-surface-800 animate-in fade-in zoom-in duration-200">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-surface-900 dark:text-white">
             {title}
@@ -31,6 +32,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

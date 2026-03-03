@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, X } from 'lucide-react';
 
 interface DatePickerProps {
   value: string;
@@ -86,9 +86,28 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
     ? `${String(selectedDate.month + 1).padStart(2, '0')}/${String(selectedDate.day).padStart(2, '0')}/${selectedDate.year}`
     : 'Select date...';
 
+  const handleToday = () => {
+    const now = new Date();
+    onChange(now.toISOString().split('T')[0]);
+    setMonth(now.getMonth());
+    setYear(now.getFullYear());
+    setOpen(false);
+  };
+
   return (
     <div ref={ref} className="relative">
-      {label && <label className="label">{label}</label>}
+      {label && (
+        <div className="mb-1.5 flex items-center justify-between">
+          <label className="label mb-0">{label}</label>
+          <button
+            type="button"
+            onClick={handleToday}
+            className="text-xs font-medium text-primary-500 hover:text-primary-600 transition-colors"
+          >
+            Today
+          </button>
+        </div>
+      )}
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -107,42 +126,46 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[100]" onClick={() => setOpen(false)}>
-          <div 
-            onClick={(e) => e.stopPropagation()}
-            className="absolute w-72 rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30 overflow-hidden"
-            style={{
-              bottom: ref.current ? `${window.innerHeight - ref.current.getBoundingClientRect().top + 8}px` : undefined,
-              left: ref.current ? `${ref.current.getBoundingClientRect().right - 288}px` : undefined,
-              maxHeight: '420px'
-            }}
-          >
-            <div className="p-4">
+        <div
+          className="absolute right-0 top-full z-[100] mt-2 w-72 overflow-hidden rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30"
+          onClick={(e) => e.stopPropagation()}
+        >
+            <div className="p-3">
               {/* Month/Year Navigation */}
-              <div className="flex items-center justify-between mb-4 flex-shrink-0">
+              <div className="flex items-center justify-between mb-2 gap-2">
                 <button
                   type="button"
                   onClick={handlePrevMonth}
-                  className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
+                  className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors"
                 >
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={18} />
                 </button>
-                <div className="text-center">
+                <div className="flex items-center gap-2">
                   <p className="text-sm font-semibold text-surface-900 dark:text-white">
                     {monthNames[month]} {year}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleNextMonth}
-                  className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
-                >
-                  <ChevronRight size={20} />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={handleNextMonth}
+                    className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors text-surface-500"
+                    aria-label="Close date picker"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
               </div>
 
               {/* Day Headers */}
-              <div className="grid grid-cols-7 gap-1 mb-2 flex-shrink-0">
+              <div className="grid grid-cols-7 gap-1 mb-1.5">
                 {dayNames.map((day) => (
                   <div key={day} className="text-center text-xs font-semibold text-surface-500 py-1">
                     {day}
@@ -151,14 +174,14 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
               </div>
 
               {/* Calendar Days */}
-              <div className="grid grid-cols-7 gap-1 mb-4">
+              <div className="grid grid-cols-7 gap-1">
                 {days.map((day, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => day && handleDateClick(day)}
                     disabled={!day}
-                    className={`p-2 text-sm rounded-lg transition-colors ${
+                    className={`aspect-square flex items-center justify-center text-sm rounded transition-colors ${
                       !day
                         ? 'text-transparent cursor-default'
                         : selectedDate && selectedDate.day === day && selectedDate.month === month && selectedDate.year === year
@@ -170,32 +193,7 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
                   </button>
                 ))}
               </div>
-
-              {/* Footer Buttons */}
-              <div className="flex gap-2 pt-2 border-t border-surface-200 dark:border-surface-700">
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="flex-1 text-center text-sm text-primary-500 hover:text-primary-600 py-2 font-medium transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const today = new Date().toISOString().split('T')[0];
-                    onChange(today);
-                    setMonth(new Date().getMonth());
-                    setYear(new Date().getFullYear());
-                    setOpen(false);
-                  }}
-                  className="flex-1 text-center text-sm text-primary-500 hover:text-primary-600 py-2 font-medium transition-colors"
-                >
-                  Today
-                </button>
-              </div>
             </div>
-          </div>
         </div>
       )}
     </div>

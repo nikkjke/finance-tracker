@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, PiggyBank, Receipt, TrendingUp, Tag } from 'lucide-react';
+import { Plus, Edit2, Trash2, PiggyBank, Receipt, TrendingUp, Tag, Search, Filter } from 'lucide-react';
 import BudgetProgress from '../../components/ui/BudgetProgress';
 import Modal from '../../components/ui/Modal';
 import Dropdown from '../../components/ui/Dropdown';
@@ -7,6 +7,7 @@ import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
 import { mockBudgets, categoryLabels } from '../../data/mockData';
+import { searchByText, sortItems } from '../../services';
 import type { Budget, ExpenseCategory } from '../../types';
 
 export default function BudgetsPage() {
@@ -17,6 +18,12 @@ export default function BudgetsPage() {
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [formCategory, setFormCategory] = useState<ExpenseCategory>('food');
   const [formLimit, setFormLimit] = useState('');
+  const [formErrors, setFormErrors] = useState<{ category?: string; limit?: string }>({});
+  
+  // Search, Filter, Sort
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'over-budget' | 'under-budget'>('all');
+  const [sortBy, setSortBy] = useState<'limit-asc' | 'limit-desc' | 'spent-asc' | 'spent-desc'>('limit-asc');
 
   const fetchBudgets = () => {
     setIsLoading(true);
@@ -29,12 +36,49 @@ export default function BudgetsPage() {
         setError('Failed to load budgets. The service might be unavailable.');
         setIsLoading(false);
       }
-    }, 800);
+    }, 250);
   };
 
   useEffect(() => {
     fetchBudgets();
   }, []);
+
+  const getFilteredBudgets = () => {
+    let result = [...budgets];
+
+    // Apply search by category name
+    const categoryNames = categoryLabels as Record<ExpenseCategory, string>;
+    result = searchByText(
+      result,
+      searchQuery,
+      ['category'],
+    ).filter((b) => {
+      const label = categoryNames[b.category]?.toLowerCase() || '';
+      return label.includes(searchQuery.toLowerCase());
+    });
+
+    // Apply status filter
+    if (filterStatus === 'over-budget') {
+      result = result.filter((b) => b.spent > b.limit);
+    } else if (filterStatus === 'under-budget') {
+      result = result.filter((b) => b.spent <= b.limit);
+    }
+
+    // Apply sorting
+    if (sortBy === 'limit-asc') {
+      result = sortItems(result, { key: 'limit', direction: 'asc' });
+    } else if (sortBy === 'limit-desc') {
+      result = sortItems(result, { key: 'limit', direction: 'desc' });
+    } else if (sortBy === 'spent-asc') {
+      result = sortItems(result, { key: 'spent', direction: 'asc' });
+    } else if (sortBy === 'spent-desc') {
+      result = sortItems(result, { key: 'spent', direction: 'desc' });
+    }
+
+    return result;
+  };
+
+  const filteredBudgets = getFilteredBudgets();
 
   const totalBudget = budgets.reduce((sum, b) => sum + b.limit, 0);
   const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0);
@@ -43,22 +87,31 @@ export default function BudgetsPage() {
     setEditingBudget(null);
     setFormCategory('food');
     setFormLimit('');
+    setFormErrors({});
     setShowModal(true);
   };
 
-  const handleEdit = (budget: Budget) => {
-    setEditingBudget(budget);
-    setFormCategory(budget.category);
-    setFormLimit(budget.limit.toString());
-    setShowModal(true);
-  };
+  const validateForm = (): boolean => {
+    const newErrors: { category?: string; limit?: string } = {};
 
-  const handleDelete = (id: string) => {
-    setBudgets((prev) => prev.filter((b) => b.id !== id));
+    if (!formCategory) {
+      newErrors.category = 'Category is required';
+    }
+
+    if (!formLimit.trim()) {
+      newErrors.limit = 'Limit is required';
+    } else if (isNaN(parseFloat(formLimit))) {
+      newErrors.limit = 'Limit must be a valid number';
+    } else if (parseFloat(formLimit) <= 0) {
+      newErrors.limit = 'Limit must be greater than $0';
+    }
+
+    setFormErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSave = () => {
-    if (!formLimit || parseFloat(formLimit) <= 0) return;
+    if (!validateForm()) return;
 
     if (editingBudget) {
       setBudgets((prev) =>
@@ -80,6 +133,19 @@ export default function BudgetsPage() {
       setBudgets((prev) => [...prev, newBudget]);
     }
     setShowModal(false);
+    setFormErrors({});
+  };
+
+  const handleEdit = (budget: Budget) => {
+    setEditingBudget(budget);
+    setFormCategory(budget.category);
+    setFormLimit(budget.limit.toString());
+    setFormErrors({});
+    setShowModal(true);
+  };
+
+  const handleDelete = (id: string) => {
+    setBudgets((prev) => prev.filter((b) => b.id !== id));
   };
 
   return (
@@ -97,6 +163,45 @@ export default function BudgetsPage() {
           Add Budget
         </button>
       </div>
+
+      {/* Search, Filter, Sort Controls */}
+      {!isLoading && !error && budgets.length > 0 && (
+        <div className="card flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex-1 relative">
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
+            <input
+              type="text"
+              placeholder="Search by category..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="input pl-10 w-full"
+            />
+          </div>
+          <div className="flex gap-3 flex-wrap">
+            <Dropdown
+              value={filterStatus}
+              onChange={(val) => setFilterStatus(val as typeof filterStatus)}
+              options={[
+                { value: 'all', label: 'All Budgets' },
+                { value: 'under-budget', label: 'Under Budget' },
+                { value: 'over-budget', label: 'Over Budget' },
+              ]}
+              icon={<Filter size={16} />}
+            />
+            <Dropdown
+              value={sortBy}
+              onChange={(val) => setSortBy(val as typeof sortBy)}
+              options={[
+                { value: 'limit-asc', label: 'Limit: Low to High' },
+                { value: 'limit-desc', label: 'Limit: High to Low' },
+                { value: 'spent-asc', label: 'Spent: Low to High' },
+                { value: 'spent-desc', label: 'Spent: High to Low' },
+              ]}
+              minWidth="min-w-[195px]"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Loading State */}
       {isLoading && (
@@ -185,9 +290,27 @@ export default function BudgetsPage() {
             </button>
           }
         />
+      ) : filteredBudgets.length === 0 ? (
+        <EmptyState
+          icon={PiggyBank}
+          title="No results found"
+          description="Try adjusting your search or filter criteria."
+          action={
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setFilterStatus('all');
+                setSortBy('limit-asc');
+              }}
+              className="btn-secondary"
+            >
+              Clear Filters
+            </button>
+          }
+        />
       ) : (
       <div className="grid gap-5 sm:grid-cols-2">
-        {budgets.map((budget) => (
+        {filteredBudgets.map((budget) => (
           <div key={budget.id} className="card hover:shadow-md transition-shadow duration-200">
             <div className="flex items-start justify-between">
               <div className="flex-1 pr-4">
@@ -229,6 +352,9 @@ export default function BudgetsPage() {
               icon={<Tag size={16} />}
               fullWidth
             />
+            {formErrors.category && (
+              <p className="mt-1 text-sm text-danger-500">{formErrors.category}</p>
+            )}
           </div>
           <div>
             <label className="label">Monthly Limit ($)</label>
@@ -239,8 +365,11 @@ export default function BudgetsPage() {
               value={formLimit}
               onChange={(e) => setFormLimit(e.target.value)}
               placeholder="0.00"
-              className="input"
+              className={`input ${formErrors.limit ? 'border-danger-300 dark:border-danger-500' : ''}`}
             />
+            {formErrors.limit && (
+              <p className="mt-1 text-sm text-danger-500">{formErrors.limit}</p>
+            )}
           </div>
           <div className="flex gap-3 pt-2">
             <button onClick={handleSave} className="btn-primary flex-1">
