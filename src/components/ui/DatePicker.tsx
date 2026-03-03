@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, X } from 'lucide-react';
 
 interface DatePickerProps {
   value: string;
@@ -124,7 +124,7 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
           >
             <div className="p-3">
               {/* Month/Year Navigation */}
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-2 gap-2">
                 <button
                   type="button"
                   onClick={handlePrevMonth}
@@ -132,38 +132,60 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
                 >
                   <ChevronLeft size={18} />
                 </button>
-                <div className="text-center">
+                <div className="flex items-center gap-2">
                   <p className="text-sm font-semibold text-surface-900 dark:text-white">
                     {monthNames[month]} {year}
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const today = new Date().toISOString().split('T')[0];
+                      onChange(today);
+                      setMonth(new Date().getMonth());
+                      setYear(new Date().getFullYear());
+                    }}
+                    className="rounded px-2 py-1 text-xs font-medium text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-colors"
+                  >
+                    Today
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleNextMonth}
-                  className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors"
-                >
-                  <ChevronRight size={18} />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={handleNextMonth}
+                    className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors text-surface-500"
+                    aria-label="Close date picker"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
               </div>
 
               {/* Day Headers */}
               <div className="grid grid-cols-7 gap-1 mb-1.5">
                 {dayNames.map((day) => (
-                  <div key={day} className="text-center text-xs font-semibold text-surface-500 py-0.5">
+                  <div key={day} className="text-center text-xs font-semibold text-surface-500 py-1">
                     {day}
                   </div>
                 ))}
               </div>
 
               {/* Calendar Days */}
-              <div className="grid grid-cols-7 gap-1 mb-2">
+              <div className="grid grid-cols-7 gap-1">
                 {days.map((day, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => day && handleDateClick(day)}
                     disabled={!day}
-                    className={`p-1.5 text-sm rounded transition-colors ${
+                    className={`aspect-square flex items-center justify-center text-sm rounded transition-colors ${
                       !day
                         ? 'text-transparent cursor-default'
                         : selectedDate && selectedDate.day === day && selectedDate.month === month && selectedDate.year === year
@@ -174,30 +196,6 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
                     {day}
                   </button>
                 ))}
-              </div>
-
-              {/* Footer Buttons - Compact inline */}
-              <div className="flex gap-2 pt-2 border-t border-surface-200 dark:border-surface-700">
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="flex-1 text-center text-xs text-primary-500 hover:text-primary-600 py-1.5 font-medium transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const today = new Date().toISOString().split('T')[0];
-                    onChange(today);
-                    setMonth(new Date().getMonth());
-                    setYear(new Date().getFullYear());
-                    setOpen(false);
-                  }}
-                  className="flex-1 text-center text-xs text-primary-500 hover:text-primary-600 py-1.5 font-medium transition-colors"
-                >
-                  Today
-                </button>
               </div>
             </div>
           </div>
