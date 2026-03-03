@@ -1,5 +1,6 @@
-import { createContext, useContext, useMemo, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, useState, useCallback, useEffect, type ReactNode } from 'react';
 import { mockIncome } from '../data/mockData';
+import { STORAGE_KEYS } from '../types';
 import type { Income, CreateIncomeDTO, UpdateIncomeDTO, ServiceResponse } from '../types';
 
 interface IncomeContextType {
@@ -13,8 +14,28 @@ interface IncomeContextType {
 
 const IncomeContext = createContext<IncomeContextType | undefined>(undefined);
 
+/** Load income from localStorage, falling back to mock data on first use. */
+function loadInitialIncome(): Income[] {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.INCOME);
+    if (stored) return JSON.parse(stored) as Income[];
+  } catch {
+    // ignore
+  }
+  return [...mockIncome];
+}
+
 export function IncomeProvider({ children }: { children: ReactNode }) {
-  const [income, setIncome] = useState<Income[]>([...mockIncome]);
+  const [income, setIncome] = useState<Income[]>(loadInitialIncome);
+
+  // Persist income to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.INCOME, JSON.stringify(income));
+    } catch {
+      console.warn('Failed to persist income to localStorage');
+    }
+  }, [income]);
 
   const getIncome = useCallback((userId?: string) => {
     if (!userId) return income;
