@@ -5,7 +5,7 @@ import { incomeLabels } from '../../data/mockData';
 import Dropdown from '../../components/ui/Dropdown';
 import DatePicker from '../../components/ui/DatePicker';
 import { useAuth } from '../../contexts/AuthContext';
-import { addIncome } from '../../services/incomeService';
+import { useIncome } from '../../contexts/IncomeContext';
 
 interface FormData {
   source: string;
@@ -32,6 +32,7 @@ const initialFormData: FormData = {
 
 export default function AddIncomePage() {
   const { user } = useAuth();
+  const { addIncome } = useIncome();
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);

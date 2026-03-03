@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ExpenseProvider } from './contexts/ExpenseContext';
+import { IncomeProvider } from './contexts/IncomeContext';
 
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -28,7 +29,8 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <ExpenseProvider>
-            <ErrorBoundary>
+            <IncomeProvider>
+              <ErrorBoundary>
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
@@ -75,6 +77,7 @@ function App() {
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
             </ErrorBoundary>
+            </IncomeProvider>
           </ExpenseProvider>
         </AuthProvider>
       </ThemeProvider>
