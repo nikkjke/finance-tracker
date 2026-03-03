@@ -7,6 +7,7 @@ import Dropdown from '../../components/ui/Dropdown';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
+import Pagination from '../../components/ui/Pagination';
 import {
   mockExpenses,
   mockMonthlySpending,
@@ -20,6 +21,8 @@ export default function ReportsPage() {
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState('6months');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const fetchReports = () => {
     setIsLoading(true);
@@ -42,6 +45,16 @@ export default function ReportsPage() {
   const filteredExpenses = categoryFilter === 'all'
     ? expenses
     : expenses.filter((e) => e.category === categoryFilter);
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [categoryFilter, dateRange]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
+  const startIdx = (currentPage - 1) * itemsPerPage;
+  const paginatedExpenses = filteredExpenses.slice(startIdx, startIdx + itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -208,7 +221,25 @@ export default function ReportsPage() {
         <h2 className="text-base font-semibold text-surface-900 dark:text-white mb-6">
           All Transactions
         </h2>
-        <TransactionTable expenses={filteredExpenses} />
+        <div className="space-y-4">
+          <TransactionTable expenses={paginatedExpenses} />
+          {filteredExpenses.length > 0 && (
+            <div className="border-t border-surface-200 pt-4 dark:border-surface-700">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                itemsPerPage={itemsPerPage}
+                onItemsPerPageChange={(count) => {
+                  setItemsPerPage(count);
+                  setCurrentPage(1);
+                }}
+                totalItems={filteredExpenses.length}
+                loading={isLoading}
+              />
+            </div>
+          )}
+        </div>
       </div>
         </>
       )}
