@@ -111,11 +111,32 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
           <div 
             onClick={(e) => e.stopPropagation()}
             className="absolute w-72 rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30 overflow-hidden"
-            style={{
-              bottom: ref.current ? `${window.innerHeight - ref.current.getBoundingClientRect().top + 8}px` : undefined,
-              left: ref.current ? `${ref.current.getBoundingClientRect().right - 288}px` : undefined,
-              maxHeight: '420px'
-            }}
+            style={(() => {
+              if (!ref.current) return { maxHeight: '420px' };
+              
+              const rect = ref.current.getBoundingClientRect();
+              const calendarHeight = 420;
+              const spaceBelow = window.innerHeight - rect.bottom;
+              
+              // Prefer positioning below if there's enough space
+              if (spaceBelow >= calendarHeight + 8) {
+                return {
+                  top: `${rect.bottom + 8}px`,
+                  left: `${rect.right - 288}px`,
+                  maxHeight: '420px'
+                };
+              }
+              
+              // Position above, but ensure it doesn't go off the top
+              const bottomPos = window.innerHeight - rect.top + 8;
+              const maxBottomPos = window.innerHeight - 20; // Leave 20px from top
+              
+              return {
+                bottom: `${Math.min(bottomPos, maxBottomPos)}px`,
+                left: `${rect.right - 288}px`,
+                maxHeight: '420px'
+              };
+            })()}
           >
             <div className="p-4">
               {/* Month/Year Navigation */}
