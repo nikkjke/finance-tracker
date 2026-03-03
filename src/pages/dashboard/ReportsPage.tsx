@@ -6,14 +6,16 @@ import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
 import Pagination from '../../components/ui/Pagination';
-import { categoryLabels } from '../../data/mockData';
+import { categoryLabels, incomeLabels } from '../../data/mockData';
 import { useExpenses } from '../../contexts/ExpenseContext';
+import { useIncome } from '../../contexts/IncomeContext';
 import { applyFilters, presetToDateRange } from '../../services';
 import type { FilterPipelineConfig, SortConfig } from '../../services/filterService';
-import type { Expense } from '../../types';
+import type { Expense, Income } from '../../types';
 
 export default function ReportsPage() {
   const { expenses: storeExpenses } = useExpenses();
+  const { income: storeIncome } = useIncome();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,6 +26,13 @@ export default function ReportsPage() {
   const [sortBy, setSortBy] = useState('date-desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [incomeSearchQuery, setIncomeSearchQuery] = useState('');
+  const [incomeDateRange, setIncomeDateRange] = useState('6months');
+  const [incomeCategoryFilter, setIncomeCategoryFilter] = useState('all');
+  const [incomeStatusFilter, setIncomeStatusFilter] = useState<'all' | 'completed' | 'pending'>('all');
+  const [incomeSortBy, setIncomeSortBy] = useState('date-desc');
+  const [incomePage, setIncomePage] = useState(1);
+  const [incomeItemsPerPage, setIncomeItemsPerPage] = useState(5);
 
   const fetchReports = () => {
     setIsLoading(true);
@@ -78,6 +87,41 @@ export default function ReportsPage() {
   const filteredExpensesCount = filteredResult.totalItems;
   const paginatedExpenses = pipelineResult.items;
   const totalPages = pipelineResult.pagination?.totalPages ?? 1;
+
+  const incomeSortConfig: SortConfig<Income> =
+    incomeSortBy === 'amount-asc'
+      ? { key: 'amount', direction: 'asc' as const }
+      : incomeSortBy === 'amount-desc'
+        ? { key: 'amount', direction: 'desc' as const }
+        : incomeSortBy === 'date-asc'
+          ? { key: 'date', direction: 'asc' as const }
+          : incomeSortBy === 'source-asc'
+            ? { key: 'source', direction: 'asc' as const }
+            : { key: 'date', direction: 'desc' as const };
+
+  const incomeFilterConfig: FilterPipelineConfig<Income> = {
+    searchQuery: incomeSearchQuery,
+    searchFields: ['source', 'notes'],
+    filters: {
+      category: incomeCategoryFilter,
+      status: incomeStatusFilter,
+    },
+    sort: incomeSortConfig,
+    dateField: 'date',
+    dateRange: presetToDateRange(incomeDateRange as '7days' | '30days' | '6months' | '1year'),
+  };
+
+  const filteredIncomeResult = applyFilters(storeIncome, incomeFilterConfig);
+
+  const incomePipelineResult = applyFilters(storeIncome, {
+    ...incomeFilterConfig,
+    page: incomePage,
+    pageSize: incomeItemsPerPage,
+  });
+
+  const filteredIncomeCount = filteredIncomeResult.totalItems;
+  const paginatedIncome = incomePipelineResult.items;
+  const totalIncomePages = incomePipelineResult.pagination?.totalPages ?? 1;
 
   const totalSpent = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
   const highestExpense = filteredExpenses.reduce((max, expense) => Math.max(max, expense.amount), 0);
@@ -134,6 +178,14 @@ export default function ReportsPage() {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, categoryFilter, statusFilter, dateRange, sortBy]);
+
+  useEffect(() => {
+    setIncomePage(1);
+  }, [storeIncome]);
+
+  useEffect(() => {
+    setIncomePage(1);
+  }, [incomeSearchQuery, incomeCategoryFilter, incomeStatusFilter, incomeDateRange, incomeSortBy]);
 
   return (
     <div className="space-y-6">
@@ -324,6 +376,139 @@ export default function ReportsPage() {
                   setCurrentPage(1);
                 }}
                 totalItems={filteredExpensesCount}
+                loading={isLoading}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="card">
+        <h2 className="text-base font-semibold text-surface-900 dark:text-white mb-6">
+          All Income
+        </h2>
+        <div className="space-y-5">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-surface-500 dark:text-surface-400">Filter and browse your income records.</p>
+            </div>
+            <p className="text-xs text-surface-400 dark:text-surface-500">{filteredIncomeCount} entries found</p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative min-w-[220px] flex-1">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
+              <input
+                type="text"
+                value={incomeSearchQuery}
+                onChange={(e) => setIncomeSearchQuery(e.target.value)}
+                placeholder="Search source or notes..."
+                className="input w-full pl-9"
+              />
+            </div>
+
+            <Dropdown
+              value={incomeDateRange}
+              onChange={setIncomeDateRange}
+              icon={<CalendarDays size={16} />}
+              options={[
+                { value: '7days', label: 'Last 7 Days' },
+                { value: '30days', label: 'Last 30 Days' },
+                { value: '6months', label: 'Last 6 Months' },
+                { value: '1year', label: 'Last Year' },
+              ]}
+            />
+
+            <Dropdown
+              value={incomeCategoryFilter}
+              onChange={setIncomeCategoryFilter}
+              icon={<Filter size={16} />}
+              options={[
+                { value: 'all', label: 'All Categories' },
+                { value: 'salary', label: 'Salary' },
+                { value: 'freelance', label: 'Freelance' },
+                { value: 'investment', label: 'Investment' },
+                { value: 'bonus', label: 'Bonus' },
+                { value: 'gift', label: 'Gift' },
+                { value: 'other_income', label: 'Other Income' },
+              ]}
+            />
+
+            <Dropdown
+              value={incomeStatusFilter}
+              onChange={(val) => setIncomeStatusFilter(val as typeof incomeStatusFilter)}
+              icon={<Filter size={16} />}
+              options={[
+                { value: 'all', label: 'All Statuses' },
+                { value: 'completed', label: 'Completed' },
+                { value: 'pending', label: 'Pending' },
+              ]}
+            />
+
+            <Dropdown
+              value={incomeSortBy}
+              onChange={setIncomeSortBy}
+              icon={<ArrowUpDown size={16} />}
+              options={[
+                { value: 'date-desc', label: 'Date: Newest First' },
+                { value: 'date-asc', label: 'Date: Oldest First' },
+                { value: 'amount-desc', label: 'Amount: High to Low' },
+                { value: 'amount-asc', label: 'Amount: Low to High' },
+                { value: 'source-asc', label: 'Source: A-Z' },
+              ]}
+              minWidth="min-w-[220px]"
+            />
+          </div>
+
+          <div className="space-y-3">
+            {paginatedIncome.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-surface-300 px-4 py-10 text-center dark:border-surface-700">
+                <p className="text-sm font-medium text-surface-500 dark:text-surface-400">No income records found</p>
+                <p className="mt-1 text-xs text-surface-400">Try adjusting your filters or add a new income entry.</p>
+              </div>
+            ) : (
+              paginatedIncome.map((entry) => (
+                <div
+                  key={entry.id}
+                  className="flex items-center justify-between rounded-xl border border-surface-200 bg-white px-4 py-3 dark:border-surface-700 dark:bg-surface-800/60"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-surface-900 dark:text-white">{entry.source}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-surface-500 dark:text-surface-400">
+                      <span>{incomeLabels[entry.category]}</span>
+                      <span>•</span>
+                      <span>{new Date(entry.date).toLocaleDateString('en-US')}</span>
+                      {entry.notes && (
+                        <>
+                          <span>•</span>
+                          <span className="truncate max-w-[220px]">{entry.notes}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="ml-4 text-right">
+                    <p className="text-sm font-bold text-success-600 dark:text-success-500">+${entry.amount.toFixed(2)}</p>
+                    <p className={`mt-1 text-[11px] font-medium ${entry.status === 'completed' ? 'text-success-600 dark:text-success-500' : 'text-warning-600 dark:text-warning-500'}`}>
+                      {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {filteredIncomeCount > 0 && (
+            <div className="border-t border-surface-200 pt-4 dark:border-surface-700">
+              <Pagination
+                currentPage={incomePage}
+                totalPages={totalIncomePages}
+                onPageChange={setIncomePage}
+                itemsPerPage={incomeItemsPerPage}
+                onItemsPerPageChange={(count) => {
+                  setIncomeItemsPerPage(count);
+                  setIncomePage(1);
+                }}
+                totalItems={filteredIncomeCount}
                 loading={isLoading}
               />
             </div>

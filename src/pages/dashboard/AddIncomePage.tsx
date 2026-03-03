@@ -318,6 +318,7 @@ export default function AddIncomePage() {
           </form>
         )}
       </div>
+
     </div>
   );
 }
