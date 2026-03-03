@@ -442,9 +442,14 @@ export default function AddExpensePage() {
 
               {/* Notes */}
               <div>
-                <label htmlFor="notes" className="label">
-                  Notes <span className="text-surface-400 font-normal">(optional)</span>
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label htmlFor="notes" className="label">
+                    Notes <span className="text-surface-400 font-normal">(optional)</span>
+                  </label>
+                  <span className={`text-xs ${formData.notes.length > 270 ? 'text-warning-500' : 'text-surface-400'}`}>
+                    {formData.notes.length}/300
+                  </span>
+                </div>
                 <textarea
                   id="notes"
                   rows={3}
@@ -454,14 +459,9 @@ export default function AddExpensePage() {
                   placeholder="Add any additional details..."
                   className={`input resize-none ${errors.notes ? 'border-danger-500' : ''}`}
                 />
-                <div className="mt-1.5 flex items-center justify-between">
-                  {errors.notes ? (
-                    <p className="text-xs text-danger-500">{errors.notes}</p>
-                  ) : (
-                    <span className="text-xs text-surface-400">Optional</span>
-                  )}
-                  <span className="text-xs text-surface-400">{formData.notes.length}/300</span>
-                </div>
+                {errors.notes && (
+                  <p className="mt-1.5 text-xs text-danger-500">{errors.notes}</p>
+                )}
               </div>
 
               {/* Submit */}
