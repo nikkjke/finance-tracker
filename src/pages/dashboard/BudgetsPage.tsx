@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, PiggyBank, Receipt, TrendingUp, Tag, Search, Filter } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Plus, Edit2, Trash2, PiggyBank, Receipt, TrendingUp, Tag, Search, Filter, AlertTriangle } from 'lucide-react';
 import BudgetProgress from '../../components/ui/BudgetProgress';
 import Modal from '../../components/ui/Modal';
 import Dropdown from '../../components/ui/Dropdown';
@@ -7,7 +7,7 @@ import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
 import { mockBudgets, categoryLabels } from '../../data/mockData';
-import { searchByText, sortItems } from '../../services';
+import { sortItems } from '../../services';
 import type { Budget, ExpenseCategory } from '../../types';
 
 export default function BudgetsPage() {
@@ -24,6 +24,7 @@ export default function BudgetsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'over-budget' | 'under-budget'>('all');
   const [sortBy, setSortBy] = useState<'limit-asc' | 'limit-desc' | 'spent-asc' | 'spent-desc'>('limit-asc');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const fetchBudgets = () => {
     setIsLoading(true);
@@ -48,14 +49,15 @@ export default function BudgetsPage() {
 
     // Apply search by category name
     const categoryNames = categoryLabels as Record<ExpenseCategory, string>;
-    result = searchByText(
-      result,
-      searchQuery,
-      ['category'],
-    ).filter((b) => {
-      const label = categoryNames[b.category]?.toLowerCase() || '';
-      return label.includes(searchQuery.toLowerCase());
-    });
+
+    // Search by category label (e.g. "Food & Groceries") instead of raw value
+    if (searchQuery.trim()) {
+      const lower = searchQuery.toLowerCase();
+      result = result.filter((b) => {
+        const label = categoryNames[b.category]?.toLowerCase() || b.category;
+        return label.includes(lower) || b.category.includes(lower);
+      });
+    }
 
     // Apply status filter
     if (filterStatus === 'over-budget') {
@@ -144,9 +146,16 @@ export default function BudgetsPage() {
     setShowModal(true);
   };
 
-  const handleDelete = (id: string) => {
-    setBudgets((prev) => prev.filter((b) => b.id !== id));
-  };
+  const handleDelete = useCallback((id: string) => {
+    setDeleteConfirmId(id);
+  }, []);
+
+  const confirmDelete = useCallback(() => {
+    if (deleteConfirmId) {
+      setBudgets((prev) => prev.filter((b) => b.id !== deleteConfirmId));
+      setDeleteConfirmId(null);
+    }
+  }, [deleteConfirmId]);
 
   return (
     <div className="space-y-6">
@@ -376,6 +385,34 @@ export default function BudgetsPage() {
               {editingBudget ? 'Save Changes' : 'Create Budget'}
             </button>
             <button onClick={() => setShowModal(false)} className="btn-secondary">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        open={!!deleteConfirmId}
+        onClose={() => setDeleteConfirmId(null)}
+        title="Delete Budget"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-danger-50 dark:bg-danger-500/10">
+              <AlertTriangle size={20} className="text-danger-500" />
+            </div>
+            <div>
+              <p className="text-sm text-surface-700 dark:text-surface-300">
+                Are you sure you want to delete this budget? This action cannot be undone.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button onClick={confirmDelete} className="btn-danger flex-1">
+              Delete Budget
+            </button>
+            <button onClick={() => setDeleteConfirmId(null)} className="btn-secondary flex-1">
               Cancel
             </button>
           </div>
