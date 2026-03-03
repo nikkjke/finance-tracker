@@ -11,7 +11,7 @@ import {
   BarChart3,
   FileText,
 } from 'lucide-react';
-import { mockExpenses } from '../../data/mockData';
+import { useExpenses } from '../../contexts/ExpenseContext';
 import BarChart from '../../components/ui/BarChart';
 import DonutChart from '../../components/ui/DonutChart';
 import Dropdown from '../../components/ui/Dropdown';
@@ -21,6 +21,7 @@ import ErrorState from '../../components/ui/ErrorState';
 import type { Expense } from '../../types';
 
 export default function AdminTransactions() {
+  const { expenses: storeExpenses } = useExpenses();
   const [transactions, setTransactions] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +35,7 @@ export default function AdminTransactions() {
     setError(null);
     setTimeout(() => {
       try {
-        setTransactions(mockExpenses);
+        setTransactions(storeExpenses);
         setIsLoading(false);
       } catch {
         setError('Failed to load transactions. The service might be unavailable.');
@@ -45,7 +46,7 @@ export default function AdminTransactions() {
 
   useEffect(() => {
     fetchTransactions();
-  }, []);
+  }, [storeExpenses]);
 
   const filteredTransactions = transactions.filter((tx) => {
     const matchesSearch =

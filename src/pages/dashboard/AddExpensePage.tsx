@@ -15,7 +15,7 @@ import { categoryLabels } from '../../data/mockData';
 import Dropdown from '../../components/ui/Dropdown';
 import DatePicker from '../../components/ui/DatePicker';
 import { useAuth } from '../../contexts/AuthContext';
-import { addExpense } from '../../services/expenseService';
+import { useExpenses } from '../../contexts/ExpenseContext';
 
 interface FormData {
   storeName: string;
@@ -46,6 +46,7 @@ const initialFormData: FormData = {
 
 export default function AddExpensePage() {
   const { user } = useAuth();
+  const { addExpense } = useExpenses();
   const [activeTab, setActiveTab] = useState<'manual' | 'scan'>('manual');
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<FormErrors>({});

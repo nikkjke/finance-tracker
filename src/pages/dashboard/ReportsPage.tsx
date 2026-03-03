@@ -9,13 +9,14 @@ import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
 import Pagination from '../../components/ui/Pagination';
 import {
-  mockExpenses,
   mockMonthlySpending,
   mockSpendingByCategory,
 } from '../../data/mockData';
+import { useExpenses } from '../../contexts/ExpenseContext';
 import type { Expense } from '../../types';
 
 export default function ReportsPage() {
+  const { expenses: storeExpenses } = useExpenses();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +30,7 @@ export default function ReportsPage() {
     setError(null);
     setTimeout(() => {
       try {
-        setExpenses(mockExpenses);
+        setExpenses(storeExpenses);
         setIsLoading(false);
       } catch {
         setError('Failed to load report data. The service might be unavailable.');
@@ -40,7 +41,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     fetchReports();
-  }, []);
+  }, [storeExpenses]);
 
   const filteredExpenses = categoryFilter === 'all'
     ? expenses
