@@ -255,32 +255,6 @@ export default function ReportsPage() {
       {/* Content (only when loaded, no error, and has data) */}
       {!isLoading && !error && expenses.length > 0 && (
         <>
-      {/* All Transactions (Top) */}
-      <div className="card">
-        <h2 className="text-base font-semibold text-surface-900 dark:text-white mb-6">
-          All Transactions
-        </h2>
-        <div className="space-y-4">
-          <TransactionTable expenses={paginatedExpenses} />
-          {filteredExpensesCount > 0 && (
-            <div className="border-t border-surface-200 pt-4 dark:border-surface-700">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-                onItemsPerPageChange={(count) => {
-                  setItemsPerPage(count);
-                  setCurrentPage(1);
-                }}
-                totalItems={filteredExpensesCount}
-                loading={isLoading}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* Summary Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
         {[
@@ -329,6 +303,32 @@ export default function ReportsPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* All Transactions (Top) */}
+      <div className="card">
+        <h2 className="text-base font-semibold text-surface-900 dark:text-white mb-6">
+          All Transactions
+        </h2>
+        <div className="space-y-4">
+          <TransactionTable expenses={paginatedExpenses} />
+          {filteredExpensesCount > 0 && (
+            <div className="border-t border-surface-200 pt-4 dark:border-surface-700">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                itemsPerPage={itemsPerPage}
+                onItemsPerPageChange={(count) => {
+                  setItemsPerPage(count);
+                  setCurrentPage(1);
+                }}
+                totalItems={filteredExpensesCount}
+                loading={isLoading}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
