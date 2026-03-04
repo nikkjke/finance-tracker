@@ -8,10 +8,10 @@ export default function ServerErrorPage() {
 
   const handleRetry = () => {
     setIsRetrying(true);
-    // Simulate a retry attempt with delay
+    // Brief visual feedback before reloading
     setTimeout(() => {
-      setIsRetrying(false);
-    }, 2000);
+      window.location.reload();
+    }, 500);
   };
 
   return (
@@ -84,7 +84,7 @@ export default function ServerErrorPage() {
             Go to Homepage
           </button>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/', { replace: true })}
             className="btn-ghost w-full sm:w-auto"
           >
             <ArrowLeft size={18} />

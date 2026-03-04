@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
@@ -20,6 +20,7 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
+    updateUser({ name, email });
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
