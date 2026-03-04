@@ -94,9 +94,23 @@ export function logoutUser(): void {
 
 /**
  * Switch the current user's role (for demo/testing purposes).
+ * 
+ * - If switching to a role different from the original user's role, load a
+ *   matching mock user for that role (e.g. the admin mock user).
+ * - If switching back to the original user's role, restore the original user.
  */
-export function switchUserRole(user: User, role: UserRole): User {
-  const updatedUser = { ...user, role };
+export function switchUserRole(originalUser: User, role: UserRole): User {
+  let updatedUser: User;
+
+  if (role === originalUser.role) {
+    // Switching back to the original role → restore the original user
+    updatedUser = { ...originalUser };
+  } else {
+    // Switching to a different role → find a mock user with that role
+    const matchingUser = mockUsers.find((u) => u.role === role);
+    updatedUser = matchingUser ? { ...matchingUser } : { ...originalUser, role };
+  }
+
   persistSession(updatedUser);
   return updatedUser;
 }
