@@ -64,7 +64,7 @@ export default function UnauthorizedPage() {
             Sign In
           </button>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/', { replace: true })}
             className="btn-secondary w-full sm:w-auto"
           >
             <ArrowLeft size={18} />

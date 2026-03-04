@@ -78,7 +78,14 @@ export default function ForbiddenPage() {
             {isAuthenticated ? 'Go to Dashboard' : 'Go to Homepage'}
           </button>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              // Use replace to avoid stacking 403 entries in history
+              if (isAuthenticated) {
+                navigate(user?.role === 'admin' ? '/admin' : '/dashboard', { replace: true });
+              } else {
+                navigate('/', { replace: true });
+              }
+            }}
             className="btn-secondary w-full sm:w-auto"
           >
             <ArrowLeft size={18} />
