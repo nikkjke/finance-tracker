@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Bell,
   BellOff,
@@ -16,118 +16,13 @@ import {
   Clock,
 } from 'lucide-react';
 import Dropdown from '../../components/ui/Dropdown';
-import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import Modal from '../../components/ui/Modal';
-import { useAuth } from '../../contexts/AuthContext';
+import { useNotification } from '../../contexts/NotificationContext';
+import type { NotificationType, Notification } from '../../contexts/NotificationContext';
 
 // ── Types ────────────────────────────────────────────────────────
-type NotificationType = 'budget' | 'expense' | 'income' | 'system' | 'security';
 type NotificationPriority = 'low' | 'medium' | 'high';
-
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: NotificationType;
-  priority: NotificationPriority;
-  timestamp: string;
-  read: boolean;
-}
-
-// ── Mock data ────────────────────────────────────────────────────
-const generateMockNotifications = (_userId: string): Notification[] => [
-  {
-    id: 'n-1',
-    title: 'Budget limit approaching',
-    message: 'You\'ve used 85% of your Food & Groceries budget this month. Consider reducing spending to stay within limits.',
-    type: 'budget',
-    priority: 'high',
-    timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 min ago
-    read: false,
-  },
-  {
-    id: 'n-2',
-    title: 'Large expense recorded',
-    message: 'A transaction of $245.50 was recorded at Kaufland. This is above your average purchase amount.',
-    type: 'expense',
-    priority: 'medium',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hrs ago
-    read: false,
-  },
-  {
-    id: 'n-3',
-    title: 'Income received',
-    message: 'Salary deposit of $3,200.00 has been recorded to your account.',
-    type: 'income',
-    priority: 'low',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), // 5 hrs ago
-    read: false,
-  },
-  {
-    id: 'n-4',
-    title: 'Weekly spending report',
-    message: 'Your total spending this week is $567.30, which is 12% higher than last week. Top category: Entertainment.',
-    type: 'system',
-    priority: 'low',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
-    read: true,
-  },
-  {
-    id: 'n-5',
-    title: 'Budget exceeded!',
-    message: 'Your Entertainment budget has been exceeded by $45.00. You\'ve spent $345.00 out of the $300.00 limit.',
-    type: 'budget',
-    priority: 'high',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(), // 2 days ago
-    read: false,
-  },
-  {
-    id: 'n-6',
-    title: 'New login detected',
-    message: 'A new login was detected from Windows device. If this wasn\'t you, please secure your account.',
-    type: 'security',
-    priority: 'high',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
-    read: true,
-  },
-  {
-    id: 'n-7',
-    title: 'Subscription renewal',
-    message: 'Your Netflix subscription of $15.99 will renew in 3 days. Ensure sufficient budget allocation.',
-    type: 'expense',
-    priority: 'medium',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(), // 3 days ago
-    read: true,
-  },
-  {
-    id: 'n-8',
-    title: 'Monthly summary available',
-    message: 'Your February 2026 financial summary is ready. View your reports for a detailed breakdown.',
-    type: 'system',
-    priority: 'low',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
-    read: true,
-  },
-  {
-    id: 'n-9',
-    title: 'Savings goal milestone',
-    message: 'Congratulations! You\'ve saved $1,000 this month — 25% more than your target.',
-    type: 'income',
-    priority: 'medium',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
-    read: true,
-  },
-  {
-    id: 'n-10',
-    title: 'Unusual spending pattern',
-    message: 'We noticed multiple transactions at gas stations today totaling $89.40. Just keeping you informed.',
-    type: 'expense',
-    priority: 'medium',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString(),
-    read: true,
-  },
-];
 
 // ── Helpers ──────────────────────────────────────────────────────
 const getTypeIcon = (type: NotificationType) => {
@@ -185,51 +80,22 @@ const formatRelativeTime = (timestamp: string): string => {
 
 // ── Component ────────────────────────────────────────────────────
 export default function NotificationsPage() {
-  const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    notifications,
+    markAsRead,
+    markAsUnread,
+    markAllAsRead,
+    deleteNotification,
+    clearAll,
+    unreadCount,
+  } = useNotification();
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | NotificationType>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'unread' | 'read'>('all');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [clearAllConfirm, setClearAllConfirm] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
-
-  // Load notifications
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setNotifications(generateMockNotifications(user?.id || '1'));
-      setIsLoading(false);
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [user?.id]);
-
-  // ── Actions ──────────────────────────────────────────────────
-  const markAsRead = useCallback((id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-  }, []);
-
-  const markAsUnread = useCallback((id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: false } : n))
-    );
-  }, []);
-
-  const markAllAsRead = useCallback(() => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  }, []);
-
-  const deleteNotification = useCallback((id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-    setDeleteConfirmId(null);
-  }, []);
-
-  const clearAll = useCallback(() => {
-    setNotifications([]);
-    setClearAllConfirm(false);
-  }, []);
 
   // ── Filtered list ────────────────────────────────────────────
   const filteredNotifications = useMemo(() => {
@@ -249,56 +115,49 @@ export default function NotificationsPage() {
   // ── Stats ────────────────────────────────────────────────────
   const stats = useMemo(() => ({
     total: notifications.length,
-    unread: notifications.filter((n) => !n.read).length,
+    unread: unreadCount,
     highPriority: notifications.filter((n) => n.priority === 'high' && !n.read).length,
-  }), [notifications]);
+  }), [notifications, unreadCount]);
 
   // ── Render ───────────────────────────────────────────────────
   return (
     <div className="space-y-6">
-      {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <Spinner size={40} />
-          <p className="mt-4 text-surface-600 dark:text-surface-300">Loading notifications...</p>
-        </div>
-      ) : (
-        <>
-          {/* Header */}
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Bell size={20} className="text-primary-600 dark:text-primary-400" />
-                <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">
-                  Notifications
-                </h1>
-                {stats.unread > 0 && (
-                  <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-primary-600 px-2 text-xs font-bold text-white">
-                    {stats.unread}
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-surface-500 dark:text-surface-400">
-                Stay updated with your financial activity and alerts.
-              </p>
-            </div>
-            <div className="flex gap-2">
-              {stats.unread > 0 && (
-                <button onClick={markAllAsRead} className="btn-secondary">
-                  <CheckCheck size={16} />
-                  Mark all read
-                </button>
-              )}
-              {notifications.length > 0 && (
-                <button
-                  onClick={() => setClearAllConfirm(true)}
-                  className="btn-ghost text-danger-500 hover:bg-danger-50 dark:hover:bg-danger-500/10"
-                >
-                  <Trash2 size={16} />
-                  Clear all
-                </button>
-              )}
-            </div>
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Bell size={20} className="text-primary-600 dark:text-primary-400" />
+            <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">
+              Notifications
+            </h1>
+            {stats.unread > 0 && (
+              <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-primary-600 px-2 text-xs font-bold text-white">
+                {stats.unread}
+              </span>
+            )}
           </div>
+          <p className="text-sm text-surface-500 dark:text-surface-400">
+            Stay updated with your financial activity and alerts.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          {stats.unread > 0 && (
+            <button onClick={markAllAsRead} className="btn-secondary">
+              <CheckCheck size={16} />
+              Mark all read
+            </button>
+          )}
+          {notifications.length > 0 && (
+            <button
+              onClick={() => setClearAllConfirm(true)}
+              className="btn-ghost text-danger-500 hover:bg-danger-50 dark:hover:bg-danger-500/10"
+            >
+              <Trash2 size={16} />
+              Clear all
+            </button>
+          )}
+        </div>
+      </div>
 
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-3">
@@ -396,9 +255,9 @@ export default function NotificationsPage() {
               {filteredNotifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`card group cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg ${
+                  className={`card group cursor-pointer transition-all duration-200 ${
                     !notification.read
-                      ? 'border-l-4 border-l-primary-500 dark:border-l-primary-400'
+                      ? ''
                       : 'opacity-80'
                   }`}
                   onClick={() => {
@@ -432,8 +291,8 @@ export default function NotificationsPage() {
                           </p>
                         </div>
 
-                        {/* Actions — shown on hover */}
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                        {/* Actions */}
+                        <div className="flex items-center gap-1 shrink-0"
                           onClick={(e) => e.stopPropagation()}
                         >
                           {notification.read ? (
@@ -496,7 +355,12 @@ export default function NotificationsPage() {
                   Cancel
                 </button>
                 <button
-                  onClick={() => deleteConfirmId && deleteNotification(deleteConfirmId)}
+                  onClick={() => {
+                    if (deleteConfirmId) {
+                      deleteNotification(deleteConfirmId);
+                      setDeleteConfirmId(null);
+                    }
+                  }}
                   className="btn-primary bg-danger-600 hover:bg-danger-700"
                 >
                   <Trash2 size={16} />
@@ -613,8 +477,6 @@ export default function NotificationsPage() {
               </div>
             )}
           </Modal>
-        </>
-      )}
-    </div>
-  );
-}
+        </div>
+      );
+    }
