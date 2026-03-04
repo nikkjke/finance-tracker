@@ -13,6 +13,28 @@ export default function DonutChart({ data, size = 240 }: DonutChartProps) {
   let cumulativePercent = 0;
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
+  if (total === 0) {
+    return (
+      <div className="flex flex-col items-center gap-4">
+        <div
+          className="relative mx-auto"
+          style={{ width: size, height: size }}
+        >
+          <svg viewBox="0 0 200 200" width={size} height={size} style={{ display: 'block' }}>
+            <circle cx="100" cy="100" r={80} fill="none" stroke="currentColor" strokeWidth={20} className="text-surface-200 dark:text-surface-700" />
+          </svg>
+          <div
+            className="absolute z-10 text-center pointer-events-none"
+            style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+          >
+            <p className="text-2xl font-bold text-surface-900 dark:text-white sm:text-3xl">$0</p>
+            <p className="text-xs text-surface-400 sm:text-sm">No data</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const segments = data.map((point, index) => {
     const percent = (point.value / total) * 100;
     const startPercent = cumulativePercent;

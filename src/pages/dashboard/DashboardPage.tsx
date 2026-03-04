@@ -202,7 +202,7 @@ export default function DashboardPage() {
                 <h2 className="text-lg font-semibold text-surface-900 dark:text-white">
                   Budget Progress
                 </h2>
-                <p className="text-sm text-surface-400">February 2026</p>
+                <p className="text-sm text-surface-400">{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
               </div>
               <Link to="/budgets" className="btn-ghost text-sm">
                 View All <ArrowRight size={14} />
