@@ -17,18 +17,19 @@ import BudgetProgress from '../../components/ui/BudgetProgress';
 import EmptyState from '../../components/ui/EmptyState';
 import Spinner from '../../components/ui/Spinner';
 import {
-  mockBudgets,
   categoryLabels,
   mockMonthlySpending,
 } from '../../data/mockData';
 import { useExpenses } from '../../contexts/ExpenseContext';
 import { useIncome } from '../../contexts/IncomeContext';
+import { useBudgets } from '../../contexts/BudgetContext';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const { expenses } = useExpenses();
   const { income } = useIncome();
+  const { budgets } = useBudgets();
   const { user } = useAuth();
 
   // Filter data for the current user
@@ -50,16 +51,16 @@ export default function DashboardPage() {
   }, [userIncome, totalSpent]);
 
   const budgetRemaining = useMemo(() => {
-    // Only calculate budget remaining for demo user (ID '1')
-    const isDemoUser = user?.id === '1';
+    // Get user's actual budgets from context
+    const userBudgets = user ? budgets.filter(b => b.userId === user.id) : [];
     
-    if (!isDemoUser) {
+    if (userBudgets.length === 0) {
       return 0;
     }
     
-    const totalLimit = mockBudgets.reduce((sum, b) => sum + b.limit, 0);
+    const totalLimit = userBudgets.reduce((sum, b) => sum + b.limit, 0);
     return totalLimit - totalSpent;
-  }, [totalSpent, user?.id]);
+  }, [totalSpent, budgets, user]);
 
   // Spending by category (live from context)
   const spendingByCategory = useMemo(() => {
@@ -74,26 +75,33 @@ export default function DashboardPage() {
 
   // Memoized budget utilization with percentages
   const budgetData = useMemo(() => {
-    // Only show mock budgets for demo user (ID '1')
-    const isDemoUser = user?.id === '1';
+    // Get user's actual budgets from context
+    const userBudgets = user ? budgets.filter(b => b.userId === user.id) : [];
     
-    if (!isDemoUser) {
+    if (userBudgets.length === 0) {
       return [];
     }
     
-    return mockBudgets.map(budget => {
-      const percentage = budget.limit > 0 ? (budget.spent / budget.limit) * 100 : 0;
-      const remaining = budget.limit - budget.spent;
+    // Calculate spent amount for each budget based on user expenses
+    return userBudgets.map(budget => {
+      // Calculate spent for this budget's category
+      const spent = userExpenses
+        .filter(e => e.category === budget.category)
+        .reduce((sum, e) => sum + e.amount, 0);
+      
+      const percentage = budget.limit > 0 ? (spent / budget.limit) * 100 : 0;
+      const remaining = budget.limit - spent;
       const status = percentage >= 100 ? 'over' : percentage >= 80 ? 'warning' : 'good';
       
       return {
         ...budget,
+        spent, // Use calculated spent amount
         percentage: percentage.toFixed(1),
         remaining,
         status
       };
     });
-  }, [user?.id]);
+  }, [budgets, user, userExpenses]);
 
   // Memoized monthly spending trends
   const monthlyTrendsData = useMemo(() => {

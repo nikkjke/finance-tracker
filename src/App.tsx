@@ -3,6 +3,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ExpenseProvider } from './contexts/ExpenseContext';
 import { IncomeProvider } from './contexts/IncomeContext';
+import { BudgetProvider } from './contexts/BudgetContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -34,8 +35,9 @@ function App() {
         <AuthProvider>
           <ExpenseProvider>
             <IncomeProvider>
-              <NotificationProvider>
-                <ErrorBoundary>
+              <BudgetProvider>
+                <NotificationProvider>
+                  <ErrorBoundary>
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
@@ -96,7 +98,8 @@ function App() {
           </Routes>
                 </ErrorBoundary>
               </NotificationProvider>
-            </IncomeProvider>
+            </BudgetProvider>
+          </IncomeProvider>
           </ExpenseProvider>
         </AuthProvider>
       </ThemeProvider>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Plus, Edit2, Trash2, PiggyBank, Receipt, TrendingUp, Tag, Search, Filter, AlertTriangle } from 'lucide-react';
 import BudgetProgress from '../../components/ui/BudgetProgress';
 import Modal from '../../components/ui/Modal';
@@ -6,14 +6,17 @@ import Dropdown from '../../components/ui/Dropdown';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
-import { mockBudgets, categoryLabels } from '../../data/mockData';
+import { categoryLabels } from '../../data/mockData';
 import { sortItems } from '../../services';
 import { useAuth } from '../../contexts/AuthContext';
+import { useBudgets } from '../../contexts/BudgetContext';
+import { useExpenses } from '../../contexts/ExpenseContext';
 import type { Budget, ExpenseCategory } from '../../types';
 
 export default function BudgetsPage() {
   const { user } = useAuth();
-  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const { budgets: allBudgets, addBudget, updateBudget, deleteBudget } = useBudgets();
+  const { expenses } = useExpenses();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -28,24 +31,30 @@ export default function BudgetsPage() {
   const [sortBy, setSortBy] = useState<'limit-asc' | 'limit-desc' | 'spent-asc' | 'spent-desc'>('limit-asc');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  const fetchBudgets = () => {
-    setIsLoading(true);
-    setError(null);
-    setTimeout(() => {
-      try {
-        // Only load mock budgets for demo user (ID '1')
-        const isDemoUser = user?.id === '1';
-        setBudgets(isDemoUser ? mockBudgets : []);
-        setIsLoading(false);
-      } catch {
-        setError('Failed to load budgets. The service might be unavailable.');
-        setIsLoading(false);
-      }
-    }, 250);
-  };
+  // Get user's budgets and calculate spent amounts
+  const budgets = useMemo(() => {
+    const userBudgets = user ? allBudgets.filter(b => b.userId === user.id) : [];
+    const userExpenses = user ? expenses.filter(e => e.userId === user.id) : [];
+    
+    // Calculate spent for each budget based on actual expenses
+    return userBudgets.map(budget => {
+      const spent = userExpenses
+        .filter(e => e.category === budget.category)
+        .reduce((sum, e) => sum + e.amount, 0);
+      
+      return {
+        ...budget,
+        spent
+      };
+    });
+  }, [allBudgets, expenses, user]);
 
   useEffect(() => {
-    fetchBudgets();
+    // Simulate loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 250);
+    return () => clearTimeout(timer);
   }, [user?.id]);
 
   const getFilteredBudgets = () => {
@@ -116,30 +125,37 @@ export default function BudgetsPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
-    if (!validateForm()) return;
+  const handleSave = async () => {
+    if (!validateForm() || !user) return;
 
     if (editingBudget) {
-      setBudgets((prev) =>
-        prev.map((b) =>
-          b.id === editingBudget.id
-            ? { ...b, category: formCategory, limit: parseFloat(formLimit) }
-            : b
-        )
-      );
-    } else {
-      const now = new Date();
-      const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-      const newBudget: Budget = {
-        id: `b-${Date.now()}`,
-        userId: user?.id || '1',
+      // Update existing budget
+      const result = await updateBudget(editingBudget.id, {
         category: formCategory,
         limit: parseFloat(formLimit),
-        spent: 0,
+      });
+      
+      if (!result.success) {
+        setError(result.error || 'Failed to update budget');
+        return;
+      }
+    } else {
+      // Create new budget
+      const now = new Date();
+      const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      
+      const result = await addBudget(user.id, {
+        category: formCategory,
+        limit: parseFloat(formLimit),
         month: currentMonth,
-      };
-      setBudgets((prev) => [...prev, newBudget]);
+      });
+      
+      if (!result.success) {
+        setError(result.error || 'Failed to create budget');
+        return;
+      }
     }
+    
     setShowModal(false);
     setFormErrors({});
   };
@@ -156,12 +172,15 @@ export default function BudgetsPage() {
     setDeleteConfirmId(id);
   }, []);
 
-  const confirmDelete = useCallback(() => {
+  const confirmDelete = useCallback(async () => {
     if (deleteConfirmId) {
-      setBudgets((prev) => prev.filter((b) => b.id !== deleteConfirmId));
+      const result = await deleteBudget(deleteConfirmId);
+      if (!result.success) {
+        setError(result.error || 'Failed to delete budget');
+      }
       setDeleteConfirmId(null);
     }
-  }, [deleteConfirmId]);
+  }, [deleteConfirmId, deleteBudget]);
 
   return (
     <div className="space-y-6">
@@ -234,7 +253,7 @@ export default function BudgetsPage() {
           <ErrorState
             title="Failed to load budgets"
             message={error}
-            onRetry={fetchBudgets}
+            onRetry={() => setError(null)}
           />
         </div>
       )}
