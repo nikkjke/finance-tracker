@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
 import type { User, UserRole } from '../types';
+import { STORAGE_KEYS } from '../types';
 import {
   loginUser,
   registerUser,
@@ -16,6 +17,7 @@ interface AuthContextType {
   register: (name: string, email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   logout: () => void;
   switchRole: (role: UserRole) => void;
+  updateUser: (updates: Partial<Pick<User, 'name' | 'email'>>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,12 +25,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Keep track of the user who originally logged in so role-switch can restore them
+  const originalUserRef = useRef<User | null>(null);
 
   // Restore session from localStorage on mount
   useEffect(() => {
     const savedUser = restoreSession();
     if (savedUser) {
       setUser(savedUser);
+      originalUserRef.current = savedUser;
     }
     setIsLoading(false);
   }, []);
@@ -37,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const result = await loginUser(email, password);
     if (result.success && result.user) {
       setUser(result.user);
+      originalUserRef.current = result.user;
       return { success: true, user: result.user };
     }
     return { success: false, error: result.error };
@@ -46,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const result = await registerUser(name, email, password);
     if (result.success && result.user) {
       setUser(result.user);
+      originalUserRef.current = result.user;
       return { success: true, user: result.user };
     }
     return { success: false, error: result.error };
@@ -58,8 +65,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const switchRole = useCallback((role: UserRole) => {
     if (user) {
-      const updatedUser = switchUserRole(user, role);
+      const updatedUser = switchUserRole(originalUserRef.current ?? user, role);
       setUser(updatedUser);
+    }
+  }, [user]);
+
+  const updateUser = useCallback((updates: Partial<Pick<User, 'name' | 'email'>>) => {
+    if (user) {
+      const updatedUser = { ...user, ...updates };
+      setUser(updatedUser);
+      originalUserRef.current = updatedUser;
+      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(updatedUser));
     }
   }, [user]);
 
@@ -73,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         switchRole,
+        updateUser,
       }}
     >
       {children}
