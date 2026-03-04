@@ -14,7 +14,7 @@ export default function BarChart({ data, height = 200, color = '#22c55e' }: BarC
   // Handle empty data state
   if (data.length === 0 || data.every(d => d.value === 0)) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 rounded-lg border border-surface-200 bg-surface-50 dark:border-surface-700 dark:bg-surface-800/50" style={{ minHeight: height }}>
+      <div className="flex flex-col items-center justify-center py-12 rounded-lg border border-surface-200 dark:border-surface-700" style={{ minHeight: height }}>
         {/* Icon container with subtle background */}
         <div className="relative mb-5">
           <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-surface-100 dark:bg-surface-800 ring-1 ring-surface-200 dark:ring-surface-700">
@@ -38,10 +38,15 @@ export default function BarChart({ data, height = 200, color = '#22c55e' }: BarC
   const maxValue = Math.max(...data.map((d) => d.value));
   const total = data.reduce((sum, d) => sum + d.value, 0);
 
+  // Determine layout based on number of data points
+  const isFewBars = data.length <= 3;
+  const barMaxWidth = isFewBars ? 'max-w-[120px]' : '';
+  const containerClass = isFewBars ? 'flex items-end justify-start gap-6' : 'flex items-end justify-between gap-2';
+
   return (
     <div className="w-full">
       {/* Bars row */}
-      <div className="flex items-end justify-between gap-2" style={{ height }}>
+      <div className={containerClass} style={{ height }}>
         {data.map((point, index) => {
           const barHeight = maxValue > 0 ? (point.value / maxValue) * 100 : 0;
           const percentage = total > 0 ? ((point.value / total) * 100).toFixed(1) : '0';
@@ -49,7 +54,7 @@ export default function BarChart({ data, height = 200, color = '#22c55e' }: BarC
           return (
             <div
               key={index}
-              className="relative flex-1 group"
+              className={`relative ${isFewBars ? `w-full ${barMaxWidth}` : 'flex-1'} group`}
               style={{ height: '100%' }}
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
@@ -84,9 +89,9 @@ export default function BarChart({ data, height = 200, color = '#22c55e' }: BarC
           );
         })}
       </div>
-      <div className="flex justify-between gap-2 mt-2 border-t border-surface-200 dark:border-surface-700 pt-2">
+      <div className={`mt-2 border-t border-surface-200 dark:border-surface-700 pt-2 ${isFewBars ? 'flex justify-start gap-6' : 'flex justify-between gap-2'}`}>
         {data.map((point, index) => (
-          <div key={index} className="flex-1 text-center">
+          <div key={index} className={`text-center ${isFewBars ? `w-full ${barMaxWidth}` : 'flex-1'}`}>
             <span className={`text-xs transition-colors ${
               hoveredIndex === index
                 ? 'text-success-500 font-medium'

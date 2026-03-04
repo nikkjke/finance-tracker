@@ -50,9 +50,16 @@ export default function DashboardPage() {
   }, [userIncome, totalSpent]);
 
   const budgetRemaining = useMemo(() => {
+    // Only calculate budget remaining for demo user (ID '1')
+    const isDemoUser = user?.id === '1';
+    
+    if (!isDemoUser) {
+      return 0;
+    }
+    
     const totalLimit = mockBudgets.reduce((sum, b) => sum + b.limit, 0);
     return totalLimit - totalSpent;
-  }, [totalSpent]);
+  }, [totalSpent, user?.id]);
 
   // Spending by category (live from context)
   const spendingByCategory = useMemo(() => {
@@ -271,7 +278,7 @@ export default function DashboardPage() {
                 icon={Target}
                 title="No budgets set"
                 description="Create your first budget to start tracking and managing your spending limits."
-                className="rounded-lg border border-surface-200 bg-surface-50 dark:border-surface-700 dark:bg-surface-800/50"
+                className="rounded-lg border border-surface-200 dark:border-surface-700"
               />
             ) : (
               <div className="grid gap-6 sm:grid-cols-2">

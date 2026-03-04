@@ -161,7 +161,7 @@ export default function NotificationsPage() {
 
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-3">
-            <div className="card">
+            <div className="rounded-xl border border-surface-200 bg-white p-5 shadow-sm dark:border-surface-700/50 dark:bg-surface-800/80">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-surface-500 dark:text-surface-400">Total</p>
@@ -172,7 +172,7 @@ export default function NotificationsPage() {
                 </div>
               </div>
             </div>
-            <div className="card">
+            <div className="rounded-xl border border-surface-200 bg-white p-5 shadow-sm dark:border-surface-700/50 dark:bg-surface-800/80">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-surface-500 dark:text-surface-400">Unread</p>
@@ -183,7 +183,7 @@ export default function NotificationsPage() {
                 </div>
               </div>
             </div>
-            <div className="card">
+            <div className="rounded-xl border border-surface-200 bg-white p-5 shadow-sm dark:border-surface-700/50 dark:bg-surface-800/80">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-surface-500 dark:text-surface-400">High Priority</p>
@@ -244,7 +244,7 @@ export default function NotificationsPage() {
                 icon={BellOff}
                 title="No notifications"
                 description="You're all caught up! We'll notify you when something important happens."
-                className="rounded-lg border border-surface-200 bg-surface-50 dark:border-surface-700 dark:bg-surface-800/50"
+                className="rounded-lg border border-surface-200 dark:border-surface-700"
               />
             </div>
           ) : filteredNotifications.length === 0 ? (
@@ -253,7 +253,7 @@ export default function NotificationsPage() {
                 icon={Search}
                 title="No matching notifications"
                 description="Try adjusting your search or filters."
-                className="rounded-lg border border-surface-200 bg-surface-50 dark:border-surface-700 dark:bg-surface-800/50"
+                className="rounded-lg border border-surface-200 dark:border-surface-700"
               />
             </div>
           ) : (

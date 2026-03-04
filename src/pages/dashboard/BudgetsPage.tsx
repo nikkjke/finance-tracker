@@ -299,7 +299,7 @@ export default function BudgetsPage() {
             icon={PiggyBank}
             title="No budgets yet"
             description="Create your first budget to start tracking your spending limits by category."
-            className="rounded-lg border border-surface-200 bg-surface-50 dark:border-surface-700 dark:bg-surface-800/50"
+            className="rounded-lg border border-surface-200 dark:border-surface-700"
           />
         </div>
       ) : filteredBudgets.length === 0 ? (
@@ -308,7 +308,7 @@ export default function BudgetsPage() {
             icon={PiggyBank}
             title="No results found"
             description="Try adjusting your search or filter criteria."
-            className="rounded-lg border border-surface-200 bg-surface-50 dark:border-surface-700 dark:bg-surface-800/50"
+            className="rounded-lg border border-surface-200 dark:border-surface-700"
             action={
               <button
                 onClick={() => {

@@ -140,7 +140,7 @@ export default function TransactionTable({ expenses, limit, onEdit, onDelete }: 
           icon={ShoppingBag}
           title="No transactions found"
           description="Your transactions will appear here"
-          className="rounded-lg border border-surface-200 bg-surface-50 dark:border-surface-700 dark:bg-surface-800/50"
+          className="rounded-lg border border-surface-200 dark:border-surface-700"
         />
       )}
     </div>
