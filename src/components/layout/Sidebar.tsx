@@ -12,6 +12,7 @@ import {
   AlertCircle,
   TrendingUp,
   FileText,
+  Bell,
 } from 'lucide-react';
 import fintrackLogo from '../../assets/fintrack-logo.svg';
 import { useAuth } from '../../contexts/AuthContext';
@@ -37,6 +38,7 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
     { to: '/add-income', label: 'Record Income', icon: TrendingUp },
     { to: '/reports', label: 'Reports', icon: BarChart3 },
     { to: '/budgets', label: 'Budgets', icon: Wallet },
+    { to: '/notifications', label: 'Notifications', icon: Bell },
   ];
 
   const adminLinks = [
