@@ -14,7 +14,7 @@ interface FormErrors {
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { register, isAuthenticated, user } = useAuth();
+  const { register, isAuthenticated, isLoading: authLoading, user } = useAuth();
   const { theme } = useTheme();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -26,10 +26,10 @@ export default function RegisterPage() {
 
   // Redirect already-authenticated users to their dashboard
   useEffect(() => {
-    if (isAuthenticated) {
+    if (!authLoading && isAuthenticated) {
       navigate(user?.role === 'admin' ? '/admin' : '/dashboard', { replace: true });
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [authLoading, isAuthenticated, user, navigate]);
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};

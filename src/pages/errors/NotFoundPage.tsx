@@ -65,7 +65,7 @@ export default function NotFoundPage() {
             Go to Homepage
           </button>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/', { replace: true })}
             className="btn-secondary w-full sm:w-auto"
           >
             <ArrowLeft size={18} />

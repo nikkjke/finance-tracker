@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, Menu, Moon, Sun, ChevronDown, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -14,6 +15,7 @@ interface NavbarProps {
 export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed }: NavbarProps) {
   const { theme, toggleTheme } = useTheme();
   const { user, switchRole } = useAuth();
+  const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -37,6 +39,8 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed 
   const handleRoleSwitch = (role: UserRole) => {
     switchRole(role);
     setShowProfile(false);
+    // Navigate to the correct dashboard for the new role
+    navigate(role === 'admin' ? '/admin' : '/dashboard');
   };
 
   return (

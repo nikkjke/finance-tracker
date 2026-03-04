@@ -12,7 +12,7 @@ interface FormErrors {
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login, isAuthenticated, user } = useAuth();
+  const { login, isAuthenticated, isLoading: authLoading, user } = useAuth();
   const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,10 +22,10 @@ export default function LoginPage() {
 
   // Redirect already-authenticated users to their dashboard
   useEffect(() => {
-    if (isAuthenticated) {
+    if (!authLoading && isAuthenticated) {
       navigate(user?.role === 'admin' ? '/admin' : '/dashboard', { replace: true });
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [authLoading, isAuthenticated, user, navigate]);
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
@@ -52,7 +52,9 @@ export default function LoginPage() {
     setIsLoading(false);
 
     if (result.success) {
-      navigate('/dashboard');
+      // Navigate based on user role — admin goes to /admin, user goes to /dashboard
+      const targetPath = result.user?.role === 'admin' ? '/admin' : '/dashboard';
+      navigate(targetPath);
     } else {
       setErrors({ email: result.error || 'Login failed' });
     }

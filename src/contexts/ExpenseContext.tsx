@@ -1,5 +1,6 @@
-import { createContext, useContext, useMemo, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, useState, useCallback, useEffect, type ReactNode } from 'react';
 import { mockExpenses } from '../data/mockData';
+import { STORAGE_KEYS } from '../types';
 import type { Expense, CreateExpenseDTO, UpdateExpenseDTO, ServiceResponse } from '../types';
 
 interface ExpenseContextType {
@@ -13,8 +14,28 @@ interface ExpenseContextType {
 
 const ExpenseContext = createContext<ExpenseContextType | undefined>(undefined);
 
+/** Load expenses from localStorage, falling back to mock data on first use. */
+function loadInitialExpenses(): Expense[] {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.EXPENSES);
+    if (stored) return JSON.parse(stored) as Expense[];
+  } catch {
+    // ignore
+  }
+  return [...mockExpenses];
+}
+
 export function ExpenseProvider({ children }: { children: ReactNode }) {
-  const [expenses, setExpenses] = useState<Expense[]>([...mockExpenses]);
+  const [expenses, setExpenses] = useState<Expense[]>(loadInitialExpenses);
+
+  // Persist expenses to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(expenses));
+    } catch {
+      console.warn('Failed to persist expenses to localStorage');
+    }
+  }, [expenses]);
 
   const getExpenses = useCallback((userId?: string) => {
     if (!userId) return expenses;

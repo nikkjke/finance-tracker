@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ScanLine,
   BarChart3,
@@ -32,10 +32,19 @@ const LinkedInIcon = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import fintrackLogo from '../assets/fintrack-logo.svg';
 
 export default function LandingPage() {
   const { theme, toggleTheme } = useTheme();
+  const { isAuthenticated, user, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect authenticated users to their dashboard
+  if (!isLoading && isAuthenticated) {
+    navigate(user?.role === 'admin' ? '/admin' : '/dashboard', { replace: true });
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-surface-950">

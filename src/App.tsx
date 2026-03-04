@@ -16,6 +16,7 @@ import AddExpensePage from './pages/dashboard/AddExpensePage';
 import AddIncomePage from './pages/dashboard/AddIncomePage';
 import ReportsPage from './pages/dashboard/ReportsPage';
 import BudgetsPage from './pages/dashboard/BudgetsPage';
+import NotificationsPage from './pages/dashboard/NotificationsPage';
 import ProfilePage from './pages/dashboard/ProfilePage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
@@ -52,6 +53,7 @@ function App() {
               <Route path="/add-income" element={<AddIncomePage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/budgets" element={<BudgetsPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
             </Route>
 
             {/* Protected Admin Routes */}
