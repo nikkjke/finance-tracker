@@ -8,9 +8,11 @@ import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
 import { mockBudgets, categoryLabels } from '../../data/mockData';
 import { sortItems } from '../../services';
+import { useAuth } from '../../contexts/AuthContext';
 import type { Budget, ExpenseCategory } from '../../types';
 
 export default function BudgetsPage() {
+  const { user } = useAuth();
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -124,13 +126,15 @@ export default function BudgetsPage() {
         )
       );
     } else {
+      const now = new Date();
+      const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
       const newBudget: Budget = {
         id: `b-${Date.now()}`,
-        userId: '1',
+        userId: user?.id || '1',
         category: formCategory,
         limit: parseFloat(formLimit),
         spent: 0,
-        month: '2026-02',
+        month: currentMonth,
       };
       setBudgets((prev) => [...prev, newBudget]);
     }
