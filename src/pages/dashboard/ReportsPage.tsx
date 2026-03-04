@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Download, Filter, Calendar, CalendarDays, ArrowUpRight, Hash, BarChart3, Search, ArrowUpDown, Wallet, ListFilter, AlertTriangle, Edit2, Trash2 } from 'lucide-react';
 import TransactionTable from '../../components/ui/TransactionTable';
 import Dropdown from '../../components/ui/Dropdown';
@@ -10,6 +10,7 @@ import Modal from '../../components/ui/Modal';
 import { categoryLabels, incomeLabels } from '../../data/mockData';
 import { useExpenses } from '../../contexts/ExpenseContext';
 import { useIncome } from '../../contexts/IncomeContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { applyFilters, presetToDateRange, exportReport } from '../../services';
 import type { FilterPipelineConfig, SortConfig } from '../../services/filterService';
 import type { Expense, Income, ExpenseCategory, PaymentMethod, IncomeCategory } from '../../types';
@@ -17,7 +18,12 @@ import type { Expense, Income, ExpenseCategory, PaymentMethod, IncomeCategory } 
 export default function ReportsPage() {
   const { expenses: storeExpenses, updateExpense, deleteExpense } = useExpenses();
   const { income: storeIncome, updateIncome, deleteIncome } = useIncome();
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const { user } = useAuth();
+
+  // Filter by current user (stable references via useMemo)
+  const userExpenses = useMemo(() => storeExpenses.filter((e) => !user || e.userId === user.id), [storeExpenses, user]);
+  const userIncome = useMemo(() => storeIncome.filter((i) => !user || i.userId === user.id), [storeIncome, user]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -115,23 +121,11 @@ export default function ReportsPage() {
     setDeletingIncome(null);
   }, [deletingIncome, deleteIncome]);
 
-  const fetchReports = () => {
-    setIsLoading(true);
-    setError(null);
-    setTimeout(() => {
-      try {
-        setExpenses(storeExpenses);
-        setIsLoading(false);
-      } catch {
-        setError('Failed to load report data. The service might be unavailable.');
-        setIsLoading(false);
-      }
-    }, 250);
-  };
-
+  // Simulate initial load
   useEffect(() => {
-    fetchReports();
-  }, [storeExpenses]);
+    const timer = setTimeout(() => setIsLoading(false), 250);
+    return () => clearTimeout(timer);
+  }, []);
 
   const sortConfig: SortConfig<Expense> =
     sortBy === 'amount-asc'
@@ -156,9 +150,9 @@ export default function ReportsPage() {
     dateRange: presetToDateRange(dateRange as '7days' | '30days' | '6months' | '1year'),
   };
 
-  const filteredResult = applyFilters(expenses, filterConfig);
+  const filteredResult = applyFilters(userExpenses, filterConfig);
 
-  const pipelineResult = applyFilters(expenses, {
+  const pipelineResult = applyFilters(userExpenses, {
     ...filterConfig,
     page: currentPage,
     pageSize: itemsPerPage,
@@ -192,9 +186,9 @@ export default function ReportsPage() {
     dateRange: presetToDateRange(incomeDateRange as '7days' | '30days' | '6months' | '1year'),
   };
 
-  const filteredIncomeResult = applyFilters(storeIncome, incomeFilterConfig);
+  const filteredIncomeResult = applyFilters(userIncome, incomeFilterConfig);
 
-  const incomePipelineResult = applyFilters(storeIncome, {
+  const incomePipelineResult = applyFilters(userIncome, {
     ...incomeFilterConfig,
     page: incomePage,
     pageSize: incomeItemsPerPage,
@@ -256,7 +250,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     setIncomePage(1);
-  }, [storeIncome]);
+  }, [userIncome]);
 
   useEffect(() => {
     setIncomePage(1);
@@ -380,13 +374,13 @@ export default function ReportsPage() {
           <ErrorState
             title="Failed to load reports"
             message={error}
-            onRetry={fetchReports}
+            onRetry={() => setError(null)}
           />
         </div>
       )}
 
       {/* Empty State */}
-      {!isLoading && !error && expenses.length === 0 && (
+      {!isLoading && !error && userExpenses.length === 0 && (
         <div className="card">
           <EmptyState
             icon={BarChart3}
@@ -397,7 +391,7 @@ export default function ReportsPage() {
       )}
 
       {/* Content (only when loaded, no error, and has data) */}
-      {!isLoading && !error && expenses.length > 0 && (
+      {!isLoading && !error && userExpenses.length > 0 && (
         <>
       {/* Summary Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
