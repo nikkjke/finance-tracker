@@ -480,6 +480,7 @@ export default function AdminUsers() {
             icon={Users}
             title="No users found"
             description="Try adjusting your search query or role filter to find what you're looking for."
+            className="rounded-lg border border-surface-200 bg-surface-50 dark:border-surface-700 dark:bg-surface-800/50"
             action={
               <button
                 onClick={() => { setSearchQuery(''); setRoleFilter('all'); }}

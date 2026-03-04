@@ -3,11 +3,11 @@ import type {
   Expense,
   Budget,
   Income,
-  Notification,
   MonthlyStats,
   ChartDataPoint,
   AdminStats,
 } from '../types';
+import type { Notification } from '../contexts/NotificationContext';
 
 export const mockUsers: User[] = [
   {
@@ -233,33 +233,37 @@ export const mockNotifications: Notification[] = [
     id: 'n1',
     title: 'Budget Alert',
     message: 'You have spent 64% of your shopping budget this month.',
+    type: 'budget',
+    priority: 'high',
+    timestamp: '2026-02-15T10:30:00',
     read: false,
-    createdAt: '2026-02-15T10:30:00',
-    type: 'warning',
   },
   {
     id: 'n2',
-    title: 'Receipt Scanned',
+    title: 'New Expense Recorded',
     message: 'Your receipt from Lidl has been processed successfully.',
+    type: 'expense',
+    priority: 'low',
+    timestamp: '2026-02-14T14:20:00',
     read: false,
-    createdAt: '2026-02-14T14:20:00',
-    type: 'success',
   },
   {
     id: 'n3',
-    title: 'Payment Pending',
+    title: 'Payment Reminder',
     message: 'Your Enel electricity bill payment is still pending.',
+    type: 'system',
+    priority: 'medium',
+    timestamp: '2026-02-12T09:00:00',
     read: true,
-    createdAt: '2026-02-12T09:00:00',
-    type: 'info',
   },
   {
     id: 'n4',
-    title: 'Flight Cancelled',
+    title: 'Refund Processed',
     message: 'Your Wizzair flight booking was cancelled and refunded.',
+    type: 'income',
+    priority: 'medium',
+    timestamp: '2026-02-07T18:45:00',
     read: true,
-    createdAt: '2026-02-07T18:45:00',
-    type: 'error',
   },
 ];
 

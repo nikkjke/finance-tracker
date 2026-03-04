@@ -7,16 +7,19 @@ import {
   ArrowRight,
   PlusCircle,
   TrendingDown,
+  Target,
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import TransactionTable from '../../components/ui/TransactionTable';
 import BarChart from '../../components/ui/BarChart';
 import DonutChart from '../../components/ui/DonutChart';
 import BudgetProgress from '../../components/ui/BudgetProgress';
+import EmptyState from '../../components/ui/EmptyState';
 import Spinner from '../../components/ui/Spinner';
 import {
   mockBudgets,
   categoryLabels,
+  mockMonthlySpending,
 } from '../../data/mockData';
 import { useExpenses } from '../../contexts/ExpenseContext';
 import { useIncome } from '../../contexts/IncomeContext';
@@ -64,6 +67,13 @@ export default function DashboardPage() {
 
   // Memoized budget utilization with percentages
   const budgetData = useMemo(() => {
+    // Only show mock budgets for demo user (ID '1')
+    const isDemoUser = user?.id === '1';
+    
+    if (!isDemoUser) {
+      return [];
+    }
+    
     return mockBudgets.map(budget => {
       const percentage = budget.limit > 0 ? (budget.spent / budget.limit) * 100 : 0;
       const remaining = budget.limit - budget.spent;
@@ -76,11 +86,26 @@ export default function DashboardPage() {
         status
       };
     });
-  }, []);
+  }, [user?.id]);
 
   // Memoized monthly spending trends
   const monthlyTrendsData = useMemo(() => {
-    // Calculate this month's spending by day
+    // For demo user (ID '1'), show mock data with historical months
+    const isDemoUser = user?.id === '1';
+    
+    if (isDemoUser) {
+      const sorted = [...mockMonthlySpending].sort((a, b) => a.value - b.value);
+      const avgSpending = mockMonthlySpending.reduce((sum, m) => sum + m.value, 0) / mockMonthlySpending.length;
+      
+      return {
+        data: mockMonthlySpending,
+        average: avgSpending,
+        highest: sorted[sorted.length - 1],
+        lowest: sorted[0]
+      };
+    }
+    
+    // For new users, calculate real spending by day this month
     const now = new Date();
     const thisMonth = now.getMonth();
     const thisYear = now.getFullYear();
@@ -96,19 +121,23 @@ export default function DashboardPage() {
       }
     });
     
-    // Convert to chart data format, sorted by date
+    // Convert to chart data format
     const chartData = Object.entries(dailySpending).map(([label, value]) => ({
       label,
       value
     }));
     
-    // If no data for this month, show this month's spending as 0
+    // If no data for this month, return empty array to trigger empty state
     if (chartData.length === 0) {
-      const monthLabel = now.toLocaleDateString('en-US', { month: 'short' });
-      chartData.push({ label: monthLabel, value: 0 });
+      return {
+        data: [],
+        average: 0,
+        highest: { label: '', value: 0 },
+        lowest: { label: '', value: 0 }
+      };
     }
     
-    const avgSpending = chartData.reduce((sum, d) => sum + d.value, 0) / (chartData.length || 1);
+    const avgSpending = chartData.reduce((sum, d) => sum + d.value, 0) / chartData.length;
     const sorted = [...chartData].sort((a, b) => a.value - b.value);
     
     return {
@@ -117,7 +146,7 @@ export default function DashboardPage() {
       highest: sorted[sorted.length - 1],
       lowest: sorted[0]
     };
-  }, [userExpenses]);
+  }, [userExpenses, user?.id]);
 
   // Memoized recent transactions summary (live from context)
   const transactionsData = useMemo(() => {
@@ -200,9 +229,11 @@ export default function DashboardPage() {
               <div className="mb-6 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-surface-900 dark:text-white">
-                    Spending Activity
+                    {user?.id === '1' ? 'Monthly Spending' : 'Spending Activity'}
                   </h2>
-                  <p className="text-sm text-surface-400">This month by day</p>
+                  <p className="text-sm text-surface-400">
+                    {user?.id === '1' ? 'Last 6 months overview' : 'This month by day'}
+                  </p>
                 </div>
               </div>
               <div className="flex-1 flex flex-col justify-end">
@@ -235,11 +266,20 @@ export default function DashboardPage() {
                 View All <ArrowRight size={14} />
               </Link>
             </div>
-            <div className="grid gap-6 sm:grid-cols-2">
-              {budgetData.slice(0, 4).map((budget) => (
-                <BudgetProgress key={budget.id} budget={budget} />
-              ))}
-            </div>
+            {budgetData.length === 0 ? (
+              <EmptyState
+                icon={Target}
+                title="No budgets set"
+                description="Create your first budget to start tracking and managing your spending limits."
+                className="rounded-lg border border-surface-200 bg-surface-50 dark:border-surface-700 dark:bg-surface-800/50"
+              />
+            ) : (
+              <div className="grid gap-6 sm:grid-cols-2">
+                {budgetData.slice(0, 4).map((budget) => (
+                  <BudgetProgress key={budget.id} budget={budget} />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Recent Transactions */}

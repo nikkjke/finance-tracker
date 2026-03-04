@@ -14,7 +14,7 @@ export default function BarChart({ data, height = 200, color = '#22c55e' }: BarC
   // Handle empty data state
   if (data.length === 0 || data.every(d => d.value === 0)) {
     return (
-      <div className="flex flex-col items-center justify-center py-12" style={{ minHeight: height }}>
+      <div className="flex flex-col items-center justify-center py-12 rounded-lg border border-surface-200 bg-surface-50 dark:border-surface-700 dark:bg-surface-800/50" style={{ minHeight: height }}>
         {/* Icon container with subtle background */}
         <div className="relative mb-5">
           <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-surface-100 dark:bg-surface-800 ring-1 ring-surface-200 dark:ring-surface-700">

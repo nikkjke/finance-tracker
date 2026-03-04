@@ -33,7 +33,9 @@ export default function BudgetsPage() {
     setError(null);
     setTimeout(() => {
       try {
-        setBudgets(mockBudgets);
+        // Only load mock budgets for demo user (ID '1')
+        const isDemoUser = user?.id === '1';
+        setBudgets(isDemoUser ? mockBudgets : []);
         setIsLoading(false);
       } catch {
         setError('Failed to load budgets. The service might be unavailable.');
@@ -44,7 +46,7 @@ export default function BudgetsPage() {
 
   useEffect(() => {
     fetchBudgets();
-  }, []);
+  }, [user?.id]);
 
   const getFilteredBudgets = () => {
     let result = [...budgets];
@@ -292,35 +294,35 @@ export default function BudgetsPage() {
 
       {/* Budget Cards */}
       {budgets.length === 0 ? (
-        <EmptyState
-          icon={PiggyBank}
-          title="No budgets yet"
-          description="Create your first budget to start tracking your spending limits by category."
-          action={
-            <button onClick={handleAdd} className="btn-primary">
-              <Plus size={18} />
-              Add Budget
-            </button>
-          }
-        />
+        <div className="card">
+          <EmptyState
+            icon={PiggyBank}
+            title="No budgets yet"
+            description="Create your first budget to start tracking your spending limits by category."
+            className="rounded-lg border border-surface-200 bg-surface-50 dark:border-surface-700 dark:bg-surface-800/50"
+          />
+        </div>
       ) : filteredBudgets.length === 0 ? (
-        <EmptyState
-          icon={PiggyBank}
-          title="No results found"
-          description="Try adjusting your search or filter criteria."
-          action={
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setFilterStatus('all');
-                setSortBy('limit-asc');
-              }}
-              className="btn-secondary"
-            >
-              Clear Filters
-            </button>
-          }
-        />
+        <div className="card">
+          <EmptyState
+            icon={PiggyBank}
+            title="No results found"
+            description="Try adjusting your search or filter criteria."
+            className="rounded-lg border border-surface-200 bg-surface-50 dark:border-surface-700 dark:bg-surface-800/50"
+            action={
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilterStatus('all');
+                  setSortBy('limit-asc');
+                }}
+                className="btn-secondary"
+              >
+                Clear Filters
+              </button>
+            }
+          />
+        </div>
       ) : (
       <div className="grid gap-5 sm:grid-cols-2">
         {filteredBudgets.map((budget) => (

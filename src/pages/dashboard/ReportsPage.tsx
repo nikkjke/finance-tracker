@@ -386,6 +386,7 @@ export default function ReportsPage() {
             icon={BarChart3}
             title="No report data available"
             description="There are no transactions to generate reports from. Add some expenses to see analytics."
+            className="rounded-lg border border-surface-200 bg-surface-50 dark:border-surface-700 dark:bg-surface-800/50"
           />
         </div>
       )}

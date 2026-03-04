@@ -239,17 +239,23 @@ export default function NotificationsPage() {
 
           {/* Notification list */}
           {notifications.length === 0 ? (
-            <EmptyState
-              icon={BellOff}
-              title="No notifications"
-              description="You're all caught up! We'll notify you when something important happens."
-            />
+            <div className="card">
+              <EmptyState
+                icon={BellOff}
+                title="No notifications"
+                description="You're all caught up! We'll notify you when something important happens."
+                className="rounded-lg border border-surface-200 bg-surface-50 dark:border-surface-700 dark:bg-surface-800/50"
+              />
+            </div>
           ) : filteredNotifications.length === 0 ? (
-            <EmptyState
-              icon={Search}
-              title="No matching notifications"
-              description="Try adjusting your search or filters."
-            />
+            <div className="card">
+              <EmptyState
+                icon={Search}
+                title="No matching notifications"
+                description="Try adjusting your search or filters."
+                className="rounded-lg border border-surface-200 bg-surface-50 dark:border-surface-700 dark:bg-surface-800/50"
+              />
+            </div>
           ) : (
             <div className="space-y-3">
               {filteredNotifications.map((notification) => (
