@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { TrendingDown } from 'lucide-react';
 import type { ChartDataPoint } from '../../types';
 
 interface BarChartProps {
@@ -8,9 +9,34 @@ interface BarChartProps {
 }
 
 export default function BarChart({ data, height = 200, color = '#22c55e' }: BarChartProps) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  // Handle empty data state
+  if (data.length === 0 || data.every(d => d.value === 0)) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12" style={{ minHeight: height }}>
+        {/* Icon container with subtle background */}
+        <div className="relative mb-5">
+          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-surface-100 dark:bg-surface-800 ring-1 ring-surface-200 dark:ring-surface-700">
+            <TrendingDown size={32} className="text-surface-300 dark:text-surface-600" />
+          </div>
+          {/* Decorative dot */}
+          <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-surface-200 dark:bg-surface-700" />
+        </div>
+
+        {/* Text */}
+        <h3 className="text-base font-semibold text-surface-700 dark:text-surface-300 mb-1.5 text-center">
+          No spending data
+        </h3>
+        <p className="text-sm text-surface-400 dark:text-surface-500 max-w-xs text-center leading-relaxed">
+          Start adding expenses to see your spending activity
+        </p>
+      </div>
+    );
+  }
+
   const maxValue = Math.max(...data.map((d) => d.value));
   const total = data.reduce((sum, d) => sum + d.value, 0);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (
     <div className="w-full">

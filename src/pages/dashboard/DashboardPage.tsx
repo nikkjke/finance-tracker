@@ -15,7 +15,6 @@ import DonutChart from '../../components/ui/DonutChart';
 import BudgetProgress from '../../components/ui/BudgetProgress';
 import Spinner from '../../components/ui/Spinner';
 import {
-  mockMonthlySpending,
   mockBudgets,
   categoryLabels,
 } from '../../data/mockData';
@@ -81,16 +80,44 @@ export default function DashboardPage() {
 
   // Memoized monthly spending trends
   const monthlyTrendsData = useMemo(() => {
-    const sorted = [...mockMonthlySpending].sort((a, b) => a.value - b.value);
-    const avgSpending = mockMonthlySpending.reduce((sum, m) => sum + m.value, 0) / mockMonthlySpending.length;
+    // Calculate this month's spending by day
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
+    
+    const dailySpending: Record<string, number> = {};
+    
+    // Aggregate user expenses by day for this month
+    userExpenses.forEach((expense) => {
+      const expenseDate = new Date(expense.date);
+      if (expenseDate.getMonth() === thisMonth && expenseDate.getFullYear() === thisYear) {
+        const dayLabel = expenseDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        dailySpending[dayLabel] = (dailySpending[dayLabel] || 0) + expense.amount;
+      }
+    });
+    
+    // Convert to chart data format, sorted by date
+    const chartData = Object.entries(dailySpending).map(([label, value]) => ({
+      label,
+      value
+    }));
+    
+    // If no data for this month, show this month's spending as 0
+    if (chartData.length === 0) {
+      const monthLabel = now.toLocaleDateString('en-US', { month: 'short' });
+      chartData.push({ label: monthLabel, value: 0 });
+    }
+    
+    const avgSpending = chartData.reduce((sum, d) => sum + d.value, 0) / (chartData.length || 1);
+    const sorted = [...chartData].sort((a, b) => a.value - b.value);
     
     return {
-      data: mockMonthlySpending,
+      data: chartData,
       average: avgSpending,
       highest: sorted[sorted.length - 1],
       lowest: sorted[0]
     };
-  }, []);
+  }, [userExpenses]);
 
   // Memoized recent transactions summary (live from context)
   const transactionsData = useMemo(() => {
@@ -173,9 +200,9 @@ export default function DashboardPage() {
               <div className="mb-6 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-surface-900 dark:text-white">
-                    Monthly Spending
+                    Spending Activity
                   </h2>
-                  <p className="text-sm text-surface-400">Last 6 months overview</p>
+                  <p className="text-sm text-surface-400">This month by day</p>
                 </div>
               </div>
               <div className="flex-1 flex flex-col justify-end">
