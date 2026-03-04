@@ -41,10 +41,10 @@ export default function AdminDashboard() {
   }, []);
 
   const activityLog = [
-    { id: 1, user: 'Mariana Popescu', action: 'Added expense', details: '€245.50 at Kaufland', time: '2 hours ago', type: 'expense' },
+    { id: 1, user: 'Mariana Popescu', action: 'Added expense', details: '$245.50 at Kaufland', time: '2 hours ago', type: 'expense' },
     { id: 2, user: 'Admin User', action: 'Created new user', details: 'Andrei Vasile', time: '5 hours ago', type: 'admin' },
     { id: 3, user: 'Elena Dumitrescu', action: 'Updated budget', details: 'Food category', time: '1 day ago', type: 'budget' },
-    { id: 4, user: 'Ion Ionescu', action: 'Deleted expense', details: '€89.00 transaction', time: '2 days ago', type: 'expense' },
+    { id: 4, user: 'Ion Ionescu', action: 'Deleted expense', details: '$89.00 transaction', time: '2 days ago', type: 'expense' },
     { id: 5, user: 'Admin User', action: 'Changed user role', details: 'Promoted to admin', time: '3 days ago', type: 'admin' },
   ];
 
@@ -136,7 +136,7 @@ export default function AdminDashboard() {
             />
             <StatCard
               title="Total Revenue"
-              value={`€${stats.totalRevenue.toLocaleString()}`}
+              value={`$${stats.totalRevenue.toLocaleString()}`}
               icon={<DollarSign size={20} />}
               change={12.5}
               changeLabel="this month"
@@ -247,7 +247,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-semibold text-surface-900 dark:text-white">
-                    €{tx.amount.toFixed(2)}
+                    ${tx.amount.toFixed(2)}
                   </p>
                   <p className={`text-xs ${
                     tx.status === 'completed' ? 'text-success-500' :

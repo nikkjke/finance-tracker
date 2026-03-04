@@ -285,7 +285,7 @@ export default function AdminTransactions() {
             <div>
               <p className="text-sm text-surface-500 dark:text-surface-400">Total Volume</p>
               <p className="text-2xl font-bold text-surface-900 dark:text-white mt-1">
-                €{stats.total.toFixed(2)}
+                ${stats.total.toFixed(2)}
               </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
@@ -498,7 +498,7 @@ export default function AdminTransactions() {
                   </td>
                   <td className="py-4 pr-4">
                     <span className="text-sm font-semibold text-surface-900 dark:text-white">
-                      €{tx.amount.toFixed(2)}
+                      ${tx.amount.toFixed(2)}
                     </span>
                   </td>
                   <td className="py-4 pr-4 hidden lg:table-cell">
@@ -595,7 +595,7 @@ export default function AdminTransactions() {
                 <div className="flex justify-between">
                   <span className="text-surface-500 dark:text-surface-400">Amount:</span>
                   <span className="font-semibold text-surface-900 dark:text-white">
-                    €{selectedTransaction.amount.toFixed(2)}
+                    ${selectedTransaction.amount.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between">
