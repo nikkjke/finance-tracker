@@ -58,9 +58,20 @@ export default function DashboardPage() {
       return 0;
     }
     
-    const totalLimit = userBudgets.reduce((sum, b) => sum + b.limit, 0);
-    return totalLimit - totalSpent;
-  }, [totalSpent, budgets, user]);
+    // Calculate remaining for each budget category
+    let totalRemaining = 0;
+    userBudgets.forEach(budget => {
+      // Calculate spent for this specific budget category
+      const spentInCategory = userExpenses
+        .filter(e => e.category === budget.category)
+        .reduce((sum, e) => sum + e.amount, 0);
+      
+      // Add remaining for this budget
+      totalRemaining += (budget.limit - spentInCategory);
+    });
+    
+    return totalRemaining;
+  }, [budgets, user, userExpenses]);
 
   // Spending by category (live from context)
   const spendingByCategory = useMemo(() => {
