@@ -266,7 +266,7 @@ export default function BudgetsPage() {
 
       {/* Search, Filter, Sort Controls */}
       {!isLoading && !error && budgets.length > 0 && (
-        <div className="card flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="flex-1 relative">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
             <input

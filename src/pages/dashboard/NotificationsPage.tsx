@@ -159,46 +159,9 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-          {/* Stats Cards */}
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl border border-surface-200 bg-white p-5 shadow-sm dark:border-surface-700/50 dark:bg-surface-800/80">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-surface-500 dark:text-surface-400">Total</p>
-                  <p className="text-2xl font-bold text-surface-900 dark:text-white mt-1">{stats.total}</p>
-                </div>
-                <div className="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center">
-                  <Bell size={20} className="text-primary-600 dark:text-primary-400" />
-                </div>
-              </div>
-            </div>
-            <div className="rounded-xl border border-surface-200 bg-white p-5 shadow-sm dark:border-surface-700/50 dark:bg-surface-800/80">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-surface-500 dark:text-surface-400">Unread</p>
-                  <p className="text-2xl font-bold text-surface-900 dark:text-white mt-1">{stats.unread}</p>
-                </div>
-                <div className="h-10 w-10 rounded-full bg-warning-100 dark:bg-warning-500/20 flex items-center justify-center">
-                  <BellOff size={20} className="text-warning-600 dark:text-warning-400" />
-                </div>
-              </div>
-            </div>
-            <div className="rounded-xl border border-surface-200 bg-white p-5 shadow-sm dark:border-surface-700/50 dark:bg-surface-800/80">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-surface-500 dark:text-surface-400">High Priority</p>
-                  <p className="text-2xl font-bold text-surface-900 dark:text-white mt-1">{stats.highPriority}</p>
-                </div>
-                <div className="h-10 w-10 rounded-full bg-danger-100 dark:bg-danger-500/20 flex items-center justify-center">
-                  <AlertTriangle size={20} className="text-danger-600 dark:text-danger-400" />
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Search & Filters */}
           {notifications.length > 0 && (
-            <div className="card flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <div className="flex-1 relative">
                 <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
                 <input
@@ -236,6 +199,43 @@ export default function NotificationsPage() {
               </div>
             </div>
           )}
+
+          {/* Stats Cards */}
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="rounded-xl border border-surface-200 bg-white p-5 shadow-sm dark:border-surface-700/50 dark:bg-surface-800/80">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-surface-500 dark:text-surface-400">Total</p>
+                  <p className="text-2xl font-bold text-surface-900 dark:text-white mt-1">{stats.total}</p>
+                </div>
+                <div className="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center">
+                  <Bell size={20} className="text-primary-600 dark:text-primary-400" />
+                </div>
+              </div>
+            </div>
+            <div className="rounded-xl border border-surface-200 bg-white p-5 shadow-sm dark:border-surface-700/50 dark:bg-surface-800/80">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-surface-500 dark:text-surface-400">Unread</p>
+                  <p className="text-2xl font-bold text-surface-900 dark:text-white mt-1">{stats.unread}</p>
+                </div>
+                <div className="h-10 w-10 rounded-full bg-warning-100 dark:bg-warning-500/20 flex items-center justify-center">
+                  <BellOff size={20} className="text-warning-600 dark:text-warning-400" />
+                </div>
+              </div>
+            </div>
+            <div className="rounded-xl border border-surface-200 bg-white p-5 shadow-sm dark:border-surface-700/50 dark:bg-surface-800/80">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-surface-500 dark:text-surface-400">High Priority</p>
+                  <p className="text-2xl font-bold text-surface-900 dark:text-white mt-1">{stats.highPriority}</p>
+                </div>
+                <div className="h-10 w-10 rounded-full bg-danger-100 dark:bg-danger-500/20 flex items-center justify-center">
+                  <AlertTriangle size={20} className="text-danger-600 dark:text-danger-400" />
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Notification list */}
           {notifications.length === 0 ? (

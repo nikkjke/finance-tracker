@@ -31,6 +31,7 @@ const LinkedInIcon = ({ size = 16 }: { size?: number }) => (
 );
 import { useAuth } from '../contexts/AuthContext';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
+import { BackgroundBeams } from '../components/ui/Beams';
 import fintrackLogo from '../assets/fintrack-logo.svg';
 
 export default function LandingPage() {
@@ -89,43 +90,9 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden min-h-[calc(100vh-4rem)] flex flex-col justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-white dark:from-surface-950 dark:via-surface-900 dark:to-surface-950" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(59,130,246,0.08),transparent)] dark:bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(59,130,246,0.06),transparent)]" />
-
-        {/* Subtle radiating lines from card area */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-          <svg className="absolute right-0 top-0 h-full w-full" viewBox="0 0 1440 800" fill="none" preserveAspectRatio="xMaxYMid slice">
-            <defs>
-              <radialGradient id="linesFade" cx="75%" cy="45%" r="50%">
-                <stop offset="0%" stopColor="currentColor" stopOpacity="0.06" />
-                <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-              </radialGradient>
-            </defs>
-            {/* Radiating curves from the card cluster */}
-            {[0,1,2,3,4,5,6,7].map(i => (
-              <path
-                key={i}
-                d={`M${900 + i * 15} ${300 + i * 20} Q${1100 + i * 30} ${100 - i * 40} ${1500} ${200 + i * 60}`}
-                stroke="url(#linesFade)"
-                strokeWidth="1"
-                fill="none"
-                className="text-primary-500 dark:text-primary-400"
-              />
-            ))}
-            {/* Also some going left/down */}
-            {[0,1,2,3,4].map(i => (
-              <path
-                key={`b${i}`}
-                d={`M${900 - i * 10} ${350 + i * 15} Q${700 - i * 50} ${500 + i * 30} ${400 - i * 80} ${700 + i * 20}`}
-                stroke="url(#linesFade)"
-                strokeWidth="0.8"
-                fill="none"
-                className="text-primary-400 dark:text-primary-500"
-              />
-            ))}
-          </svg>
-        </div>
+        <BackgroundBeams />
 
         <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8 lg:py-32">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
@@ -183,7 +150,7 @@ export default function LandingPage() {
 
                 {/* ═══ White/Light Card — back, tilted left ═══ */}
                 <div className="absolute top-0 left-0 sm:left-4 transition-transform duration-700 hover:-translate-y-2 hover:rotate-[-7deg] rotate-[-6deg] z-10">
-                  <div className="w-[300px] sm:w-[340px] h-[190px] sm:h-[214px] rounded-2xl bg-white border border-surface-200/80 shadow-2xl shadow-surface-900/10 dark:bg-surface-800 dark:border-surface-700 dark:shadow-surface-950/40 p-5 sm:p-6 relative overflow-hidden">
+                  <div className="w-[300px] sm:w-[340px] h-[190px] sm:h-[214px] rounded-2xl bg-white dark:bg-surface-800 p-5 sm:p-6 relative overflow-hidden">
                     {/* Subtle gradient overlay */}
                     <div className="absolute inset-0 bg-gradient-to-br from-surface-50/50 via-transparent to-primary-50/30 dark:from-surface-700/20 dark:to-primary-500/5" />
 
@@ -198,8 +165,6 @@ export default function LandingPage() {
                             <line x1="1" y1="17" x2="45" y2="17" stroke="#C49A3C" strokeWidth="0.7" opacity="0.5" />
                             <line x1="12" y1="7" x2="12" y2="27" stroke="#C49A3C" strokeWidth="0.4" opacity="0.3" />
                             <line x1="34" y1="7" x2="34" y2="27" stroke="#C49A3C" strokeWidth="0.4" opacity="0.3" />
-                            <rect x="4" y="4" width="14" height="10" rx="2" fill="#D4A843" opacity="0.15" />
-                            <rect x="28" y="20" width="14" height="10" rx="2" fill="#D4A843" opacity="0.15" />
                             <defs>
                               <linearGradient id="chipGold1" x1="0" y1="0" x2="46" y2="34">
                                 <stop stopColor="#F2D87A" />
@@ -246,7 +211,7 @@ export default function LandingPage() {
 
                 {/* ═══ Dark Card — front, overlapping ═══ */}
                 <div className="absolute bottom-4 right-0 sm:right-4 transition-transform duration-700 hover:-translate-y-2 hover:rotate-[5deg] rotate-[6deg] z-20">
-                  <div className="w-[300px] sm:w-[340px] h-[190px] sm:h-[214px] rounded-2xl bg-gradient-to-br from-surface-800 via-surface-900 to-surface-950 dark:from-surface-700 dark:via-surface-800 dark:to-surface-900 shadow-2xl shadow-surface-900/30 dark:shadow-surface-950/50 p-5 sm:p-6 relative overflow-hidden border border-surface-700/50 dark:border-surface-600/30">
+                  <div className="w-[300px] sm:w-[340px] h-[190px] sm:h-[214px] rounded-2xl bg-gradient-to-br from-surface-800 via-surface-900 to-surface-950 dark:from-surface-700 dark:via-surface-800 dark:to-surface-900 p-5 sm:p-6 relative overflow-hidden">
                     {/* Decorative gradient blobs */}
                     <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-primary-500/10 blur-2xl" />
                     <div className="absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-primary-600/8 blur-3xl" />
@@ -263,8 +228,6 @@ export default function LandingPage() {
                           <line x1="1" y1="17" x2="45" y2="17" stroke="#A07E28" strokeWidth="0.7" opacity="0.5" />
                           <line x1="12" y1="7" x2="12" y2="27" stroke="#A07E28" strokeWidth="0.4" opacity="0.3" />
                           <line x1="34" y1="7" x2="34" y2="27" stroke="#A07E28" strokeWidth="0.4" opacity="0.3" />
-                          <rect x="4" y="4" width="14" height="10" rx="2" fill="#C49A3C" opacity="0.15" />
-                          <rect x="28" y="20" width="14" height="10" rx="2" fill="#C49A3C" opacity="0.15" />
                           <defs>
                             <linearGradient id="chipGold2" x1="0" y1="0" x2="46" y2="34">
                               <stop stopColor="#E8C65A" />
@@ -316,35 +279,6 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Dashboard Preview */}
-          <div className="relative mx-auto mt-20 max-w-5xl">
-            <div className="rounded-xl border border-surface-200 bg-white/60 p-2 shadow-2xl shadow-surface-900/5 backdrop-blur-sm dark:border-surface-700 dark:bg-surface-800/60">
-              <div className="rounded-lg bg-surface-100 dark:bg-surface-900 p-6 sm:p-8">
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="h-3 w-3 rounded-full bg-danger-500" />
-                  <div className="h-3 w-3 rounded-full bg-warning-500" />
-                  <div className="h-3 w-3 rounded-full bg-success-500" />
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-                  {[
-                    { label: "Today's Spending", value: '$127.50' },
-                    { label: 'Monthly Total', value: '$1,636' },
-                    { label: 'Receipts Scanned', value: '12' },
-                    { label: 'Budget Left', value: '$3,363' },
-                  ].map((card) => (
-                    <div key={card.label} className="rounded-lg bg-white dark:bg-surface-800 p-4 shadow-sm">
-                      <p className="text-sm text-surface-400 mb-1">{card.label}</p>
-                      <p className="text-base font-bold text-surface-900 dark:text-white">{card.value}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-2 h-32 rounded-lg bg-gradient-to-r from-primary-500/10 to-primary-500/5 dark:from-primary-500/5 dark:to-transparent border border-primary-200/30 dark:border-primary-500/10" />
-                  <div className="h-32 rounded-lg bg-surface-200/50 dark:bg-surface-800/50 border border-surface-200 dark:border-surface-700" />
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
