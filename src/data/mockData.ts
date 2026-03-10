@@ -165,14 +165,14 @@ export const mockExpenses: Expense[] = [
 ];
 
 export const mockBudgets: Budget[] = [
-  { id: 'b1', userId: '1', category: 'food', limit: 1500, spent: 480.7, month: '2026-02' },
-  { id: 'b2', userId: '1', category: 'transport', limit: 300, spent: 32.0, month: '2026-02' },
-  { id: 'b3', userId: '1', category: 'entertainment', limit: 400, spent: 55.0, month: '2026-02' },
-  { id: 'b4', userId: '1', category: 'shopping', limit: 500, spent: 299.99, month: '2026-02' },
-  { id: 'b5', userId: '1', category: 'bills', limit: 800, spent: 180.0, month: '2026-02' },
-  { id: 'b6', userId: '1', category: 'health', limit: 300, spent: 89.0, month: '2026-02' },
-  { id: 'b7', userId: '1', category: 'education', limit: 200, spent: 49.99, month: '2026-02' },
-  { id: 'b8', userId: '1', category: 'travel', limit: 1000, spent: 0, month: '2026-02' },
+  { id: 'b1', userId: '1', category: 'food', limit: 1500, spent: 480.7, month: '2026-02', period: 'monthly' },
+  { id: 'b2', userId: '1', category: 'transport', limit: 300, spent: 32.0, month: '2026-02', period: 'monthly' },
+  { id: 'b3', userId: '1', category: 'entertainment', limit: 400, spent: 55.0, month: '2026-02', period: 'monthly' },
+  { id: 'b4', userId: '1', category: 'shopping', limit: 500, spent: 299.99, month: '2026-02', period: 'monthly' },
+  { id: 'b5', userId: '1', category: 'bills', limit: 800, spent: 180.0, month: '2026-02', period: 'monthly' },
+  { id: 'b6', userId: '1', category: 'health', limit: 300, spent: 89.0, month: '2026-02', period: 'monthly' },
+  { id: 'b7', userId: '1', category: 'education', limit: 200, spent: 49.99, month: '2026-02', period: 'monthly' },
+  { id: 'b8', userId: '1', category: 'travel', limit: 1000, spent: 0, month: '2026-02', period: 'monthly' },
 ];
 
 export const mockIncome: Income[] = [

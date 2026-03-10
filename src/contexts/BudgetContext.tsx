@@ -73,14 +73,23 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       return { success: false, error: 'Month is required.' };
     }
 
-    // Check for duplicate category in the same month for the same user
-    const duplicate = budgets.find(
-      (b) => b.userId === userId && b.category === dto.category && b.month === dto.month
-    );
+    // Check for duplicate: same category + same period (+ same date range for custom)
+    const duplicate = budgets.find((b) => {
+      if (b.userId !== userId || b.category !== dto.category) return false;
+      if (b.period !== dto.period) return false;
+      if (dto.period === 'custom') {
+        return b.startDate === dto.startDate && b.endDate === dto.endDate;
+      }
+      return true;
+    });
     if (duplicate) {
+      const periodLabel: Record<string, string> = {
+        weekly: 'this week', monthly: 'this month', quarterly: 'this quarter',
+        yearly: 'this year', custom: 'that date range',
+      };
       return {
         success: false,
-        error: `A budget for "${dto.category}" already exists for ${dto.month}.`,
+        error: `A ${dto.period} budget for "${dto.category}" already exists for ${periodLabel[dto.period] ?? dto.period}.`,
       };
     }
 
@@ -91,6 +100,9 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       limit: dto.limit,
       spent: 0,
       month: dto.month,
+      period: dto.period,
+      startDate: dto.startDate,
+      endDate: dto.endDate,
     };
 
     setBudgets((prev) => [newBudget, ...prev]);
@@ -115,6 +127,9 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
           ...(dto.limit !== undefined && { limit: dto.limit }),
           ...(dto.spent !== undefined && { spent: dto.spent }),
           ...(dto.month !== undefined && { month: dto.month }),
+          ...(dto.period !== undefined && { period: dto.period }),
+          ...(dto.startDate !== undefined && { startDate: dto.startDate }),
+          ...(dto.endDate !== undefined && { endDate: dto.endDate }),
         };
 
         return updatedBudget;

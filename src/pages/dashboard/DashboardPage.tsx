@@ -24,6 +24,35 @@ import { useExpenses } from '../../contexts/ExpenseContext';
 import { useIncome } from '../../contexts/IncomeContext';
 import { useBudgets } from '../../contexts/BudgetContext';
 import { useAuth } from '../../contexts/AuthContext';
+import type { BudgetPeriod } from '../../types';
+
+// ─── Period range helper (mirrors BudgetsPage) ───────────────────────────────
+function getBudgetPeriodRange(period: BudgetPeriod, startDate?: string, endDate?: string): { start: string; end: string } {
+  if (period === 'custom' && startDate && endDate) return { start: startDate, end: endDate };
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const iso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  if (period === 'weekly') {
+    const day = now.getDay();
+    const mon = new Date(now);
+    mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+    const sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    return { start: iso(mon), end: iso(sun) };
+  }
+  if (period === 'quarterly') {
+    const q = Math.floor(now.getMonth() / 3);
+    const start = new Date(now.getFullYear(), q * 3, 1);
+    const end = new Date(now.getFullYear(), q * 3 + 3, 0);
+    return { start: iso(start), end: iso(end) };
+  }
+  if (period === 'yearly') {
+    return { start: `${now.getFullYear()}-01-01`, end: `${now.getFullYear()}-12-31` };
+  }
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return { start: iso(start), end: iso(end) };
+}
 
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -58,15 +87,13 @@ export default function DashboardPage() {
       return 0;
     }
     
-    // Calculate remaining for each budget category
+    // Calculate remaining for each budget category filtered by period
     let totalRemaining = 0;
     userBudgets.forEach(budget => {
-      // Calculate spent for this specific budget category
+      const { start, end } = getBudgetPeriodRange(budget.period ?? 'monthly', budget.startDate, budget.endDate);
       const spentInCategory = userExpenses
-        .filter(e => e.category === budget.category)
+        .filter(e => e.category === budget.category && e.date >= start && e.date <= end)
         .reduce((sum, e) => sum + e.amount, 0);
-      
-      // Add remaining for this budget
       totalRemaining += (budget.limit - spentInCategory);
     });
     
@@ -93,11 +120,11 @@ export default function DashboardPage() {
       return [];
     }
     
-    // Calculate spent amount for each budget based on user expenses
+    // Calculate spent amount for each budget based on user expenses filtered by period
     return userBudgets.map(budget => {
-      // Calculate spent for this budget's category
+      const { start, end } = getBudgetPeriodRange(budget.period ?? 'monthly', budget.startDate, budget.endDate);
       const spent = userExpenses
-        .filter(e => e.category === budget.category)
+        .filter(e => e.category === budget.category && e.date >= start && e.date <= end)
         .reduce((sum, e) => sum + e.amount, 0);
       
       const percentage = budget.limit > 0 ? (spent / budget.limit) * 100 : 0;
