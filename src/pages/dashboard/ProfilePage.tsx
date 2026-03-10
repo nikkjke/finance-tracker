@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { Save, Camera, DollarSign, Globe } from 'lucide-react';
 import Dropdown from '../../components/ui/Dropdown';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTheme } from '../../contexts/ThemeContext';
+import { ThemeToggle } from '../../components/ui/ThemeToggle';
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [currency, setCurrency] = useState('USD');
@@ -128,18 +127,7 @@ export default function ProfilePage() {
             <p className="text-sm font-medium text-surface-700 dark:text-surface-300">Dark Mode</p>
             <p className="text-xs text-surface-400">Toggle between light and dark themes</p>
           </div>
-          <button
-            onClick={toggleTheme}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              theme === 'dark' ? 'bg-primary-600' : 'bg-surface-300'
-            }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
-          </button>
+          <ThemeToggle />
         </div>
       </div>
 

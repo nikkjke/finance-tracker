@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Menu, Moon, Sun, ChevronDown, PanelLeftClose, PanelLeftOpen, Check, Trash2 } from 'lucide-react';
-import { useTheme } from '../../contexts/ThemeContext';
+import { Bell, Menu, ChevronDown, PanelLeftClose, PanelLeftOpen, Check, Trash2 } from 'lucide-react';
+import { ThemeToggle } from '../ui/ThemeToggle';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
 import type { UserRole } from '../../types';
@@ -13,7 +13,6 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed }: NavbarProps) {
-  const { theme, toggleTheme } = useTheme();
   const { user, switchRole } = useAuth();
   const { notifications, markAsRead, deleteNotification, unreadCount } = useNotification();
   const navigate = useNavigate();
@@ -74,13 +73,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed 
       {/* Right */}
       <div className="flex items-center gap-2">
         {/* Theme toggle */}
-        <button
-          onClick={toggleTheme}
-          className="rounded-lg p-2 text-surface-500 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
-          aria-label="Toggle theme"
-        >
-          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
+        <ThemeToggle className="mx-1" />
 
         {/* Notifications */}
         <div className="relative" ref={notifRef}>
