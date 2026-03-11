@@ -259,10 +259,10 @@ export default function ReportsPage() {
   const handleExportReport = async () => {
     await exportReport('financial', {
       expenses: filteredExpenses,
-      income: paginatedIncome,
+      income: filteredIncomeResult.items,
       summary: {
         totalSpent,
-        totalIncome: paginatedIncome.reduce((sum, inc) => sum + inc.amount, 0),
+        totalIncome: filteredIncomeResult.items.reduce((sum, inc) => sum + inc.amount, 0),
         periodStart: presetToDateRange(dateRange as '7days' | '30days' | '6months' | '1year').start,
         periodEnd: presetToDateRange(dateRange as '7days' | '30days' | '6months' | '1year').end,
       }
