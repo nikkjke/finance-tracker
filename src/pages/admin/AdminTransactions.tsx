@@ -540,6 +540,7 @@ export default function AdminTransactions() {
             icon={Activity}
             title="No transactions found"
             description="Try adjusting your search query or filters to find what you're looking for."
+            className="rounded-lg border border-surface-200 dark:border-surface-700"
             action={
               <button
                 onClick={() => { setSearchQuery(''); setStatusFilter('all'); setCategoryFilter('all'); }}

@@ -54,15 +54,24 @@ export interface Expense {
   receiptUrl?: string;
 }
 
-/** A monthly budget target for a specific category. */
+/** The recurrence scope of a budget. */
+export type BudgetPeriod = 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
+
+/** A budget target for a specific category and time period. */
 export interface Budget {
   id: string;
   userId: string;
   category: ExpenseCategory;
   limit: number;
   spent: number;
-  /** Format: "YYYY-MM" */
+  /** Format: "YYYY-MM" — kept for backwards compatibility */
   month: string;
+  /** The recurrence scope of this budget */
+  period?: BudgetPeriod;
+  /** Start date (YYYY-MM-DD) — only used when period is 'custom' */
+  startDate?: string;
+  /** End date (YYYY-MM-DD) — only used when period is 'custom' */
+  endDate?: string;
 }
 
 /** A single income record. */
@@ -156,6 +165,9 @@ export interface CreateBudgetDTO {
   limit: number;
   /** Format: "YYYY-MM" */
   month: string;
+  period: BudgetPeriod;
+  startDate?: string;
+  endDate?: string;
 }
 
 /** Payload for updating an existing budget (all fields optional). */
@@ -164,6 +176,9 @@ export interface UpdateBudgetDTO {
   limit?: number;
   spent?: number;
   month?: string;
+  period?: BudgetPeriod;
+  startDate?: string;
+  endDate?: string;
 }
 
 /** Payload required to create a new income. */

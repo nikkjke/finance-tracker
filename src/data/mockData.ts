@@ -3,11 +3,11 @@ import type {
   Expense,
   Budget,
   Income,
-  Notification,
   MonthlyStats,
   ChartDataPoint,
   AdminStats,
 } from '../types';
+import type { Notification } from '../contexts/NotificationContext';
 
 export const mockUsers: User[] = [
   {
@@ -165,14 +165,14 @@ export const mockExpenses: Expense[] = [
 ];
 
 export const mockBudgets: Budget[] = [
-  { id: 'b1', userId: '1', category: 'food', limit: 1500, spent: 480.7, month: '2026-02' },
-  { id: 'b2', userId: '1', category: 'transport', limit: 300, spent: 32.0, month: '2026-02' },
-  { id: 'b3', userId: '1', category: 'entertainment', limit: 400, spent: 55.0, month: '2026-02' },
-  { id: 'b4', userId: '1', category: 'shopping', limit: 500, spent: 299.99, month: '2026-02' },
-  { id: 'b5', userId: '1', category: 'bills', limit: 800, spent: 180.0, month: '2026-02' },
-  { id: 'b6', userId: '1', category: 'health', limit: 300, spent: 89.0, month: '2026-02' },
-  { id: 'b7', userId: '1', category: 'education', limit: 200, spent: 49.99, month: '2026-02' },
-  { id: 'b8', userId: '1', category: 'travel', limit: 1000, spent: 0, month: '2026-02' },
+  { id: 'b1', userId: '1', category: 'food', limit: 1500, spent: 480.7, month: '2026-02', period: 'monthly' },
+  { id: 'b2', userId: '1', category: 'transport', limit: 300, spent: 32.0, month: '2026-02', period: 'monthly' },
+  { id: 'b3', userId: '1', category: 'entertainment', limit: 400, spent: 55.0, month: '2026-02', period: 'monthly' },
+  { id: 'b4', userId: '1', category: 'shopping', limit: 500, spent: 299.99, month: '2026-02', period: 'monthly' },
+  { id: 'b5', userId: '1', category: 'bills', limit: 800, spent: 180.0, month: '2026-02', period: 'monthly' },
+  { id: 'b6', userId: '1', category: 'health', limit: 300, spent: 89.0, month: '2026-02', period: 'monthly' },
+  { id: 'b7', userId: '1', category: 'education', limit: 200, spent: 49.99, month: '2026-02', period: 'monthly' },
+  { id: 'b8', userId: '1', category: 'travel', limit: 1000, spent: 0, month: '2026-02', period: 'monthly' },
 ];
 
 export const mockIncome: Income[] = [
@@ -233,33 +233,37 @@ export const mockNotifications: Notification[] = [
     id: 'n1',
     title: 'Budget Alert',
     message: 'You have spent 64% of your shopping budget this month.',
+    type: 'budget',
+    priority: 'high',
+    timestamp: '2026-02-15T10:30:00',
     read: false,
-    createdAt: '2026-02-15T10:30:00',
-    type: 'warning',
   },
   {
     id: 'n2',
-    title: 'Receipt Scanned',
+    title: 'New Expense Recorded',
     message: 'Your receipt from Lidl has been processed successfully.',
+    type: 'expense',
+    priority: 'low',
+    timestamp: '2026-02-14T14:20:00',
     read: false,
-    createdAt: '2026-02-14T14:20:00',
-    type: 'success',
   },
   {
     id: 'n3',
-    title: 'Payment Pending',
+    title: 'Payment Reminder',
     message: 'Your Enel electricity bill payment is still pending.',
+    type: 'system',
+    priority: 'medium',
+    timestamp: '2026-02-12T09:00:00',
     read: true,
-    createdAt: '2026-02-12T09:00:00',
-    type: 'info',
   },
   {
     id: 'n4',
-    title: 'Flight Cancelled',
+    title: 'Refund Processed',
     message: 'Your Wizzair flight booking was cancelled and refunded.',
+    type: 'income',
+    priority: 'medium',
+    timestamp: '2026-02-07T18:45:00',
     read: true,
-    createdAt: '2026-02-07T18:45:00',
-    type: 'error',
   },
 ];
 

@@ -1,6 +1,7 @@
 import { CreditCard, Banknote, Building2, ScanLine, ShoppingBag, Car, Film, Zap, Heart, GraduationCap, Plane, UtensilsCrossed, MoreHorizontal, Edit2, Trash2 } from 'lucide-react';
 import type { Expense } from '../../types';
 import { categoryLabels, categoryColors } from '../../data/mockData';
+import EmptyState from './EmptyState';
 
 interface TransactionTableProps {
   expenses: Expense[];
@@ -135,13 +136,12 @@ export default function TransactionTable({ expenses, limit, onEdit, onDelete }: 
         );
       })}
       {displayed.length === 0 && (
-        <div className="py-16 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-surface-100 dark:bg-surface-800">
-            <ShoppingBag size={20} className="text-surface-400" />
-          </div>
-          <p className="text-sm font-medium text-surface-500 dark:text-surface-400">No transactions found</p>
-          <p className="text-xs text-surface-400 mt-1">Your transactions will appear here</p>
-        </div>
+        <EmptyState
+          icon={ShoppingBag}
+          title="No transactions found"
+          description="Your transactions will appear here"
+          className="rounded-lg border border-surface-200 dark:border-surface-700"
+        />
       )}
     </div>
   );

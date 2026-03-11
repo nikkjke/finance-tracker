@@ -462,7 +462,7 @@ export default function AdminUsers() {
                       </button>
                       <button
                         onClick={() => handleDeleteUser(user.id)}
-                        className="rounded-lg p-2 text-danger-500 hover:bg-danger-50 hover:text-danger-600 dark:text-danger-400 dark:hover:bg-danger-500/10 dark:hover:text-danger-300 transition-colors"
+                        className="rounded-lg p-2 text-surface-400 hover:bg-danger-50 hover:text-danger-600 dark:hover:bg-danger-500/10 dark:hover:text-danger-400 transition-colors"
                         title="Delete user"
                       >
                         <Trash2 size={16} />
@@ -480,6 +480,7 @@ export default function AdminUsers() {
             icon={Users}
             title="No users found"
             description="Try adjusting your search query or role filter to find what you're looking for."
+            className="rounded-lg border border-surface-200 dark:border-surface-700"
             action={
               <button
                 onClick={() => { setSearchQuery(''); setRoleFilter('all'); }}

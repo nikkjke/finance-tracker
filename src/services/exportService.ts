@@ -198,15 +198,77 @@ export async function exportReport(
   reportType: 'financial' | 'transaction-log' | 'category-breakdown' | 'monthly-summary' | 'revenue' | 'categories' | 'activity' | 'custom',
   data?: any
 ): Promise<void> {
-  // For now, show a notification that report is being prepared
-  console.log(`Generating ${reportType} report...`, data);
-  
-  // Simulate a brief delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  
-  alert(`${reportType} report prepared! In production, this would download a formatted PDF/Excel file from the server.`);
-  
-  // Backend Integration Note:
-  // const response = await api.post('/exports/reports', { type: reportType, filters: data });
-  // downloadFile(response.data, `${reportType}_report.pdf`, 'application/pdf');
+  const timestamp = new Date().toISOString().split('T')[0];
+  const safeReportType = reportType.replace(/[^a-z0-9-]/gi, '_');
+  const filename = `${safeReportType}_report_${timestamp}.csv`;
+
+  const summary = data?.summary as Record<string, unknown> | undefined;
+  const expenses = Array.isArray(data?.expenses) ? (data.expenses as Expense[]) : [];
+  const income = Array.isArray(data?.income) ? (data.income as Income[]) : [];
+
+  const rows: Array<Record<string, string | number>> = [];
+
+  if (summary) {
+    Object.entries(summary).forEach(([metric, value]) => {
+      const formattedValue =
+        typeof value === 'string' && /\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4}/.test(value)
+          ? formatDateForExport(value)
+          : typeof value === 'number'
+            ? Number(value.toFixed(2))
+            : String(value);
+
+      rows.push({
+        Section: 'Summary',
+        Type: reportType,
+        Date: '',
+        Name: metric,
+        Category: '',
+        Amount: '',
+        Status: '',
+        Notes: formattedValue,
+      });
+    });
+  }
+
+  expenses.forEach((expense) => {
+    rows.push({
+      Section: 'Expense',
+      Type: reportType,
+      Date: formatDateForExport(expense.date),
+      Name: expense.storeName,
+      Category: expense.category,
+      Amount: expense.amount,
+      Status: expense.status,
+      Notes: expense.notes ?? '',
+    });
+  });
+
+  income.forEach((record) => {
+    rows.push({
+      Section: 'Income',
+      Type: reportType,
+      Date: formatDateForExport(record.date),
+      Name: record.source,
+      Category: record.category,
+      Amount: record.amount,
+      Status: record.status,
+      Notes: record.notes ?? '',
+    });
+  });
+
+  if (rows.length === 0) {
+    rows.push({
+      Section: 'Report',
+      Type: reportType,
+      Date: formatDateForExport(timestamp),
+      Name: 'No structured rows provided',
+      Category: '',
+      Amount: '',
+      Status: '',
+      Notes: 'Report generated from available mock/local data.',
+    });
+  }
+
+  const csvContent = convertToCSV(rows);
+  downloadFile(csvContent, filename, 'text/csv;charset=utf-8;');
 }

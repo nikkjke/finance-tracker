@@ -1,26 +1,64 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Plus, Edit2, Trash2, PiggyBank, Receipt, TrendingUp, Tag, Search, Filter, AlertTriangle } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Plus, Edit2, Trash2, PiggyBank, Receipt, TrendingUp, Tag, Search, Filter, AlertTriangle, Calendar } from 'lucide-react';
 import BudgetProgress from '../../components/ui/BudgetProgress';
+import DatePicker from '../../components/ui/DatePicker';
 import Modal from '../../components/ui/Modal';
 import Dropdown from '../../components/ui/Dropdown';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
-import { mockBudgets, categoryLabels } from '../../data/mockData';
+import { categoryLabels } from '../../data/mockData';
 import { sortItems } from '../../services';
 import { useAuth } from '../../contexts/AuthContext';
-import type { Budget, ExpenseCategory } from '../../types';
+import { useBudgets } from '../../contexts/BudgetContext';
+import { useExpenses } from '../../contexts/ExpenseContext';
+import type { Budget, ExpenseCategory, BudgetPeriod } from '../../types';
+
+// ─── Period range helper ──────────────────────────────────────────────────────
+function getBudgetPeriodRange(period: BudgetPeriod, startDate?: string, endDate?: string): { start: string; end: string } {
+  if (period === 'custom' && startDate && endDate) return { start: startDate, end: endDate };
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const iso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  if (period === 'weekly') {
+    const day = now.getDay();
+    const mon = new Date(now);
+    mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+    const sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    return { start: iso(mon), end: iso(sun) };
+  }
+  if (period === 'quarterly') {
+    const q = Math.floor(now.getMonth() / 3);
+    const start = new Date(now.getFullYear(), q * 3, 1);
+    const end = new Date(now.getFullYear(), q * 3 + 3, 0);
+    return { start: iso(start), end: iso(end) };
+  }
+  if (period === 'yearly') {
+    return { start: `${now.getFullYear()}-01-01`, end: `${now.getFullYear()}-12-31` };
+  }
+  // monthly (default)
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return { start: iso(start), end: iso(end) };
+}
 
 export default function BudgetsPage() {
   const { user } = useAuth();
-  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const { budgets: allBudgets, addBudget, updateBudget, deleteBudget } = useBudgets();
+  const { expenses } = useExpenses();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [formCategory, setFormCategory] = useState<ExpenseCategory>('food');
   const [formLimit, setFormLimit] = useState('');
-  const [formErrors, setFormErrors] = useState<{ category?: string; limit?: string }>({});
+  const [formPeriod, setFormPeriod] = useState<BudgetPeriod>('monthly');
+  const [formStartDate, setFormStartDate] = useState('');
+  const [formEndDate, setFormEndDate] = useState('');
+  const [formErrors, setFormErrors] = useState<{ category?: string; limit?: string; startDate?: string; endDate?: string }>({});
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   
   // Search, Filter, Sort
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,23 +66,28 @@ export default function BudgetsPage() {
   const [sortBy, setSortBy] = useState<'limit-asc' | 'limit-desc' | 'spent-asc' | 'spent-desc'>('limit-asc');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  const fetchBudgets = () => {
-    setIsLoading(true);
-    setError(null);
-    setTimeout(() => {
-      try {
-        setBudgets(mockBudgets);
-        setIsLoading(false);
-      } catch {
-        setError('Failed to load budgets. The service might be unavailable.');
-        setIsLoading(false);
-      }
-    }, 250);
-  };
+  // Get user's budgets and calculate spent amounts
+  const budgets = useMemo(() => {
+    const userBudgets = user ? allBudgets.filter(b => b.userId === user.id) : [];
+    const userExpenses = user ? expenses.filter(e => e.userId === user.id) : [];
+    
+    // Calculate spent for each budget based on actual expenses filtered by period
+    return userBudgets.map(budget => {
+      const { start, end } = getBudgetPeriodRange(budget.period ?? 'monthly', budget.startDate, budget.endDate);
+      const spent = userExpenses
+        .filter(e => e.category === budget.category && e.date >= start && e.date <= end)
+        .reduce((sum, e) => sum + e.amount, 0);
+      return { ...budget, spent };
+    });
+  }, [allBudgets, expenses, user]);
 
   useEffect(() => {
-    fetchBudgets();
-  }, []);
+    // Simulate loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [user?.id]);
 
   const getFilteredBudgets = () => {
     let result = [...budgets];
@@ -91,12 +134,17 @@ export default function BudgetsPage() {
     setEditingBudget(null);
     setFormCategory('food');
     setFormLimit('');
+    setFormPeriod('monthly');
+    setFormStartDate('');
+    setFormEndDate('');
     setFormErrors({});
+    setModalError(null);
+    setIsSaving(false);
     setShowModal(true);
   };
 
   const validateForm = (): boolean => {
-    const newErrors: { category?: string; limit?: string } = {};
+    const newErrors: { category?: string; limit?: string; startDate?: string; endDate?: string } = {};
 
     if (!formCategory) {
       newErrors.category = 'Category is required';
@@ -110,43 +158,79 @@ export default function BudgetsPage() {
       newErrors.limit = 'Limit must be greater than $0';
     }
 
+    if (formPeriod === 'custom') {
+      if (!formStartDate) newErrors.startDate = 'Start date is required';
+      if (!formEndDate) newErrors.endDate = 'End date is required';
+      if (formStartDate && formEndDate && formStartDate > formEndDate) {
+        newErrors.endDate = 'End date must be after start date';
+      }
+    }
+
     setFormErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
-    if (!validateForm()) return;
+  const handleSave = async () => {
+    if (isSaving || !validateForm() || !user) return;
 
-    if (editingBudget) {
-      setBudgets((prev) =>
-        prev.map((b) =>
-          b.id === editingBudget.id
-            ? { ...b, category: formCategory, limit: parseFloat(formLimit) }
-            : b
-        )
-      );
-    } else {
-      const now = new Date();
-      const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-      const newBudget: Budget = {
-        id: `b-${Date.now()}`,
-        userId: user?.id || '1',
-        category: formCategory,
-        limit: parseFloat(formLimit),
-        spent: 0,
-        month: currentMonth,
-      };
-      setBudgets((prev) => [...prev, newBudget]);
+    setIsSaving(true);
+    setModalError(null);
+
+    try {
+      if (editingBudget) {
+        // Update existing budget
+        const result = await updateBudget(editingBudget.id, {
+          category: formCategory,
+          limit: parseFloat(formLimit),
+          period: formPeriod,
+          startDate: formPeriod === 'custom' ? formStartDate : undefined,
+          endDate: formPeriod === 'custom' ? formEndDate : undefined,
+        });
+
+        if (!result.success) {
+          setModalError(result.error || 'Failed to update budget');
+          return;
+        }
+      } else {
+        // Create new budget
+        const now = new Date();
+        const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+        const result = await addBudget(user.id, {
+          category: formCategory,
+          limit: parseFloat(formLimit),
+          month: currentMonth,
+          period: formPeriod,
+          startDate: formPeriod === 'custom' ? formStartDate : undefined,
+          endDate: formPeriod === 'custom' ? formEndDate : undefined,
+        });
+
+        if (!result.success) {
+          setModalError(result.error || 'Failed to create budget');
+          return;
+        }
+      }
+
+      setShowModal(false);
+      setModalError(null);
+      setFormErrors({});
+    } catch {
+      setModalError('Something went wrong while saving the budget. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
-    setShowModal(false);
-    setFormErrors({});
   };
 
   const handleEdit = (budget: Budget) => {
     setEditingBudget(budget);
     setFormCategory(budget.category);
     setFormLimit(budget.limit.toString());
+    setFormPeriod(budget.period ?? 'monthly');
+    setFormStartDate(budget.startDate ?? '');
+    setFormEndDate(budget.endDate ?? '');
     setFormErrors({});
+    setModalError(null);
+    setIsSaving(false);
     setShowModal(true);
   };
 
@@ -154,12 +238,15 @@ export default function BudgetsPage() {
     setDeleteConfirmId(id);
   }, []);
 
-  const confirmDelete = useCallback(() => {
+  const confirmDelete = useCallback(async () => {
     if (deleteConfirmId) {
-      setBudgets((prev) => prev.filter((b) => b.id !== deleteConfirmId));
+      const result = await deleteBudget(deleteConfirmId);
+      if (!result.success) {
+        setError(result.error || 'Failed to delete budget');
+      }
       setDeleteConfirmId(null);
     }
-  }, [deleteConfirmId]);
+  }, [deleteConfirmId, deleteBudget]);
 
   return (
     <div className="space-y-6">
@@ -168,7 +255,7 @@ export default function BudgetsPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Budget Management</h1>
           <p className="text-sm text-surface-500 dark:text-surface-400">
-            Set and track monthly spending limits per category.
+            Set and track spending limits per category and time period.
           </p>
         </div>
         <button onClick={handleAdd} className="btn-primary">
@@ -179,7 +266,7 @@ export default function BudgetsPage() {
 
       {/* Search, Filter, Sort Controls */}
       {!isLoading && !error && budgets.length > 0 && (
-        <div className="card flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="flex-1 relative">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
             <input
@@ -232,7 +319,7 @@ export default function BudgetsPage() {
           <ErrorState
             title="Failed to load budgets"
             message={error}
-            onRetry={fetchBudgets}
+            onRetry={() => setError(null)}
           />
         </div>
       )}
@@ -292,44 +379,43 @@ export default function BudgetsPage() {
 
       {/* Budget Cards */}
       {budgets.length === 0 ? (
-        <EmptyState
-          icon={PiggyBank}
-          title="No budgets yet"
-          description="Create your first budget to start tracking your spending limits by category."
-          action={
-            <button onClick={handleAdd} className="btn-primary">
-              <Plus size={18} />
-              Add Budget
-            </button>
-          }
-        />
+        <div className="card">
+          <EmptyState
+            icon={PiggyBank}
+            title="No budgets yet"
+            description="Create your first budget to start tracking your spending limits by category."
+            className="rounded-lg border border-surface-200 dark:border-surface-700"
+          />
+        </div>
       ) : filteredBudgets.length === 0 ? (
-        <EmptyState
-          icon={PiggyBank}
-          title="No results found"
-          description="Try adjusting your search or filter criteria."
-          action={
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setFilterStatus('all');
-                setSortBy('limit-asc');
-              }}
-              className="btn-secondary"
-            >
-              Clear Filters
-            </button>
-          }
-        />
+        <div className="card">
+          <EmptyState
+            icon={PiggyBank}
+            title="No results found"
+            description="Try adjusting your search or filter criteria."
+            className="rounded-lg border border-surface-200 dark:border-surface-700"
+            action={
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilterStatus('all');
+                  setSortBy('limit-asc');
+                }}
+                className="btn-secondary"
+              >
+                Clear Filters
+              </button>
+            }
+          />
+        </div>
       ) : (
       <div className="grid gap-5 sm:grid-cols-2">
         {filteredBudgets.map((budget) => (
           <div key={budget.id} className="card hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-start justify-between">
-              <div className="flex-1 pr-4">
-                <BudgetProgress budget={budget} />
-              </div>
-              <div className="flex items-center gap-1 shrink-0 pt-1">
+            <BudgetProgress
+              budget={budget}
+              actions={(
+                <div className="flex items-center gap-1">
                 <button
                   onClick={() => handleEdit(budget)}
                   className="rounded-lg p-2 text-surface-400 hover:bg-surface-100 hover:text-surface-600 dark:hover:bg-surface-700 dark:hover:text-surface-300 transition-colors"
@@ -342,8 +428,9 @@ export default function BudgetsPage() {
                 >
                   <Trash2 size={16} />
                 </button>
-              </div>
-            </div>
+                </div>
+              )}
+            />
           </div>
         ))}
       </div>
@@ -352,10 +439,16 @@ export default function BudgetsPage() {
       {/* Add/Edit Modal */}
       <Modal
         open={showModal}
-        onClose={() => setShowModal(false)}
+        onClose={() => { setShowModal(false); setModalError(null); }}
         title={editingBudget ? 'Edit Budget' : 'Add Budget'}
       >
         <div className="space-y-4">
+          {modalError && (
+            <div className="flex items-start gap-2.5 rounded-lg border border-danger-200 bg-danger-50 px-4 py-3 text-sm text-danger-700 dark:border-danger-500/30 dark:bg-danger-500/10 dark:text-danger-400">
+              <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+              <span>{modalError}</span>
+            </div>
+          )}
           <div>
             <label className="label">Category</label>
             <Dropdown
@@ -370,7 +463,54 @@ export default function BudgetsPage() {
             )}
           </div>
           <div>
-            <label className="label">Monthly Limit ($)</label>
+            <label className="label">Budget Period</label>
+            <Dropdown
+              value={formPeriod}
+              onChange={(val) => {
+                setFormPeriod(val as BudgetPeriod);
+                setFormStartDate('');
+                setFormEndDate('');
+                setFormErrors((prev) => ({ ...prev, startDate: undefined, endDate: undefined }));
+              }}
+              options={[
+                { value: 'weekly', label: 'Weekly' },
+                { value: 'monthly', label: 'Monthly' },
+                { value: 'quarterly', label: 'Quarterly' },
+                { value: 'yearly', label: 'Yearly' },
+                { value: 'custom', label: 'Custom range' },
+              ]}
+              icon={<Calendar size={16} />}
+              fullWidth
+            />
+          </div>
+          {formPeriod === 'custom' && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <DatePicker
+                  value={formStartDate}
+                  onChange={setFormStartDate}
+                  label="Start Date"
+                  error={!!formErrors.startDate}
+                />
+                {formErrors.startDate && (
+                  <p className="mt-1 text-sm text-danger-500">{formErrors.startDate}</p>
+                )}
+              </div>
+              <div>
+                <DatePicker
+                  value={formEndDate}
+                  onChange={setFormEndDate}
+                  label="End Date"
+                  error={!!formErrors.endDate}
+                />
+                {formErrors.endDate && (
+                  <p className="mt-1 text-sm text-danger-500">{formErrors.endDate}</p>
+                )}
+              </div>
+            </div>
+          )}
+          <div>
+            <label className="label">Spending Limit ($)</label>
             <input
               type="number"
               step="0.01"
@@ -385,10 +525,29 @@ export default function BudgetsPage() {
             )}
           </div>
           <div className="flex gap-3 pt-2">
-            <button onClick={handleSave} className="btn-primary flex-1">
-              {editingBudget ? 'Save Changes' : 'Create Budget'}
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className={`btn-primary flex-1 ${isSaving ? 'cursor-not-allowed opacity-70' : ''}`}
+            >
+              {isSaving ? (
+                <span className="inline-flex items-center gap-2">
+                  <Spinner size={16} className="text-current" />
+                  Saving...
+                </span>
+              ) : (
+                editingBudget ? 'Save Changes' : 'Create Budget'
+              )}
             </button>
-            <button onClick={() => setShowModal(false)} className="btn-secondary">
+            <button
+              onClick={() => {
+                if (isSaving) return;
+                setShowModal(false);
+                setModalError(null);
+              }}
+              disabled={isSaving}
+              className={`btn-secondary ${isSaving ? 'cursor-not-allowed opacity-70' : ''}`}
+            >
               Cancel
             </button>
           </div>

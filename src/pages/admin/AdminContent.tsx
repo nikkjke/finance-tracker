@@ -286,7 +286,7 @@ export default function AdminContent() {
                 </button>
                 <button
                   onClick={() => handleDeleteExpenseCategory(category.id)}
-                  className="rounded-lg p-2 text-danger-600 hover:bg-danger-50 dark:text-danger-400 dark:hover:bg-danger-500/10"
+                  className="rounded-lg p-2 text-surface-400 hover:text-danger-600 hover:bg-danger-50 dark:hover:text-danger-400 dark:hover:bg-danger-500/10"
                 >
                   <Trash2 size={16} />
                 </button>
@@ -329,7 +329,7 @@ export default function AdminContent() {
                 </button>
                 <button
                   onClick={() => handleDeleteIncomeCategory(category.id)}
-                  className="rounded-lg p-2 text-danger-600 hover:bg-danger-50 dark:text-danger-400 dark:hover:bg-danger-500/10"
+                  className="rounded-lg p-2 text-surface-400 hover:text-danger-600 hover:bg-danger-50 dark:hover:text-danger-400 dark:hover:bg-danger-500/10"
                 >
                   <Trash2 size={16} />
                 </button>
@@ -373,7 +373,7 @@ export default function AdminContent() {
                 </button>
                 <button
                   onClick={() => handleDeleteCurrency(currency.id)}
-                  className="rounded-lg p-2 text-danger-600 hover:bg-danger-50 dark:text-danger-400 dark:hover:bg-danger-500/10"
+                  className="rounded-lg p-2 text-surface-400 hover:text-danger-600 hover:bg-danger-50 dark:hover:text-danger-400 dark:hover:bg-danger-500/10"
                 >
                   <Trash2 size={16} />
                 </button>
@@ -422,7 +422,7 @@ export default function AdminContent() {
                 </button>
                 <button
                   onClick={() => handleDeleteStatus(status.id)}
-                  className="rounded-lg p-2 text-danger-600 hover:bg-danger-50 dark:text-danger-400 dark:hover:bg-danger-500/10"
+                  className="rounded-lg p-2 text-surface-400 hover:text-danger-600 hover:bg-danger-50 dark:hover:text-danger-400 dark:hover:bg-danger-500/10"
                 >
                   <Trash2 size={16} />
                 </button>

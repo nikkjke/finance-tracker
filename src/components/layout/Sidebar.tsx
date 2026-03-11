@@ -36,8 +36,8 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/add-expense', label: 'Add Expense', icon: PlusCircle },
     { to: '/add-income', label: 'Record Income', icon: TrendingUp },
-    { to: '/reports', label: 'Reports', icon: BarChart3 },
     { to: '/budgets', label: 'Budgets', icon: Wallet },
+    { to: '/reports', label: 'Reports', icon: BarChart3 },
     { to: '/notifications', label: 'Notifications', icon: Bell },
   ];
 

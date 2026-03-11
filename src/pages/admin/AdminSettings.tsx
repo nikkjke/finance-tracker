@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { Save, Shield, Bell, Database, Clock, FileText } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTheme } from '../../contexts/ThemeContext';
+import { ThemeToggle } from '../../components/ui/ThemeToggle';
 import Dropdown from '../../components/ui/Dropdown';
 
 export default function AdminSettings() {
   const { user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const [saved, setSaved] = useState(false);
 
   // System Settings
@@ -130,18 +129,7 @@ export default function AdminSettings() {
               <p className="text-sm font-medium text-surface-900 dark:text-white">Dark Mode</p>
               <p className="text-xs text-surface-400">Toggle between light and dark themes</p>
             </div>
-            <button
-              onClick={toggleTheme}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                theme === 'dark' ? 'bg-primary-600' : 'bg-surface-300 dark:bg-surface-600'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
+            <ThemeToggle />
           </div>
         </div>
       </div>

@@ -259,10 +259,10 @@ export default function ReportsPage() {
   const handleExportReport = async () => {
     await exportReport('financial', {
       expenses: filteredExpenses,
-      income: paginatedIncome,
+      income: filteredIncomeResult.items,
       summary: {
         totalSpent,
-        totalIncome: paginatedIncome.reduce((sum, inc) => sum + inc.amount, 0),
+        totalIncome: filteredIncomeResult.items.reduce((sum, inc) => sum + inc.amount, 0),
         periodStart: presetToDateRange(dateRange as '7days' | '30days' | '6months' | '1year').start,
         periodEnd: presetToDateRange(dateRange as '7days' | '30days' | '6months' | '1year').end,
       }
@@ -386,6 +386,7 @@ export default function ReportsPage() {
             icon={BarChart3}
             title="No report data available"
             description="There are no transactions to generate reports from. Add some expenses to see analytics."
+            className="rounded-lg border border-surface-200 dark:border-surface-700"
           />
         </div>
       )}
