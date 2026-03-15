@@ -561,7 +561,7 @@ export default function LandingPage() {
               <ul className="mt-4 space-y-3">
                 {[
                   { label: 'Privacy Policy', to: '/privacy-policy' },
-                  { label: 'Terms of Service' },
+                  { label: 'Terms of Service', to: '/terms-of-service' },
                   { label: 'Cookie Policy' },
                   { label: 'Security' },
                 ].map((link) => (
