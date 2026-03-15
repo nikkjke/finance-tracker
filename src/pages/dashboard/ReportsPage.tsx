@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Download, Filter, Calendar, CalendarDays, ArrowUpRight, Hash, BarChart3, Search, ArrowUpDown, Wallet, ListFilter, AlertTriangle, Edit2, Trash2 } from 'lucide-react';
+import { Download, Filter, Calendar, CalendarDays, ArrowUpRight, Hash, BarChart3, Search, ArrowUpDown, Wallet, ListFilter, AlertTriangle, Edit2, Trash2, Tag, CreditCard, Briefcase } from 'lucide-react';
 import TransactionTable from '../../components/ui/TransactionTable';
 import Dropdown from '../../components/ui/Dropdown';
+import DatePicker from '../../components/ui/DatePicker';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
@@ -699,25 +700,38 @@ export default function ReportsPage() {
               <input type="number" min="0.01" step="0.01" className="input w-full" value={expenseForm.amount} onChange={(e) => setExpenseForm((f) => ({ ...f, amount: e.target.value }))} />
             </div>
             <div>
-              <label className="label">Date</label>
-              <input type="date" className="input w-full" value={expenseForm.date} onChange={(e) => setExpenseForm((f) => ({ ...f, date: e.target.value }))} />
+              <DatePicker
+                value={expenseForm.date}
+                onChange={(val) => setExpenseForm((f) => ({ ...f, date: val }))}
+                label="Date"
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="label">Category</label>
-              <select className="input w-full" value={expenseForm.category} onChange={(e) => setExpenseForm((f) => ({ ...f, category: e.target.value as ExpenseCategory }))}>
-                {Object.entries(categoryLabels).map(([val, lab]) => <option key={val} value={val}>{lab}</option>)}
-              </select>
+              <Dropdown
+                value={expenseForm.category}
+                onChange={(val) => setExpenseForm((f) => ({ ...f, category: val as ExpenseCategory }))}
+                options={Object.entries(categoryLabels).map(([value, label]) => ({ value, label }))}
+                icon={<Tag size={16} />}
+                fullWidth
+              />
             </div>
             <div>
               <label className="label">Payment Method</label>
-              <select className="input w-full" value={expenseForm.paymentMethod} onChange={(e) => setExpenseForm((f) => ({ ...f, paymentMethod: e.target.value as PaymentMethod }))}>
-                <option value="card">Card</option>
-                <option value="cash">Cash</option>
-                <option value="bank_transfer">Bank Transfer</option>
-                <option value="qr_scan">QR Scan</option>
-              </select>
+              <Dropdown
+                value={expenseForm.paymentMethod}
+                onChange={(val) => setExpenseForm((f) => ({ ...f, paymentMethod: val as PaymentMethod }))}
+                options={[
+                  { value: 'card', label: 'Card' },
+                  { value: 'cash', label: 'Cash' },
+                  { value: 'bank_transfer', label: 'Bank Transfer' },
+                  { value: 'qr_scan', label: 'Receipt Scan' },
+                ]}
+                icon={<CreditCard size={16} />}
+                fullWidth
+              />
             </div>
           </div>
           <div>
@@ -760,15 +774,22 @@ export default function ReportsPage() {
               <input type="number" min="0.01" step="0.01" className="input w-full" value={incomeForm.amount} onChange={(e) => setIncomeForm((f) => ({ ...f, amount: e.target.value }))} />
             </div>
             <div>
-              <label className="label">Date</label>
-              <input type="date" className="input w-full" value={incomeForm.date} onChange={(e) => setIncomeForm((f) => ({ ...f, date: e.target.value }))} />
+              <DatePicker
+                value={incomeForm.date}
+                onChange={(val) => setIncomeForm((f) => ({ ...f, date: val }))}
+                label="Date"
+              />
             </div>
           </div>
           <div>
             <label className="label">Category</label>
-            <select className="input w-full" value={incomeForm.category} onChange={(e) => setIncomeForm((f) => ({ ...f, category: e.target.value as IncomeCategory }))}>
-              {Object.entries(incomeLabels).map(([val, lab]) => <option key={val} value={val}>{lab}</option>)}
-            </select>
+            <Dropdown
+              value={incomeForm.category}
+              onChange={(val) => setIncomeForm((f) => ({ ...f, category: val as IncomeCategory }))}
+              options={Object.entries(incomeLabels).map(([value, label]) => ({ value, label }))}
+              icon={<Briefcase size={16} />}
+              fullWidth
+            />
           </div>
           <div>
             <label className="label">Notes</label>
