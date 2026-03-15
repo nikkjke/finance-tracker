@@ -541,7 +541,7 @@ export default function LandingPage() {
                 {[
                   { label: 'About Us', to: '/about' },
                   { label: 'Support', to: '/support' },
-                  { label: 'Contact', href: 'mailto:support@fintrack.com' },
+                  { label: 'Contact', to: '/contact' },
                 ].map((link) => (
                   <li key={link.label}>
                     {'to' in link && link.to ? (
