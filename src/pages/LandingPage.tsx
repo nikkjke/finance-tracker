@@ -531,9 +531,17 @@ export default function LandingPage() {
                     </a>
                   </li>
                 ))}
+              </ul>
+            </div>
+
+            {/* Company */}
+            <div>
+              <h4 className="text-base font-semibold text-surface-900 dark:text-white">Company</h4>
+              <ul className="mt-4 space-y-3">
                 {[
-                  { label: 'Dashboard', to: '/login' },
-                  { label: 'Analytics', to: '/login' },
+                  { label: 'About Us', to: '/about' },
+                  { label: 'Support', to: '/support' },
+                  { label: 'Contact', to: '/contact' },
                 ].map((link) => (
                   <li key={link.label}>
                     <Link
@@ -547,25 +555,24 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            {/* Company */}
+            {/* Legal */}
             <div>
-              <h4 className="text-base font-semibold text-surface-900 dark:text-white">Company</h4>
+              <h4 className="text-base font-semibold text-surface-900 dark:text-white">Legal</h4>
               <ul className="mt-4 space-y-3">
                 {[
-                  { label: 'About Us' },
-                  { label: 'Blog' },
-                  { label: 'Careers' },
-                  { label: 'Contact', href: 'mailto:support@fintrack.com' },
-                  { label: 'Partners' },
+                  { label: 'Privacy Policy', to: '/privacy-policy' },
+                  { label: 'Terms of Service', to: '/terms-of-service' },
+                  { label: 'Cookie Policy', to: '/cookie-policy' },
+                  { label: 'Security', to: '/security' },
                 ].map((link) => (
                   <li key={link.label}>
-                    {link.href ? (
-                      <a
-                        href={link.href}
+                    {'to' in link && link.to ? (
+                      <Link
+                        to={link.to}
                         className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
                       >
                         {link.label}
-                      </a>
+                      </Link>
                     ) : (
                       <span
                         className="cursor-default text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
@@ -578,66 +585,7 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            {/* Legal */}
-            <div>
-              <h4 className="text-base font-semibold text-surface-900 dark:text-white">Legal</h4>
-              <ul className="mt-4 space-y-3">
-                {[
-                  'Privacy Policy',
-                  'Terms of Service',
-                  'Cookie Policy',
-                  'GDPR',
-                  'Security',
-                ].map((label) => (
-                  <li key={label}>
-                    <span
-                      className="cursor-default text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
-                    >
-                      {label}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
 
-            {/* Status Pages */}
-            <div>
-              <h4 className="text-base font-semibold text-surface-900 dark:text-white">Status Pages</h4>
-              <ul className="mt-4 space-y-3">
-                <li>
-                  <Link
-                    to="/401"
-                    className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
-                  >
-                    401 Unauthorized
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/403"
-                    className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
-                  >
-                    403 Forbidden
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/404"
-                    className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
-                  >
-                    404 Not Found
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/500"
-                    className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
-                  >
-                    500 Server Error
-                  </Link>
-                </li>
-              </ul>
-            </div>
           </div>
 
           {/* Newsletter */}
