@@ -531,19 +531,6 @@ export default function LandingPage() {
                     </a>
                   </li>
                 ))}
-                {[
-                  { label: 'Dashboard', to: '/login' },
-                  { label: 'Analytics', to: '/login' },
-                ].map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      to={link.to}
-                      className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
               </ul>
             </div>
 
@@ -553,10 +540,7 @@ export default function LandingPage() {
               <ul className="mt-4 space-y-3">
                 {[
                   { label: 'About Us' },
-                  { label: 'Blog' },
-                  { label: 'Careers' },
                   { label: 'Contact', href: 'mailto:support@fintrack.com' },
-                  { label: 'Partners' },
                 ].map((link) => (
                   <li key={link.label}>
                     {link.href ? (
@@ -586,7 +570,6 @@ export default function LandingPage() {
                   'Privacy Policy',
                   'Terms of Service',
                   'Cookie Policy',
-                  'GDPR',
                   'Security',
                 ].map((label) => (
                   <li key={label}>
@@ -600,44 +583,7 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            {/* Status Pages */}
-            <div>
-              <h4 className="text-base font-semibold text-surface-900 dark:text-white">Status Pages</h4>
-              <ul className="mt-4 space-y-3">
-                <li>
-                  <Link
-                    to="/401"
-                    className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
-                  >
-                    401 Unauthorized
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/403"
-                    className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
-                  >
-                    403 Forbidden
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/404"
-                    className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
-                  >
-                    404 Not Found
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/500"
-                    className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
-                  >
-                    500 Server Error
-                  </Link>
-                </li>
-              </ul>
-            </div>
+
           </div>
 
           {/* Newsletter */}
