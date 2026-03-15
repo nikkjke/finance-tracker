@@ -27,7 +27,7 @@ import AdminAlerts from './pages/admin/AdminAlerts';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminContent from './pages/admin/AdminContent';
 import { NotFoundPage, UnauthorizedPage, ForbiddenPage, ServerErrorPage } from './pages/errors';
-import { AboutUsPage, SupportPage, ContactPage } from './pages/info';
+import { AboutUsPage, SupportPage, ContactPage, PrivacyPolicyPage } from './pages/info';
 
 function App() {
   return (
@@ -47,6 +47,7 @@ function App() {
             <Route path="/about" element={<AboutUsPage />} />
             <Route path="/support" element={<SupportPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
 
             {/* Protected User Routes */}
             <Route

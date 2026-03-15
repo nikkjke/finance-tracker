@@ -544,27 +544,12 @@ export default function LandingPage() {
                   { label: 'Contact', to: '/contact' },
                 ].map((link) => (
                   <li key={link.label}>
-                    {'to' in link && link.to ? (
-                      <Link
-                        to={link.to}
-                        className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
-                      >
-                        {link.label}
-                      </Link>
-                    ) : link.href ? (
-                      <a
-                        href={link.href}
-                        className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
-                      >
-                        {link.label}
-                      </a>
-                    ) : (
-                      <span
-                        className="cursor-default text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
-                      >
-                        {link.label}
-                      </span>
-                    )}
+                    <Link
+                      to={link.to}
+                      className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
+                    >
+                      {link.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -575,17 +560,26 @@ export default function LandingPage() {
               <h4 className="text-base font-semibold text-surface-900 dark:text-white">Legal</h4>
               <ul className="mt-4 space-y-3">
                 {[
-                  'Privacy Policy',
-                  'Terms of Service',
-                  'Cookie Policy',
-                  'Security',
-                ].map((label) => (
-                  <li key={label}>
-                    <span
-                      className="cursor-default text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
-                    >
-                      {label}
-                    </span>
+                  { label: 'Privacy Policy', to: '/privacy-policy' },
+                  { label: 'Terms of Service' },
+                  { label: 'Cookie Policy' },
+                  { label: 'Security' },
+                ].map((link) => (
+                  <li key={link.label}>
+                    {'to' in link && link.to ? (
+                      <Link
+                        to={link.to}
+                        className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
+                      >
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <span
+                        className="cursor-default text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
+                      >
+                        {link.label}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
