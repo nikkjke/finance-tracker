@@ -540,6 +540,7 @@ export default function LandingPage() {
               <ul className="mt-4 space-y-3">
                 {[
                   { label: 'About Us' },
+                  { label: 'Support' },
                   { label: 'Contact', href: 'mailto:support@fintrack.com' },
                 ].map((link) => (
                   <li key={link.label}>
