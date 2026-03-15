@@ -539,12 +539,19 @@ export default function LandingPage() {
               <h4 className="text-base font-semibold text-surface-900 dark:text-white">Company</h4>
               <ul className="mt-4 space-y-3">
                 {[
-                  { label: 'About Us' },
+                  { label: 'About Us', to: '/about' },
                   { label: 'Support' },
                   { label: 'Contact', href: 'mailto:support@fintrack.com' },
                 ].map((link) => (
                   <li key={link.label}>
-                    {link.href ? (
+                    {'to' in link && link.to ? (
+                      <Link
+                        to={link.to}
+                        className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
+                      >
+                        {link.label}
+                      </Link>
+                    ) : link.href ? (
                       <a
                         href={link.href}
                         className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
