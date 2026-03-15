@@ -562,7 +562,7 @@ export default function LandingPage() {
                 {[
                   { label: 'Privacy Policy', to: '/privacy-policy' },
                   { label: 'Terms of Service', to: '/terms-of-service' },
-                  { label: 'Cookie Policy' },
+                  { label: 'Cookie Policy', to: '/cookie-policy' },
                   { label: 'Security' },
                 ].map((link) => (
                   <li key={link.label}>
