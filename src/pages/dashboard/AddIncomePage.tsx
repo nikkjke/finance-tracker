@@ -39,6 +39,7 @@ export default function AddIncomePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [serviceError, setServiceError] = useState<string | null>(null);
+  const [resetKey, setResetKey] = useState(0);
 
   const categories = Object.entries(incomeLabels) as [IncomeCategory, string][];
 
@@ -156,6 +157,7 @@ export default function AddIncomePage() {
     setTimeout(() => {
       setSubmitted(false);
       setFormData({ ...initialFormData, date: new Date().toISOString().split('T')[0] });
+      setResetKey(prev => prev + 1);
     }, 3000);
   };
 
@@ -184,7 +186,7 @@ export default function AddIncomePage() {
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form key={resetKey} onSubmit={handleSubmit} className="space-y-5">
             {/* Service Error Banner */}
             {serviceError && (
               <div className="flex items-center gap-2 rounded-lg border border-danger-200 bg-danger-50 px-4 py-3 text-sm text-danger-700 dark:border-danger-500/30 dark:bg-danger-500/10 dark:text-danger-400">
@@ -202,8 +204,8 @@ export default function AddIncomePage() {
                 id="source"
                 type="text"
                 maxLength={100}
-                value={formData.source}
-                onChange={(e) => handleChange('source', e.target.value)}
+                defaultValue={formData.source}
+                onBlur={(e) => handleChange('source', e.target.value)}
                 placeholder="e.g. Acme Corp, Freelance Project, Investment"
                 className={`input ${errors.source ? 'border-danger-500' : ''}`}
               />
@@ -223,8 +225,8 @@ export default function AddIncomePage() {
                   type="number"
                   step="0.01"
                   min="0"
-                  value={formData.amount}
-                  onChange={(e) => handleChange('amount', e.target.value)}
+                  defaultValue={formData.amount}
+                  onBlur={(e) => handleChange('amount', e.target.value)}
                   placeholder="0.00"
                   className={`input ${errors.amount ? 'border-danger-500' : ''}`}
                 />
@@ -277,8 +279,8 @@ export default function AddIncomePage() {
                 id="notes"
                 rows={3}
                 maxLength={300}
-                value={formData.notes}
-                onChange={(e) => handleChange('notes', e.target.value)}
+                defaultValue={formData.notes}
+                onBlur={(e) => handleChange('notes', e.target.value)}
                 placeholder="Add any additional details about this income..."
                 className={`input resize-none ${errors.notes ? 'border-danger-500' : ''}`}
               />
@@ -307,6 +309,7 @@ export default function AddIncomePage() {
                 type="button"
                 onClick={() => {
                   setFormData({ ...initialFormData, date: new Date().toISOString().split('T')[0] });
+                  setResetKey(prev => prev + 1);
                   setServiceError(null);
                   setErrors({});
                 }}

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Menu, ChevronDown, PanelLeftClose, PanelLeftOpen, Check, Trash2 } from 'lucide-react';
 import { ThemeToggle } from '../ui/ThemeToggle';

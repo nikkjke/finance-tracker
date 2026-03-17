@@ -16,10 +16,6 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const { register, isAuthenticated, isLoading: authLoading, user } = useAuth();
   const { theme } = useTheme();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -31,34 +27,42 @@ export default function RegisterPage() {
     }
   }, [authLoading, isAuthenticated, user, navigate]);
 
-  const validate = (): boolean => {
+  const validate = (data: Record<string, string>): boolean => {
     const newErrors: FormErrors = {};
-    if (!name.trim()) {
+    if (!data.name.trim()) {
       newErrors.name = 'Name is required';
     }
-    if (!email) {
+    if (!data.email) {
       newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
+    } else if (!/\S+@\S+\.\S+/.test(data.email)) {
       newErrors.email = 'Please enter a valid email';
     }
-    if (!password) {
+    if (!data.password) {
       newErrors.password = 'Password is required';
-    } else if (password.length < 6) {
+    } else if (data.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-    if (password !== confirmPassword) {
+    if (data.password !== data.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!validate()) return;
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      name: formData.get('name') as string || '',
+      email: formData.get('email') as string || '',
+      password: formData.get('password') as string || '',
+      confirmPassword: formData.get('confirmPassword') as string || '',
+    };
+
+    if (!validate(data)) return;
 
     setIsLoading(true);
-    const result = await register(name, email, password);
+    const result = await register(data.name, data.email, data.password);
     setIsLoading(false);
 
     if (result.success) {
@@ -168,9 +172,10 @@ export default function RegisterPage() {
               <label htmlFor="name" className="label">Full name</label>
               <input
                 id="name"
+                name="name"
                 type="text"
-                value={name}
-                onChange={(e) => { setName(e.target.value); clearError('name'); }}
+                defaultValue=""
+                onChange={() => clearError('name')}
                 placeholder="John Doe"
                 className={`input ${errors.name ? 'border-danger-500 focus:ring-danger-500/20' : ''}`}
               />
@@ -181,9 +186,10 @@ export default function RegisterPage() {
               <label htmlFor="email" className="label">Email address</label>
               <input
                 id="email"
+                name="email"
                 type="email"
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); clearError('email'); }}
+                defaultValue=""
+                onChange={() => clearError('email')}
                 placeholder="you@example.com"
                 className={`input ${errors.email ? 'border-danger-500 focus:ring-danger-500/20' : ''}`}
               />
@@ -195,9 +201,10 @@ export default function RegisterPage() {
               <div className="relative">
                 <input
                   id="password"
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); clearError('password'); }}
+                  defaultValue=""
+                  onChange={() => clearError('password')}
                   placeholder="••••••••"
                   className={`input pr-10 ${errors.password ? 'border-danger-500 focus:ring-danger-500/20' : ''}`}
                 />
@@ -216,9 +223,10 @@ export default function RegisterPage() {
               <label htmlFor="confirm-password" className="label">Confirm password</label>
               <input
                 id="confirm-password"
+                name="confirmPassword"
                 type="password"
-                value={confirmPassword}
-                onChange={(e) => { setConfirmPassword(e.target.value); clearError('confirmPassword'); }}
+                defaultValue=""
+                onChange={() => clearError('confirmPassword')}
                 placeholder="••••••••"
                 className={`input ${errors.confirmPassword ? 'border-danger-500 focus:ring-danger-500/20' : ''}`}
               />

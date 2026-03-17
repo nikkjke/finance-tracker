@@ -15,6 +15,7 @@ import type { Expense, ExpenseCategory } from '../../types';
 import { categoryLabels } from '../../data/mockData';
 import Dropdown from '../../components/ui/Dropdown';
 import DatePicker from '../../components/ui/DatePicker';
+import { DebouncedInput, DebouncedTextarea } from '../../components/ui/DebouncedInput';
 import { useAuth } from '../../contexts/AuthContext';
 import { useExpenses } from '../../contexts/ExpenseContext';
 
@@ -542,12 +543,12 @@ export default function AddExpensePage() {
                 <label htmlFor="storeName" className="label">
                   Store / Vendor Name
                 </label>
-                <input
+                <DebouncedInput
                   id="storeName"
                   type="text"
                   maxLength={100}
                   value={formData.storeName}
-                  onChange={(e) => handleChange('storeName', e.target.value)}
+                  onChange={(val) => handleChange('storeName', val)}
                   placeholder="e.g. Kaufland, Amazon, Bolt"
                   className={`input ${errors.storeName ? 'border-danger-500' : ''}`}
                 />
@@ -562,13 +563,13 @@ export default function AddExpensePage() {
                   <label htmlFor="amount" className="label">
                     Total Amount ($)
                   </label>
-                  <input
+                  <DebouncedInput
                     id="amount"
                     type="number"
                     step="0.01"
                     min="0"
                     value={formData.amount}
-                    onChange={(e) => handleChange('amount', e.target.value)}
+                    onChange={(val) => handleChange('amount', val)}
                     placeholder="0.00"
                     className={`input ${errors.amount ? 'border-danger-500' : ''}`}
                   />
@@ -637,12 +638,12 @@ export default function AddExpensePage() {
                     {formData.notes.length}/300
                   </span>
                 </div>
-                <textarea
+                <DebouncedTextarea
                   id="notes"
                   rows={3}
                   maxLength={300}
                   value={formData.notes}
-                  onChange={(e) => handleChange('notes', e.target.value)}
+                  onChange={(val) => handleChange('notes', val)}
                   placeholder="Add any additional details..."
                   className={`input resize-none ${errors.notes ? 'border-danger-500' : ''}`}
                 />
