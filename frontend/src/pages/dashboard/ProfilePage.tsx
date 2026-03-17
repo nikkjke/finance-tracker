@@ -106,10 +106,9 @@ export default function ProfilePage() {
                 icon={<Globe size={16} />}
                 fullWidth
                 options={[
-                  { value: 'en', label: 'English' },
                   { value: 'ro', label: 'Română' },
-                  { value: 'de', label: 'Deutsch' },
-                  { value: 'fr', label: 'Français' },
+                  { value: 'en', label: 'English' },
+                  { value: 'ru', label: 'Русский' },
                 ]}
               />
             </div>
@@ -150,14 +149,12 @@ export default function ProfilePage() {
               </div>
               <button
                 onClick={() => setNotifications((prev) => ({ ...prev, [item.key]: !prev[item.key] }))}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  notifications[item.key] ? 'bg-primary-600' : 'bg-surface-300'
-                }`}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications[item.key] ? 'bg-primary-600' : 'bg-surface-300'
+                  }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    notifications[item.key] ? 'translate-x-6' : 'translate-x-1'
-                  }`}
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications[item.key] ? 'translate-x-6' : 'translate-x-1'
+                    }`}
                 />
               </button>
             </div>

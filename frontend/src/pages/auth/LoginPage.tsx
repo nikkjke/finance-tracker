@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, ArrowRight, BarChart3, Shield, Wallet } from 'lucide-react';
 import fintrackLogo from '../../assets/fintrack-logo.svg';
@@ -14,8 +14,8 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { login, isAuthenticated, isLoading: authLoading, user } = useAuth();
   const { theme } = useTheme();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -28,15 +28,17 @@ export default function LoginPage() {
   }, [authLoading, isAuthenticated, user, navigate]);
 
   const validate = (): boolean => {
+    const emailValue = emailRef.current?.value || '';
+    const passwordValue = passwordRef.current?.value || '';
     const newErrors: FormErrors = {};
-    if (!email) {
+    if (!emailValue) {
       newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
+    } else if (!/\S+@\S+\.\S+/.test(emailValue)) {
       newErrors.email = 'Please enter a valid email';
     }
-    if (!password) {
+    if (!passwordValue) {
       newErrors.password = 'Password is required';
-    } else if (password.length < 6) {
+    } else if (passwordValue.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
     setErrors(newErrors);
@@ -48,7 +50,9 @@ export default function LoginPage() {
     if (!validate()) return;
 
     setIsLoading(true);
-    const result = await login(email, password);
+    const emailValue = emailRef.current?.value || '';
+    const passwordValue = passwordRef.current?.value || '';
+    const result = await login(emailValue, passwordValue);
     setIsLoading(false);
 
     if (result.success) {
@@ -64,8 +68,11 @@ export default function LoginPage() {
     const credentials = role === 'admin'
       ? { email: 'admin@fintrack.com', password: 'admin123' }
       : { email: 'mariana@example.com', password: 'user123' };
-    setEmail(credentials.email);
-    setPassword(credentials.password);
+    
+    if (emailRef.current) emailRef.current.value = credentials.email;
+    if (passwordRef.current) passwordRef.current.value = credentials.password;
+    setErrors((prev) => ({ ...prev, email: undefined, password: undefined }));
+    
     const result = await login(credentials.email, credentials.password);
     if (result.success) {
       navigate(role === 'admin' ? '/admin' : '/dashboard');
@@ -186,9 +193,10 @@ export default function LoginPage() {
               <label htmlFor="email" className="label">Email address</label>
               <input
                 id="email"
+                ref={emailRef}
                 type="email"
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); setErrors((prev) => ({ ...prev, email: undefined })); }}
+                defaultValue=""
+                onChange={() => { if (errors.email) setErrors((prev) => ({ ...prev, email: undefined })); }}
                 placeholder="you@example.com"
                 className={`input ${errors.email ? 'border-danger-500 focus:ring-danger-500/20' : ''}`}
               />
@@ -202,9 +210,10 @@ export default function LoginPage() {
               <div className="relative">
                 <input
                   id="password"
+                  ref={passwordRef}
                   type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); setErrors((prev) => ({ ...prev, password: undefined })); }}
+                  defaultValue=""
+                  onChange={() => { if (errors.password) setErrors((prev) => ({ ...prev, password: undefined })); }}
                   placeholder="••••••••"
                   className={`input pr-10 ${errors.password ? 'border-danger-500 focus:ring-danger-500/20' : ''}`}
                 />

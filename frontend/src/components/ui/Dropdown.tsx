@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type ReactNode } from 'react';
+import { useState, useRef, type ReactNode } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 
 interface DropdownOption {
@@ -23,18 +23,15 @@ export default function Dropdown({ value, onChange, options, icon, placeholder, 
 
   const selected = options.find((o) => o.value === value);
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+  // Remove document event listener. Instead, handle click capture at root div.
+  const handleRootClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (ref.current && !ref.current.contains(e.target as Node)) {
+      setOpen(false);
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  };
 
   return (
-    <div ref={ref} className={`relative ${fullWidth ? 'w-full' : 'inline-block'}`}>
+    <div ref={ref} className={`relative ${fullWidth ? 'w-full' : 'inline-block'}`} onClickCapture={handleRootClick}>
       <button
         type="button"
         onClick={() => setOpen(!open)}

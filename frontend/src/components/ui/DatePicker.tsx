@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, X } from 'lucide-react';
 
 interface DatePickerProps {
@@ -31,15 +31,12 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
     return { year: y, month: m - 1, day: d };
   })() : null;
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+  // Remove document event listener. Instead, handle click capture at root div.
+  const handleRootClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (ref.current && !ref.current.contains(e.target as Node)) {
+      setOpen(false);
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  };
 
   const getDaysInMonth = (m: number, y: number) => {
     return new Date(y, m + 1, 0).getDate();
@@ -95,7 +92,7 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
   };
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative" onClickCapture={handleRootClick}>
       {label && (
         <div className="mb-1.5 flex items-center justify-between">
           <label className="label mb-0">{label}</label>

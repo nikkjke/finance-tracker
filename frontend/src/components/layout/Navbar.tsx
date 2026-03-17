@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Menu, ChevronDown, PanelLeftClose, PanelLeftOpen, Check, Trash2 } from 'lucide-react';
 import { ThemeToggle } from '../ui/ThemeToggle';
@@ -21,18 +21,15 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed 
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
-        setShowNotifications(false);
-      }
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
-        setShowProfile(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  // Remove document event listener. Instead, handle click capture at root header.
+  const handleRootClick = (e: React.MouseEvent<HTMLElement>) => {
+    if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+      setShowNotifications(false);
+    }
+    if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+      setShowProfile(false);
+    }
+  };
 
   const handleRoleSwitch = (role: UserRole) => {
     switchRole(role);
@@ -42,7 +39,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed 
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-surface-200 bg-white/80 px-4 backdrop-blur-md dark:border-surface-700 dark:bg-surface-900/80 lg:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-surface-200 bg-white/80 px-4 backdrop-blur-md dark:border-surface-700 dark:bg-surface-900/80 lg:px-6" onClickCapture={handleRootClick}>
       {/* Left */}
       <div className="flex items-center gap-3">
         {/* Mobile hamburger */}
