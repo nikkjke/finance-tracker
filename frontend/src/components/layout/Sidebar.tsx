@@ -52,15 +52,15 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
       isActive
-        ? 'bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-400'
-        : 'text-surface-600 hover:bg-surface-100 dark:text-surface-400 dark:hover:bg-surface-700/50'
+        ? 'bg-primary-50 text-primary-700 shadow-sm ring-1 ring-primary-200/50 dark:bg-primary-500/10 dark:text-primary-400 dark:ring-primary-500/20'
+        : 'text-surface-600 hover:bg-surface-100 dark:text-surface-400 dark:hover:bg-surface-800/50'
     }`;
 
   const collapsedLinkClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center justify-center rounded-lg p-2.5 transition-all duration-200 ${
       isActive
-        ? 'bg-primary-50 text-primary-700 dark:bg-primary-500/10 dark:text-primary-400'
-        : 'text-surface-600 hover:bg-surface-100 dark:text-surface-400 dark:hover:bg-surface-700/50'
+        ? 'bg-primary-50 text-primary-700 shadow-sm ring-1 ring-primary-200/50 dark:bg-primary-500/10 dark:text-primary-400 dark:ring-primary-500/20'
+        : 'text-surface-600 hover:bg-surface-100 dark:text-surface-400 dark:hover:bg-surface-800/50'
     }`;
 
   return (
@@ -83,7 +83,7 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
         style={{ transitionProperty: 'transform, width', transitionDuration: '300ms' }}
       >
         {/* Logo */}
-        <div className={`flex h-16 items-center border-b border-surface-200 dark:border-surface-700 ${collapsed ? 'justify-center px-2' : 'justify-between px-5'}`}>
+        <div className={`flex h-16 items-center ${collapsed ? 'justify-center px-2' : 'justify-between px-5'}`}>
           <NavLink to={user?.role === 'admin' ? '/admin' : '/dashboard'} className="flex items-center gap-1">
             <img src={fintrackLogo} alt="FinTrack" className="h-12 w-12 shrink-0" />
             {!collapsed && (
