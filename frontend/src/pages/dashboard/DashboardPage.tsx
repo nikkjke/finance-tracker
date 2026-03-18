@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import TransactionTable from '../../components/ui/TransactionTable';
-import BarChart from '../../components/ui/BarChart';
+import { AreaChart, Area, Grid, XAxis, ChartTooltip } from '../../components/ui/AreaChart';
 import DonutChart from '../../components/ui/DonutChart';
 import BudgetProgress from '../../components/ui/BudgetProgress';
 import EmptyState from '../../components/ui/EmptyState';
@@ -141,65 +141,68 @@ export default function DashboardPage() {
     });
   }, [budgets, user, userExpenses]);
 
-  // Memoized monthly spending trends
+  // Memoized monthly spending + income trends
   const monthlyTrendsData = useMemo(() => {
-    // For demo user (ID '1'), show mock data with historical months
     const isDemoUser = user?.id === '1';
-    
+
     if (isDemoUser) {
-      const sorted = [...mockMonthlySpending].sort((a, b) => a.value - b.value);
-      const avgSpending = mockMonthlySpending.reduce((sum, m) => sum + m.value, 0) / mockMonthlySpending.length;
-      
-      return {
-        data: mockMonthlySpending,
-        average: avgSpending,
-        highest: sorted[sorted.length - 1],
-        lowest: sorted[0]
+      // Build 6-month date-keyed data for demo user
+      const monthMap: Record<string, { month: number; year: number }> = {
+        'Sep': { month: 8, year: 2025 }, 'Oct': { month: 9, year: 2025 },
+        'Nov': { month: 10, year: 2025 }, 'Dec': { month: 11, year: 2025 },
+        'Jan': { month: 0, year: 2026 }, 'Feb': { month: 1, year: 2026 },
       };
+      const mockIncomeByMonth: Record<string, number> = {
+        'Sep': 3800, 'Oct': 4200, 'Nov': 4100, 'Dec': 5200, 'Jan': 4500, 'Feb': 6870,
+      };
+      const chartData = mockMonthlySpending.map((d) => {
+        const mapping = monthMap[d.label];
+        return {
+          date: mapping ? new Date(mapping.year, mapping.month, 1) : new Date(),
+          spending: d.value,
+          income: mockIncomeByMonth[d.label] ?? 0,
+        };
+      });
+      const avgSpending = mockMonthlySpending.reduce((s, m) => s + m.value, 0) / mockMonthlySpending.length;
+      const sorted = [...mockMonthlySpending].sort((a, b) => a.value - b.value);
+      return { data: chartData, average: avgSpending, highest: sorted[sorted.length - 1], lowest: sorted[0] };
     }
-    
-    // For new users, calculate real spending by day this month
+
+    // For real users: aggregate by day this month
     const now = new Date();
     const thisMonth = now.getMonth();
     const thisYear = now.getFullYear();
-    
-    const dailySpending: Record<string, number> = {};
-    
-    // Aggregate user expenses by day for this month
+    const dailyMap: Record<string, { date: Date; spending: number; income: number }> = {};
+
     userExpenses.forEach((expense) => {
-      const expenseDate = new Date(expense.date);
-      if (expenseDate.getMonth() === thisMonth && expenseDate.getFullYear() === thisYear) {
-        const dayLabel = expenseDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        dailySpending[dayLabel] = (dailySpending[dayLabel] || 0) + expense.amount;
+      const d = new Date(expense.date);
+      if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) {
+        const key = d.toISOString().slice(0, 10);
+        if (!dailyMap[key]) dailyMap[key] = { date: new Date(d.getFullYear(), d.getMonth(), d.getDate()), spending: 0, income: 0 };
+        dailyMap[key].spending += expense.amount;
       }
     });
-    
-    // Convert to chart data format
-    const chartData = Object.entries(dailySpending).map(([label, value]) => ({
-      label,
-      value
-    }));
-    
-    // If no data for this month, return empty array to trigger empty state
-    if (chartData.length === 0) {
-      return {
-        data: [],
-        average: 0,
-        highest: { label: '', value: 0 },
-        lowest: { label: '', value: 0 }
-      };
-    }
-    
-    const avgSpending = chartData.reduce((sum, d) => sum + d.value, 0) / chartData.length;
-    const sorted = [...chartData].sort((a, b) => a.value - b.value);
-    
+    userIncome.forEach((inc) => {
+      const d = new Date(inc.date);
+      if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) {
+        const key = d.toISOString().slice(0, 10);
+        if (!dailyMap[key]) dailyMap[key] = { date: new Date(d.getFullYear(), d.getMonth(), d.getDate()), spending: 0, income: 0 };
+        dailyMap[key].income += inc.amount;
+      }
+    });
+
+    const chartData = Object.values(dailyMap).sort((a, b) => a.date.getTime() - b.date.getTime());
+    if (chartData.length === 0) return { data: [], average: 0, highest: { label: '', value: 0 }, lowest: { label: '', value: 0 } };
+
+    const avgSpending = chartData.reduce((s, d) => s + d.spending, 0) / chartData.length;
+    const sortedBySpend = [...chartData].sort((a, b) => a.spending - b.spending);
     return {
       data: chartData,
       average: avgSpending,
-      highest: sorted[sorted.length - 1],
-      lowest: sorted[0]
+      highest: { label: '', value: sortedBySpend[sortedBySpend.length - 1]?.spending ?? 0 },
+      lowest: { label: '', value: sortedBySpend[0]?.spending ?? 0 },
     };
-  }, [userExpenses, user?.id]);
+  }, [userExpenses, userIncome, user?.id]);
 
   // Memoized recent transactions summary (live from context)
   const transactionsData = useMemo(() => {
@@ -282,7 +285,7 @@ export default function DashboardPage() {
               <div className="mb-6 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-surface-900 dark:text-white">
-                    {user?.id === '1' ? 'Monthly Spending' : 'Spending Activity'}
+                    {user?.id === '1' ? 'Income and Expenses' : 'Income & Spending Activity'}
                   </h2>
                   <p className="text-sm text-surface-400">
                     {user?.id === '1' ? 'Last 6 months overview' : 'This month by day'}
@@ -290,7 +293,52 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="flex-1 flex flex-col justify-end">
-                <BarChart data={monthlyTrendsData.data} height={220} />
+                {monthlyTrendsData.data.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 rounded-lg border border-surface-200 dark:border-surface-700">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-100 dark:bg-surface-800 mb-4">
+                      <TrendingDown size={28} className="text-surface-300 dark:text-surface-600" />
+                    </div>
+                    <h3 className="text-base font-semibold text-surface-700 dark:text-surface-300 mb-1">No spending data</h3>
+                    <p className="text-sm text-surface-400 dark:text-surface-500 max-w-xs text-center">Start adding expenses to see your spending activity</p>
+                  </div>
+                ) : (
+                  <AreaChart
+                    data={monthlyTrendsData.data as Record<string, unknown>[]}
+                    xDataKey="date"
+                    margin={{ top: 20, right: 4, bottom: 36, left: 4 }}
+                    className="h-full w-full min-h-[250px]"
+                  >
+                    <Grid horizontal />
+                    <Area
+                      dataKey="income"
+                      fill="#22c55e"
+                      fillOpacity={0.25}
+                    />
+                    <Area
+                      dataKey="spending"
+                      fill="var(--chart-line-secondary)"
+                      fillOpacity={0.2}
+                    />
+                    <XAxis 
+                      numTicks={6} 
+                      tickFormat={(d) => user?.id === '1' ? d.toLocaleDateString('en-US', { month: 'short' }) : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    />
+                    <ChartTooltip
+                      rows={(point) => [
+                        {
+                          color: '#22c55e',
+                          label: 'Income',
+                          value: `$${((point.income as number) ?? 0).toLocaleString()}`,
+                        },
+                        {
+                          color: 'var(--chart-line-secondary)',
+                          label: 'Spending',
+                          value: `$${((point.spending as number) ?? 0).toLocaleString()}`,
+                        },
+                      ]}
+                    />
+                  </AreaChart>
+                )}
               </div>
             </div>
 
