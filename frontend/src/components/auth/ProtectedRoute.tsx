@@ -26,9 +26,9 @@ export default function ProtectedRoute({ children, requiredRole, adminOnly, user
     );
   }
 
-  // Unauthenticated users → redirect to login page
+  // Unauthenticated users → redirect to landing page
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // If admin tries to access user-only routes → 403 Forbidden

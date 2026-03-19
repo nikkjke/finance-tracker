@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, HelpCircle, MessageCircle, BookOpen, Mail, Clock, ChevronDown } from 'lucide-react';
 import { ThemeToggle } from '../../components/ui/ThemeToggle';
 import fintrackLogo from '../../assets/fintrack-logo.svg';
+import { motion } from 'framer-motion';
+import { containerVariants, itemVariants } from '../../lib/animations';
 import { useState } from 'react';
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
@@ -78,26 +80,37 @@ export default function SupportPage() {
       <section className="relative overflow-hidden border-b border-surface-200 dark:border-surface-800">
         <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-white dark:from-surface-950 dark:via-surface-900 dark:to-surface-950" />
         <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full bg-primary-500/5 blur-3xl dark:bg-primary-500/[0.03]" />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 py-1.5 text-sm font-medium text-primary-700 dark:border-primary-500/20 dark:bg-primary-500/10 dark:text-primary-400">
+        <motion.div 
+          className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 text-center"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div variants={itemVariants} className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 py-1.5 text-sm font-medium text-primary-700 dark:border-primary-500/20 dark:bg-primary-500/10 dark:text-primary-400">
             <HelpCircle size={14} />
             Help Center
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-surface-900 dark:text-white sm:text-4xl lg:text-5xl">
+          </motion.div>
+          <motion.h1 variants={itemVariants} className="text-3xl font-extrabold tracking-tight text-surface-900 dark:text-white sm:text-4xl lg:text-5xl">
             How can we{' '}
             <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
               help you?
             </span>
-          </h1>
-          <p className="mt-6 text-base text-surface-600 dark:text-surface-400 max-w-2xl mx-auto leading-relaxed">
+          </motion.h1>
+          <motion.p variants={itemVariants} className="mt-6 text-base text-surface-600 dark:text-surface-400 max-w-2xl mx-auto leading-relaxed">
             Find answers to common questions, explore our guides, or reach out to our support team directly.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
       </section>
 
       {/* Support Options */}
       <section className="border-b border-surface-200 dark:border-surface-800">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <motion.div 
+          className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
           <div className="grid gap-6 sm:grid-cols-3">
             {[
               {
@@ -119,36 +132,44 @@ export default function SupportPage() {
                 action: 'View Docs',
               },
             ].map((option) => (
-              <div key={option.title} className="card text-center group hover:shadow-md transition-shadow">
+              <motion.div variants={itemVariants} key={option.title} className="card text-center group hover:shadow-md transition-shadow">
                 <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary-50 dark:bg-primary-500/10 group-hover:bg-primary-100 dark:group-hover:bg-primary-500/20 transition-colors">
                   <option.icon size={22} className="text-primary-600 dark:text-primary-400" />
                 </div>
                 <h3 className="text-base font-semibold text-surface-900 dark:text-white mb-2">{option.title}</h3>
                 <p className="text-sm text-surface-500 dark:text-surface-400 mb-4">{option.desc}</p>
                 <span className="text-sm font-medium text-primary-600 dark:text-primary-400">{option.action}</span>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* FAQ */}
       <section className="bg-surface-50 dark:bg-surface-900/50">
-        <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6 lg:px-8">
+        <motion.div 
+          className="mx-auto max-w-3xl px-4 py-20 sm:px-6 lg:px-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
           <div className="text-center mb-12">
-            <h2 className="text-2xl font-bold text-surface-900 dark:text-white sm:text-3xl">
+            <motion.h2 variants={itemVariants} className="text-2xl font-bold text-surface-900 dark:text-white sm:text-3xl">
               Frequently Asked Questions
-            </h2>
-            <p className="mt-4 text-base text-surface-600 dark:text-surface-400">
+            </motion.h2>
+            <motion.p variants={itemVariants} className="mt-4 text-base text-surface-600 dark:text-surface-400">
               Quick answers to the most common questions about FinTrack.
-            </p>
+            </motion.p>
           </div>
           <div className="space-y-3">
             {faqs.map((faq) => (
-              <FAQItem key={faq.question} question={faq.question} answer={faq.answer} />
+              <motion.div variants={itemVariants} key={faq.question}>
+                <FAQItem question={faq.question} answer={faq.answer} />
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Support Hours */}

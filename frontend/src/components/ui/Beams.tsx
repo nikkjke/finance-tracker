@@ -32,7 +32,7 @@ const pathData = [
 // Pre-calculated animation values for each path
 const animations = pathData.map((_, i) => ({
   duration: 4 + (i % 5) * 0.8,
-  delay: i * 0.15,
+  delay: 0,
   initialProgress: (i * 5) % 100,
 }))
 

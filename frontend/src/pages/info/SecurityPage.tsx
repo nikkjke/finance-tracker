@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Shield, Lock, Eye, Server, KeyRound, Bug, RefreshCw } from 'lucide-react';
 import { ThemeToggle } from '../../components/ui/ThemeToggle';
 import fintrackLogo from '../../assets/fintrack-logo.svg';
+import { motion } from 'framer-motion';
+import { containerVariants, itemVariants } from '../../lib/animations';
 
 export default function SecurityPage() {
   return (
@@ -28,26 +30,37 @@ export default function SecurityPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-white dark:from-surface-950 dark:via-surface-900 dark:to-surface-950" />
         <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full bg-primary-500/5 blur-3xl dark:bg-primary-500/[0.03]" />
         <div className="absolute bottom-0 -right-32 w-96 h-96 rounded-full bg-primary-400/5 blur-3xl dark:bg-primary-400/[0.03]" />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 py-1.5 text-sm font-medium text-primary-700 dark:border-primary-500/20 dark:bg-primary-500/10 dark:text-primary-400">
+        <motion.div 
+          className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 text-center"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div variants={itemVariants} className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 py-1.5 text-sm font-medium text-primary-700 dark:border-primary-500/20 dark:bg-primary-500/10 dark:text-primary-400">
             <Shield size={14} />
             Security
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-surface-900 dark:text-white sm:text-4xl lg:text-5xl">
+          </motion.div>
+          <motion.h1 variants={itemVariants} className="text-3xl font-extrabold tracking-tight text-surface-900 dark:text-white sm:text-4xl lg:text-5xl">
             Your data is{' '}
             <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
               safe with us
             </span>
-          </h1>
-          <p className="mt-6 text-base text-surface-600 dark:text-surface-400 max-w-2xl mx-auto leading-relaxed">
+          </motion.h1>
+          <motion.p variants={itemVariants} className="mt-6 text-base text-surface-600 dark:text-surface-400 max-w-2xl mx-auto leading-relaxed">
             Security isn't an afterthought at FinTrack — it's at the core of everything we build. Here's how we protect your financial data.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
       </section>
 
       {/* Security Features Grid */}
       <section className="border-b border-surface-200 dark:border-surface-800">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+        <motion.div 
+          className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[
               {
@@ -81,7 +94,8 @@ export default function SecurityPage() {
                 desc: 'Your data is automatically backed up daily with encrypted snapshots, ensuring recovery in case of any unforeseen events.',
               },
             ].map((feature) => (
-              <div
+              <motion.div
+                variants={itemVariants}
                 key={feature.title}
                 className="card group hover:shadow-md hover:border-primary-200 dark:hover:border-primary-500/20 transition-all duration-300"
               >
@@ -90,18 +104,24 @@ export default function SecurityPage() {
                 </div>
                 <h3 className="text-base font-semibold text-surface-900 dark:text-white mb-2">{feature.title}</h3>
                 <p className="text-sm text-surface-500 dark:text-surface-400 leading-relaxed">{feature.desc}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Best Practices */}
       <section className="bg-surface-50 dark:bg-surface-900/50">
-        <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-surface-900 dark:text-white sm:text-3xl text-center mb-12">
+        <motion.div 
+          className="mx-auto max-w-3xl px-4 py-20 sm:px-6 lg:px-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
+          <motion.h2 variants={itemVariants} className="text-2xl font-bold text-surface-900 dark:text-white sm:text-3xl text-center mb-12">
             Security Best Practices for Users
-          </h2>
+          </motion.h2>
           <div className="space-y-6">
             {[
               {
@@ -125,7 +145,7 @@ export default function SecurityPage() {
                 desc: 'If you notice any unauthorized transactions or believe your account has been compromised, contact us immediately at security@fintrack.com.',
               },
             ].map((tip, i) => (
-              <div key={i} className="flex gap-4">
+              <motion.div variants={itemVariants} key={i} className="flex gap-4">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-50 dark:bg-primary-500/10 text-sm font-bold text-primary-600 dark:text-primary-400">
                   {i + 1}
                 </div>
@@ -133,10 +153,10 @@ export default function SecurityPage() {
                   <h3 className="text-sm font-semibold text-surface-900 dark:text-white mb-1">{tip.title}</h3>
                   <p className="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">{tip.desc}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Report Section */}
