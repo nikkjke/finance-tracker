@@ -129,31 +129,34 @@ export default function AdminDashboard() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
               title="Total Users"
-              value={stats.totalUsers.toLocaleString()}
+              value={stats.totalUsers}
               icon={<Users size={20} />}
               change={7.2}
               changeLabel="this month"
+              isCurrency={false}
             />
             <StatCard
               title="Active Users"
-              value={stats.activeUsers.toLocaleString()}
+              value={stats.activeUsers}
               icon={<Activity size={20} />}
               change={3.1}
               changeLabel="this month"
+              isCurrency={false}
             />
             <StatCard
               title="Total Revenue"
-              value={`$${stats.totalRevenue.toLocaleString()}`}
+              value={stats.totalRevenue}
               icon={<DollarSign size={20} />}
               change={12.5}
               changeLabel="this month"
             />
             <StatCard
               title="New Users"
-              value={stats.newUsersThisMonth.toString()}
+              value={stats.newUsersThisMonth}
               icon={<UserPlus size={20} />}
               change={-2.3}
               changeLabel="vs last month"
+              isCurrency={false}
             />
           </div>
 

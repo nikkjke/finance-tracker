@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Download, Filter, Calendar, CalendarDays, ArrowUpRight, Hash, BarChart3, Search, ArrowUpDown, Wallet, ListFilter, AlertTriangle, Edit2, Trash2, Tag, CreditCard, Briefcase } from 'lucide-react';
+import { Download, Filter, Calendar, CalendarDays, ArrowUpRight, Hash, BarChart3, Search, ArrowUpDown, Wallet, ListFilter, AlertTriangle, Tag, CreditCard, Briefcase } from 'lucide-react';
 import TransactionTable from '../../components/ui/TransactionTable';
+import IncomeTable from '../../components/ui/IncomeTable';
 import Dropdown from '../../components/ui/Dropdown';
 import DatePicker from '../../components/ui/DatePicker';
 import Spinner from '../../components/ui/Spinner';
@@ -12,6 +13,7 @@ import { categoryLabels, incomeLabels } from '../../data/mockData';
 import { useExpenses } from '../../contexts/ExpenseContext';
 import { useIncome } from '../../contexts/IncomeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import StatCard from '../../components/ui/StatCard';
 import { applyFilters, presetToDateRange, exportReport } from '../../services';
 import type { FilterPipelineConfig, SortConfig } from '../../services/filterService';
 import type { Expense, Income, ExpenseCategory, PaymentMethod, IncomeCategory } from '../../types';
@@ -397,52 +399,22 @@ export default function ReportsPage() {
         <>
       {/* Summary Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
-        {[
-          {
-            label: 'Average Daily',
-            value: `$${averageDaily.toFixed(2)}`,
-            icon: CalendarDays,
-            valueColor: 'text-surface-900 dark:text-white',
-          },
-          {
-            label: 'Highest Expense',
-            value: `$${highestExpense.toFixed(2)}`,
-            icon: ArrowUpRight,
-            valueColor: 'text-surface-900 dark:text-white',
-          },
-          {
-            label: 'Total Transactions',
-            value: filteredExpensesCount.toString(),
-            icon: Hash,
-            valueColor: 'text-surface-900 dark:text-white',
-          },
-        ].map((card) => (
-          <div
-            key={card.label}
-            className="group relative overflow-hidden rounded-xl border border-surface-200 bg-white p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary-200/60 hover:shadow-xl hover:shadow-primary-500/[0.06] dark:border-surface-700/50 dark:bg-surface-800/80 dark:hover:border-primary-500/25 dark:hover:shadow-primary-500/[0.08]"
-          >
-            {/* Shimmer */}
-            <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full dark:via-white/[0.04]" />
-            {/* Corner glow */}
-            <div className="absolute -bottom-10 -right-10 h-28 w-28 rounded-full bg-primary-400/0 blur-2xl transition-all duration-500 group-hover:bg-primary-400/10 dark:group-hover:bg-primary-400/[0.07]" />
-
-            <div className="relative flex items-start justify-between">
-              <div className="space-y-3 flex-1 min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-wider text-surface-400 dark:text-surface-500">
-                  {card.label}
-                </p>
-                <p className={`text-2xl font-extrabold tracking-tight truncate ${card.valueColor}`}>
-                  {card.value}
-                </p>
-              </div>
-              <div className="relative ml-4 shrink-0">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary-50 to-primary-100/50 shadow-sm ring-1 ring-primary-100 transition-all duration-300 group-hover:rotate-6 group-hover:shadow-md group-hover:ring-primary-200 dark:from-primary-500/15 dark:to-primary-500/5 dark:ring-primary-500/20 dark:group-hover:ring-primary-500/30">
-                  <card.icon size={20} className="text-primary-600 transition-transform duration-300 group-hover:scale-110 dark:text-primary-400" />
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
+        <StatCard
+          title="Average Daily"
+          value={averageDaily}
+          icon={<CalendarDays size={20} />}
+        />
+        <StatCard
+          title="Highest Expense"
+          value={highestExpense}
+          icon={<ArrowUpRight size={20} />}
+        />
+        <StatCard
+          title="Total Transactions"
+          value={filteredExpensesCount}
+          icon={<Hash size={20} />}
+          isCurrency={false}
+        />
       </div>
 
       {/* All Transactions (Top) */}
@@ -546,58 +518,7 @@ export default function ReportsPage() {
           </div>
 
           <div className="space-y-3">
-            {paginatedIncome.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-surface-300 px-4 py-10 text-center dark:border-surface-700">
-                <p className="text-sm font-medium text-surface-500 dark:text-surface-400">No income records found</p>
-                <p className="mt-1 text-xs text-surface-400">Try adjusting your filters or add a new income entry.</p>
-              </div>
-            ) : (
-              paginatedIncome.map((entry) => (
-                <div
-                  key={entry.id}
-                  className="group flex items-center justify-between rounded-xl border border-surface-200 bg-white px-4 py-3 dark:border-surface-700 dark:bg-surface-800/60"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-surface-900 dark:text-white">{entry.source}</p>
-                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-surface-500 dark:text-surface-400">
-                      <span>{incomeLabels[entry.category]}</span>
-                      <span>•</span>
-                      <span>{new Date(entry.date).toLocaleDateString('en-US')}</span>
-                      {entry.notes && (
-                        <>
-                          <span>•</span>
-                          <span className="truncate max-w-[220px]">{entry.notes}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  <div className="ml-4 flex items-center gap-3">
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-success-600 dark:text-success-500">+${entry.amount.toFixed(2)}</p>
-                      <p className={`mt-1 text-[11px] font-medium ${entry.status === 'completed' ? 'text-success-600 dark:text-success-500' : 'text-warning-600 dark:text-warning-500'}`}>
-                        {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-                      <button
-                        onClick={() => handleEditIncome(entry)}
-                        className="rounded-lg p-1.5 text-surface-400 hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-500/10 dark:hover:text-primary-400 transition-colors"
-                        title="Edit"
-                      >
-                        <Edit2 size={15} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteIncome(entry)}
-                        className="rounded-lg p-1.5 text-surface-400 hover:bg-danger-50 hover:text-danger-600 dark:hover:bg-danger-500/10 dark:hover:text-danger-400 transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+            <IncomeTable income={paginatedIncome} onEdit={handleEditIncome} onDelete={handleDeleteIncome} />
           </div>
 
           {filteredIncomeCount > 0 && (

@@ -16,6 +16,7 @@ import Pagination from '../../components/ui/Pagination';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
+import StatCard from '../../components/ui/StatCard';
 import { applyFilters, exportUsers } from '../../services';
 import type { User } from '../../types';
 import type { FilterPipelineConfig, SortConfig } from '../../services/filterService';
@@ -267,51 +268,24 @@ export default function AdminUsers() {
         <>
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="card group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-primary-200/60 hover:shadow-xl hover:shadow-primary-500/[0.06] dark:hover:border-primary-500/25 dark:hover:shadow-primary-500/[0.08]">
-          <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full dark:via-white/[0.04]" />
-          <div className="absolute -bottom-10 -right-10 h-28 w-28 rounded-full bg-primary-400/0 blur-2xl transition-all duration-500 group-hover:bg-primary-400/10 dark:group-hover:bg-primary-400/[0.07]" />
-          <div className="relative flex items-center justify-between">
-            <div>
-              <p className="text-sm text-surface-500 dark:text-surface-400">Total Users</p>
-              <p className="text-2xl font-bold text-surface-900 dark:text-white mt-1">
-                {stats.total}
-              </p>
-            </div>
-            <div className="h-12 w-12 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
-              <Users size={24} className="text-primary-600 dark:text-primary-400 transition-transform duration-300 group-hover:scale-110" />
-            </div>
-          </div>
-        </div>
-        <div className="card group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-primary-200/60 hover:shadow-xl hover:shadow-primary-500/[0.06] dark:hover:border-primary-500/25 dark:hover:shadow-primary-500/[0.08]">
-          <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full dark:via-white/[0.04]" />
-          <div className="absolute -bottom-10 -right-10 h-28 w-28 rounded-full bg-primary-400/0 blur-2xl transition-all duration-500 group-hover:bg-primary-400/10 dark:group-hover:bg-primary-400/[0.07]" />
-          <div className="relative flex items-center justify-between">
-            <div>
-              <p className="text-sm text-surface-500 dark:text-surface-400">Active Users</p>
-              <p className="text-2xl font-bold text-surface-900 dark:text-white mt-1">
-                {stats.active}
-              </p>
-            </div>
-            <div className="h-12 w-12 rounded-full bg-success-100 dark:bg-success-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
-              <CheckCircle size={24} className="text-success-600 dark:text-success-400 transition-transform duration-300 group-hover:scale-110" />
-            </div>
-          </div>
-        </div>
-        <div className="card group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-primary-200/60 hover:shadow-xl hover:shadow-primary-500/[0.06] dark:hover:border-primary-500/25 dark:hover:shadow-primary-500/[0.08]">
-          <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full dark:via-white/[0.04]" />
-          <div className="absolute -bottom-10 -right-10 h-28 w-28 rounded-full bg-primary-400/0 blur-2xl transition-all duration-500 group-hover:bg-primary-400/10 dark:group-hover:bg-primary-400/[0.07]" />
-          <div className="relative flex items-center justify-between">
-            <div>
-              <p className="text-sm text-surface-500 dark:text-surface-400">Administrators</p>
-              <p className="text-2xl font-bold text-surface-900 dark:text-white mt-1">
-                {stats.admins}
-              </p>
-            </div>
-            <div className="h-12 w-12 rounded-full bg-warning-100 dark:bg-warning-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
-              <Shield size={24} className="text-warning-600 dark:text-warning-400 transition-transform duration-300 group-hover:scale-110" />
-            </div>
-          </div>
-        </div>
+        <StatCard
+          title="Total Users"
+          value={stats.total}
+          icon={<Users size={20} />}
+          isCurrency={false}
+        />
+        <StatCard
+          title="Active Users"
+          value={stats.active}
+          icon={<CheckCircle size={20} />}
+          isCurrency={false}
+        />
+        <StatCard
+          title="Administrators"
+          value={stats.admins}
+          icon={<Shield size={20} />}
+          isCurrency={false}
+        />
       </div>
 
       {/* Filters and Search */}

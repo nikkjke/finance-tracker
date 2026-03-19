@@ -19,6 +19,7 @@ import Dropdown from '../../components/ui/Dropdown';
 import EmptyState from '../../components/ui/EmptyState';
 import Modal from '../../components/ui/Modal';
 import { useNotification } from '../../contexts/NotificationContext';
+import StatCard from '../../components/ui/StatCard';
 import type { NotificationType, Notification } from '../../contexts/NotificationContext';
 
 // ── Types ────────────────────────────────────────────────────────
@@ -202,39 +203,24 @@ export default function NotificationsPage() {
 
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl border border-surface-200 bg-white p-5 shadow-sm dark:border-surface-700/50 dark:bg-surface-800/80">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-surface-500 dark:text-surface-400">Total</p>
-                  <p className="text-2xl font-bold text-surface-900 dark:text-white mt-1">{stats.total}</p>
-                </div>
-                <div className="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center">
-                  <Bell size={20} className="text-primary-600 dark:text-primary-400" />
-                </div>
-              </div>
-            </div>
-            <div className="rounded-xl border border-surface-200 bg-white p-5 shadow-sm dark:border-surface-700/50 dark:bg-surface-800/80">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-surface-500 dark:text-surface-400">Unread</p>
-                  <p className="text-2xl font-bold text-surface-900 dark:text-white mt-1">{stats.unread}</p>
-                </div>
-                <div className="h-10 w-10 rounded-full bg-warning-100 dark:bg-warning-500/20 flex items-center justify-center">
-                  <BellOff size={20} className="text-warning-600 dark:text-warning-400" />
-                </div>
-              </div>
-            </div>
-            <div className="rounded-xl border border-surface-200 bg-white p-5 shadow-sm dark:border-surface-700/50 dark:bg-surface-800/80">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-surface-500 dark:text-surface-400">High Priority</p>
-                  <p className="text-2xl font-bold text-surface-900 dark:text-white mt-1">{stats.highPriority}</p>
-                </div>
-                <div className="h-10 w-10 rounded-full bg-danger-100 dark:bg-danger-500/20 flex items-center justify-center">
-                  <AlertTriangle size={20} className="text-danger-600 dark:text-danger-400" />
-                </div>
-              </div>
-            </div>
+            <StatCard
+              title="Total"
+              value={stats.total}
+              icon={<Bell size={20} />}
+              isCurrency={false}
+            />
+            <StatCard
+              title="Unread"
+              value={stats.unread}
+              icon={<BellOff size={20} />}
+              isCurrency={false}
+            />
+            <StatCard
+              title="High Priority"
+              value={stats.highPriority}
+              icon={<AlertTriangle size={20} />}
+              isCurrency={false}
+            />
           </div>
 
           {/* Notification list */}

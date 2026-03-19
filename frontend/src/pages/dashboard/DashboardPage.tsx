@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
 import TransactionTable from '../../components/ui/TransactionTable';
+import IncomeTable from '../../components/ui/IncomeTable';
 import { AreaChart, Area, Grid, XAxis, ChartTooltip } from '../../components/ui/AreaChart';
 import DonutChart from '../../components/ui/DonutChart';
 import BudgetProgress from '../../components/ui/BudgetProgress';
@@ -216,6 +217,16 @@ export default function DashboardPage() {
     };
   }, [userExpenses]);
 
+  const recentIncomeData = useMemo(() => {
+    const recent = [...userIncome]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5);
+    return {
+      income: recent,
+      count: recent.length
+    };
+  }, [userIncome]);
+
   // Simulate loading statistics with setTimeout
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -397,6 +408,22 @@ export default function DashboardPage() {
               </Link>
             </div>
             <TransactionTable expenses={transactionsData.transactions} limit={5} />
+          </div>
+
+          {/* Recent Income */}
+          <div className="card">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-surface-900 dark:text-white">
+                  Recent Income
+                </h2>
+                <p className="text-sm text-surface-400">Latest activity</p>
+              </div>
+              <Link to="/reports" className="btn-ghost text-sm">
+                See All <ArrowRight size={14} />
+              </Link>
+            </div>
+            <IncomeTable income={recentIncomeData.income} limit={5} />
           </div>
         </>
       )}

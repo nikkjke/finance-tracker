@@ -12,6 +12,7 @@ import { sortItems } from '../../services';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBudgets } from '../../contexts/BudgetContext';
 import { useExpenses } from '../../contexts/ExpenseContext';
+import StatCard from '../../components/ui/StatCard';
 import type { Budget, ExpenseCategory, BudgetPeriod } from '../../types';
 
 // ─── Period range helper ──────────────────────────────────────────────────────
@@ -329,52 +330,21 @@ export default function BudgetsPage() {
         <>
       {/* Summary */}
       <div className="grid gap-4 sm:grid-cols-3">
-        {[
-          {
-            label: 'Total Budget',
-            value: `$${totalBudget.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-            icon: PiggyBank,
-            valueColor: 'text-surface-900 dark:text-white',
-          },
-          {
-            label: 'Total Spent',
-            value: `$${totalSpent.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-            icon: Receipt,
-            valueColor: 'text-surface-900 dark:text-white',
-          },
-          {
-            label: 'Remaining',
-            value: `$${(totalBudget - totalSpent).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-            icon: TrendingUp,
-            valueColor: totalBudget - totalSpent >= 0 ? 'text-success-500' : 'text-danger-500',
-          },
-        ].map((card) => (
-          <div
-            key={card.label}
-            className="group relative overflow-hidden rounded-xl border border-surface-200 bg-white p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary-200/60 hover:shadow-xl hover:shadow-primary-500/[0.06] dark:border-surface-700/50 dark:bg-surface-800/80 dark:hover:border-primary-500/25 dark:hover:shadow-primary-500/[0.08]"
-          >
-            {/* Shimmer */}
-            <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full dark:via-white/[0.04]" />
-            {/* Corner glow */}
-            <div className="absolute -bottom-10 -right-10 h-28 w-28 rounded-full bg-primary-400/0 blur-2xl transition-all duration-500 group-hover:bg-primary-400/10 dark:group-hover:bg-primary-400/[0.07]" />
-
-            <div className="relative flex items-start justify-between">
-              <div className="space-y-3 flex-1 min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-wider text-surface-400 dark:text-surface-500">
-                  {card.label}
-                </p>
-                <p className={`text-2xl font-extrabold tracking-tight truncate ${card.valueColor}`}>
-                  {card.value}
-                </p>
-              </div>
-              <div className="relative ml-4 shrink-0">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary-50 to-primary-100/50 shadow-sm ring-1 ring-primary-100 transition-all duration-300 group-hover:rotate-6 group-hover:shadow-md group-hover:ring-primary-200 dark:from-primary-500/15 dark:to-primary-500/5 dark:ring-primary-500/20 dark:group-hover:ring-primary-500/30">
-                  <card.icon size={20} className="text-primary-600 transition-transform duration-300 group-hover:scale-110 dark:text-primary-400" />
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
+        <StatCard
+          title="Total Budget"
+          value={totalBudget}
+          icon={<PiggyBank size={20} />}
+        />
+        <StatCard
+          title="Total Spent"
+          value={totalSpent}
+          icon={<Receipt size={20} />}
+        />
+        <StatCard
+          title="Remaining"
+          value={totalBudget - totalSpent}
+          icon={<TrendingUp size={20} />}
+        />
       </div>
 
       {/* Budget Cards */}
