@@ -1,4 +1,4 @@
-import { useState, useRef, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 
 interface DropdownOption {
@@ -19,19 +19,20 @@ interface DropdownProps {
 
 export default function Dropdown({ value, onChange, options, icon, placeholder, fullWidth, minWidth = 'min-w-[160px]', openDirection = 'down' }: DropdownProps) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
 
   const selected = options.find((o) => o.value === value);
 
-  // Remove document event listener. Instead, handle click capture at root div.
-  const handleRootClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (ref.current && !ref.current.contains(e.target as Node)) {
-      setOpen(false);
-    }
-  };
-
   return (
-    <div ref={ref} className={`relative ${fullWidth ? 'w-full' : 'inline-block'}`} onClickCapture={handleRootClick}>
+    <>
+      {open && (
+        <button
+          type="button"
+          aria-label="Close dropdown"
+          className="fixed inset-0 z-40 cursor-default bg-transparent"
+          onClick={() => setOpen(false)}
+        />
+      )}
+      <div className={`relative ${open ? 'z-[120]' : 'z-10'} ${fullWidth ? 'w-full' : 'inline-block'}`}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -52,7 +53,7 @@ export default function Dropdown({ value, onChange, options, icon, placeholder, 
       </button>
 
       {open && (
-        <div className={`absolute left-0 z-50 w-full overflow-hidden rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30 ${openDirection === 'up' ? 'bottom-full mb-2' : 'top-full mt-2'}`}>
+        <div className={`absolute left-0 z-[130] w-full overflow-hidden rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30 ${openDirection === 'up' ? 'bottom-full mb-2' : 'top-full mt-2'}`}>
           <div className="p-1.5">
             {options.map((option) => {
               const isActive = option.value === value;
@@ -78,6 +79,7 @@ export default function Dropdown({ value, onChange, options, icon, placeholder, 
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

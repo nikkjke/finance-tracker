@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, X } from 'lucide-react';
 
 interface DatePickerProps {
@@ -24,19 +24,11 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
     }
     return new Date().getFullYear();
   });
-  const ref = useRef<HTMLDivElement>(null);
 
   const selectedDate = value ? (() => {
     const [y, m, d] = value.split('-').map(Number);
     return { year: y, month: m - 1, day: d };
   })() : null;
-
-  // Remove document event listener. Instead, handle click capture at root div.
-  const handleRootClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (ref.current && !ref.current.contains(e.target as Node)) {
-      setOpen(false);
-    }
-  };
 
   const getDaysInMonth = (m: number, y: number) => {
     return new Date(y, m + 1, 0).getDate();
@@ -92,7 +84,16 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
   };
 
   return (
-    <div ref={ref} className="relative" onClickCapture={handleRootClick}>
+    <>
+      {open && (
+        <button
+          type="button"
+          aria-label="Close date picker"
+          className="fixed inset-0 z-[90] cursor-default bg-transparent"
+          onClick={() => setOpen(false)}
+        />
+      )}
+      <div className="relative z-[95]">
       {label && (
         <div className="mb-1.5 flex items-center justify-between">
           <label className="label mb-0">{label}</label>
@@ -125,7 +126,6 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
       {open && (
         <div
           className="absolute right-0 top-full z-[100] mt-2 w-72 overflow-hidden rounded-xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/30"
-          onClick={(e) => e.stopPropagation()}
         >
             <div className="p-3">
               {/* Month/Year Navigation */}
@@ -193,6 +193,7 @@ export default function DatePicker({ value, onChange, label, error }: DatePicker
             </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

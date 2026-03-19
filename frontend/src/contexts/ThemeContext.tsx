@@ -21,39 +21,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    const root = document.documentElement;
-    root.classList.remove('light', 'dark');
-    root.classList.add(theme);
     localStorage.setItem(STORAGE_KEYS.THEME, theme);
-
-    if (theme === 'dark') {
-      document.body.style.backgroundColor = '#0f172a';
-      document.body.style.color = '#e2e8f0';
-    } else {
-      document.body.style.backgroundColor = '#ffffff';
-      document.body.style.color = '#0f172a';
-    }
   }, [theme]);
 
   const toggleTheme = () => {
-    // Disable transitions temporarily to avoid visual delay
-    const css = document.createElement('style');
-    css.textContent = '*, *::before, *::after { transition: none !important; }';
-    document.head.appendChild(css);
-
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
-
-    // Re-enable transitions after a frame
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        document.head.removeChild(css);
-      });
-    });
   };
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
+      <div className={`${theme} min-h-screen bg-surface-50 text-surface-900 dark:bg-surface-950 dark:text-surface-100`}>
+        {children}
+      </div>
     </ThemeContext.Provider>
   );
 }

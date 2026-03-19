@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Bell,
@@ -82,22 +82,15 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
   const [editForm, setEditForm] = useState<any>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  const notifRef = useRef<HTMLDivElement>(null);
-  const profileRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLDivElement>(null);
-  const searchItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const isSearchDropdownOpen = isSearchOpen && !!searchQuery.trim();
+  const hasAnyOverlayOpen = showNotifications || showProfile || isSearchDropdownOpen;
 
-  // Remove document event listener. Instead, handle click capture at root header.
-  const handleRootClick = (e: React.MouseEvent<HTMLElement>) => {
-    if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
-      setShowNotifications(false);
-    }
-    if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
-      setShowProfile(false);
-    }
-    if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-      setIsSearchOpen(false);
-    }
+  const closeAllOverlays = () => {
+    setShowNotifications(false);
+    setShowProfile(false);
+    setIsSearchOpen(false);
+    setActiveSearchIndex(null);
+    setSearchInteractionMode(null);
   };
 
   const handleRoleSwitch = (role: UserRole) => {
@@ -159,18 +152,6 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
     setSearchInteractionMode(null);
   }, [searchQuery]);
 
-  useEffect(() => {
-    searchItemRefs.current = searchItemRefs.current.slice(0, searchResults.length);
-  }, [searchResults.length]);
-
-  useEffect(() => {
-    if (searchInteractionMode !== 'keyboard' || activeSearchIndex === null) return;
-    const activeEl = searchItemRefs.current[activeSearchIndex];
-    if (activeEl) {
-      activeEl.scrollIntoView({ block: 'nearest' });
-    }
-  }, [activeSearchIndex, searchInteractionMode]);
-
   const handleSelectSearchItem = (item: SearchResultItem) => {
     setSelectedItem({ type: item.type, data: item.original });
     setEditForm({
@@ -183,13 +164,20 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
 
   return (
     <>
+      {hasAnyOverlayOpen && (
+        <button
+          type="button"
+          aria-label="Close open menus"
+          className="fixed inset-0 z-20 cursor-default bg-transparent"
+          onClick={closeAllOverlays}
+        />
+      )}
       <header 
       className={`sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-white/80 px-4 backdrop-blur-md transition-all duration-200 lg:px-6 ${
         isScrolled 
           ? 'border-transparent shadow-sm dark:border-transparent dark:bg-surface-900/90' 
           : 'border-surface-200 dark:border-surface-700 dark:bg-surface-900/80'
-      }`} 
-      onClickCapture={handleRootClick}
+      }`}
     >
       {/* Left */}
       <div className="flex items-center gap-3">
@@ -219,7 +207,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
       </div>
 
       {/* Global Search Center */}
-      <div className="hidden flex-1 items-center justify-center px-6 md:flex lg:px-12 pointer-events-auto" ref={searchRef}>
+      <div className="hidden flex-1 items-center justify-center px-6 md:flex lg:px-12 pointer-events-auto">
         <div className="group relative w-full max-w-md">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 z-10">
             <Search size={16} className="text-surface-400 group-focus-within:text-primary-500 transition-colors" />
@@ -272,38 +260,30 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
           />
 
           {/* Search Autocomplete Dropdown */}
-          {isSearchOpen && searchQuery && (
+          {isSearchDropdownOpen && (
               <div className="absolute left-0 right-0 top-full mt-2 overflow-hidden rounded-2xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/40 animate-in fade-in slide-in-from-top-2">
                 {searchResults.length > 0 ? (
                   <>
                     <div
-                      className="max-h-80 overflow-y-auto pb-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                      className="max-h-69.5 overflow-y-auto pt-1.5 pb-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                       style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                       onMouseLeave={() => {
                         setActiveSearchIndex(null);
                         setSearchInteractionMode(null);
                       }}
                     >
-                    <div className="sticky top-0 z-20 flex flex-nowrap items-center justify-between border-b border-surface-100 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wider text-surface-400 dark:border-surface-700 dark:bg-surface-800">
-                      <span className="whitespace-nowrap">Results</span>
-                      <span className="whitespace-nowrap">{searchResults.length} matches</span>
-                    </div>
-                    {searchResults.map((t, idx) => (
-                      (() => {
+                    {searchResults.map((t, idx) => {
                         const ItemIcon = categoryIcons[t.category] || MoreHorizontal;
                         const categoryColor = categoryColors[t.category] || '#64748b';
                         const showTypeHeader = idx === 0 || searchResults[idx - 1].type !== t.type;
                         return (
                           <div key={`${t.type}-${t.id}`}>
                             {showTypeHeader && (
-                              <div className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-surface-400 dark:text-surface-500">
+                              <div className="px-4 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-surface-400 dark:text-surface-500">
                                 {t.type === 'expense' ? 'Transactions' : 'Budgets'}
                               </div>
                             )}
                             <button
-                              ref={(el) => {
-                                searchItemRefs.current[idx] = el;
-                              }}
                               onClick={() => handleSelectSearchItem(t)}
                               onMouseEnter={() => {
                                 setSearchInteractionMode('mouse');
@@ -335,8 +315,8 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                             </button>
                           </div>
                         );
-                      })()
-                    ))}
+                      }
+                    )}
                   </div>
                   </>
                 ) : (
@@ -359,7 +339,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
         <ThemeToggle className="mx-1" />
 
         {/* Notifications */}
-        <div className="relative" ref={notifRef}>
+        <div className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
             className="relative rounded-lg p-2 text-surface-500 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
@@ -463,7 +443,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
         </div>
 
         {/* Profile */}
-        <div className="relative" ref={profileRef}>
+        <div className="relative">
           <button
             onClick={() => setShowProfile(!showProfile)}
             className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"

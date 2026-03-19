@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useRef } from 'react';
 import {
   ScanLine,
   BarChart3,
@@ -38,6 +39,11 @@ import fintrackLogo from '../assets/fintrack-logo.svg';
 export default function LandingPage() {
   const { isAuthenticated, user, isLoading } = useAuth();
   const navigate = useNavigate();
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  const scrollToSection = (anchor: string) => {
+    sectionRefs.current[anchor]?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   // Redirect authenticated users to their dashboard
   if (!isLoading && isAuthenticated) {
@@ -89,7 +95,7 @@ export default function LandingPage() {
                 href={`#${item.anchor}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  document.getElementById(item.anchor)?.scrollIntoView({ behavior: 'smooth' });
+                  scrollToSection(item.anchor);
                 }}
                 className="text-sm font-medium text-surface-600 hover:text-surface-900 dark:text-surface-400 dark:hover:text-white transition-colors"
               >
@@ -314,7 +320,7 @@ export default function LandingPage() {
       </section>
 
       {/* QR Scanning Section */}
-      <section id="how-it-works" className="border-t border-surface-200 bg-surface-50 dark:border-surface-800 dark:bg-surface-900">
+      <section id="how-it-works" ref={(el) => { sectionRefs.current['how-it-works'] = el; }} className="border-t border-surface-200 bg-surface-50 dark:border-surface-800 dark:bg-surface-900">
         <motion.div 
           className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"
           variants={containerVariants}
@@ -366,7 +372,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="border-t border-surface-200 dark:border-surface-800">
+      <section id="features" ref={(el) => { sectionRefs.current.features = el; }} className="border-t border-surface-200 dark:border-surface-800">
         <motion.div 
           className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"
           variants={containerVariants}
@@ -437,7 +443,7 @@ export default function LandingPage() {
       </section>
 
       {/* Security */}
-      <section id="security" className="border-t border-surface-200 bg-surface-50 dark:border-surface-800 dark:bg-surface-900">
+      <section id="security" ref={(el) => { sectionRefs.current.security = el; }} className="border-t border-surface-200 bg-surface-50 dark:border-surface-800 dark:bg-surface-900">
         <motion.div 
           className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"
           variants={containerVariants}
@@ -579,7 +585,7 @@ export default function LandingPage() {
                       href={`#${link.anchor}`}
                       onClick={(e) => {
                         e.preventDefault();
-                        document.getElementById(link.anchor)?.scrollIntoView({ behavior: 'smooth' });
+                        scrollToSection(link.anchor);
                       }}
                       className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
                     >
@@ -645,7 +651,7 @@ export default function LandingPage() {
           </div>
 
           {/* Newsletter */}
-          <div id="contact" className="mt-12 rounded-xl border border-surface-200 bg-white p-6 dark:border-surface-700 dark:bg-surface-800/50 sm:flex sm:items-center sm:justify-between sm:p-8">
+          <div id="contact" ref={(el) => { sectionRefs.current.contact = el; }} className="mt-12 rounded-xl border border-surface-200 bg-white p-6 dark:border-surface-700 dark:bg-surface-800/50 sm:flex sm:items-center sm:justify-between sm:p-8">
             <div>
               <h4 className="text-base font-semibold text-surface-900 dark:text-white">
                 Stay up to date
