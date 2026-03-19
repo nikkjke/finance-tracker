@@ -1,6 +1,28 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Menu, ChevronDown, PanelLeftClose, PanelLeftOpen, Check, Trash2, Search, Loader2, Tag, Calendar, CreditCard } from 'lucide-react';
+import {
+  Bell,
+  Menu,
+  ChevronDown,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Check,
+  Trash2,
+  Search,
+  Loader2,
+  Tag,
+  Calendar,
+  CreditCard,
+  ShoppingBag,
+  Car,
+  Film,
+  Zap,
+  Heart,
+  GraduationCap,
+  Plane,
+  UtensilsCrossed,
+  MoreHorizontal,
+} from 'lucide-react';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
@@ -10,7 +32,7 @@ import Modal from '../ui/Modal';
 import Dropdown from '../ui/Dropdown';
 import DatePicker from '../ui/DatePicker';
 import { DebouncedInput, DebouncedTextarea } from '../ui/DebouncedInput';
-import { categoryLabels } from '../../data/mockData';
+import { categoryLabels, categoryColors } from '../../data/mockData';
 import type { UserRole } from '../../types';
 
 interface NavbarProps {
@@ -19,6 +41,28 @@ interface NavbarProps {
   sidebarCollapsed: boolean;
   isScrolled?: boolean;
 }
+
+type SearchResultItem = {
+  type: 'expense' | 'budget';
+  id: string;
+  title: string;
+  subtitle: string;
+  amount: number;
+  category: string;
+  original: any;
+};
+
+const categoryIcons: Record<string, typeof ShoppingBag> = {
+  food: UtensilsCrossed,
+  transport: Car,
+  entertainment: Film,
+  shopping: ShoppingBag,
+  bills: Zap,
+  health: Heart,
+  education: GraduationCap,
+  travel: Plane,
+  other: MoreHorizontal,
+};
 
 export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed, isScrolled = false }: NavbarProps) {
   const { user, switchRole } = useAuth();
@@ -30,6 +74,8 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
   const [showProfile, setShowProfile] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [activeSearchIndex, setActiveSearchIndex] = useState<number | null>(null);
+  const [searchInteractionMode, setSearchInteractionMode] = useState<'mouse' | 'keyboard' | null>(null);
   
   // Edit Modal State
   const [selectedItem, setSelectedItem] = useState<{ type: 'expense' | 'budget'; data: any } | null>(null);
@@ -39,6 +85,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const searchItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   // Remove document event listener. Instead, handle click capture at root header.
   const handleRootClick = (e: React.MouseEvent<HTMLElement>) => {
@@ -58,6 +105,80 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
     setShowProfile(false);
     // Navigate to the correct dashboard for the new role
     navigate(role === 'admin' ? '/admin' : '/dashboard');
+  };
+
+  const searchResults = useMemo<SearchResultItem[]>(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return [];
+
+    const rawTransactions = getExpenses(user?.role === 'admin' ? undefined : user?.id);
+    const rawBudgets = getBudgets(user?.role === 'admin' ? undefined : user?.id);
+
+    const expResults = rawTransactions
+      .filter((t) =>
+        t.storeName.toLowerCase().includes(query) ||
+        (categoryLabels[t.category] || t.category).toLowerCase().includes(query)
+      )
+      .map((t) => ({
+        type: 'expense' as const,
+        id: t.id,
+        title: t.storeName,
+        subtitle: `${new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} in ${categoryLabels[t.category] || t.category}`,
+        amount: t.amount,
+        category: t.category,
+        original: t,
+      }));
+
+    const budResults = rawBudgets
+      .filter((b) => (categoryLabels[b.category] || b.category).toLowerCase().includes(query))
+      .map((b) => ({
+        type: 'budget' as const,
+        id: b.id,
+        title: `${categoryLabels[b.category] || b.category} Budget`,
+        subtitle: b.period ? `${b.period} budget target` : 'Budget target',
+        amount: b.limit,
+        category: b.category,
+        original: b,
+      }));
+
+    const byBestMatch = (a: SearchResultItem, b: SearchResultItem) => {
+      const rank = (value: string) => {
+        const lower = value.toLowerCase();
+        if (lower.startsWith(query)) return 0;
+        if (lower.includes(query)) return 1;
+        return 2;
+      };
+      return rank(a.title) - rank(b.title);
+    };
+
+    return [...expResults.sort(byBestMatch), ...budResults.sort(byBestMatch)].slice(0, 8);
+  }, [searchQuery, getExpenses, getBudgets, user?.id, user?.role]);
+
+  useEffect(() => {
+    setActiveSearchIndex(null);
+    setSearchInteractionMode(null);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    searchItemRefs.current = searchItemRefs.current.slice(0, searchResults.length);
+  }, [searchResults.length]);
+
+  useEffect(() => {
+    if (searchInteractionMode !== 'keyboard' || activeSearchIndex === null) return;
+    const activeEl = searchItemRefs.current[activeSearchIndex];
+    if (activeEl) {
+      activeEl.scrollIntoView({ block: 'nearest' });
+    }
+  }, [activeSearchIndex, searchInteractionMode]);
+
+  const handleSelectSearchItem = (item: SearchResultItem) => {
+    setSelectedItem({ type: item.type, data: item.original });
+    setEditForm({
+      ...item.original,
+      amount: item.type === 'expense' ? item.original.amount : item.original.limit,
+    });
+    setIsSearchOpen(false);
+    setSearchQuery('');
   };
 
   return (
@@ -111,63 +232,124 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
               setIsSearchOpen(true);
             }}
             onFocus={() => setIsSearchOpen(true)}
+            onKeyDown={(e) => {
+              if (!isSearchOpen || searchResults.length === 0) {
+                if (e.key === 'Escape') {
+                  setIsSearchOpen(false);
+                }
+                return;
+              }
+
+              if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setSearchInteractionMode('keyboard');
+                setActiveSearchIndex((prev) => (prev === null ? 0 : (prev + 1) % searchResults.length));
+                return;
+              }
+
+              if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setSearchInteractionMode('keyboard');
+                setActiveSearchIndex((prev) => (prev === null ? searchResults.length - 1 : (prev - 1 + searchResults.length) % searchResults.length));
+                return;
+              }
+
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                if (activeSearchIndex !== null) {
+                  handleSelectSearchItem(searchResults[activeSearchIndex]);
+                }
+                return;
+              }
+
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                setIsSearchOpen(false);
+              }
+            }}
             placeholder="Search transactions, budgets..."
             className="h-10 w-full rounded-full border border-surface-200 bg-surface-50/50 py-2 pl-10 pr-4 text-sm text-surface-900 transition-all focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500/10 dark:border-surface-700 dark:bg-surface-800/50 dark:text-white dark:focus:border-primary-500 dark:focus:bg-surface-900"
           />
 
           {/* Search Autocomplete Dropdown */}
-          {isSearchOpen && searchQuery && (() => {
-            const rawTransactions = getExpenses(user?.role === 'admin' ? undefined : user?.id);
-            const rawBudgets = getBudgets(user?.role === 'admin' ? undefined : user?.id);
-            
-            const expResults = rawTransactions.filter((t) => 
-                t.storeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (categoryLabels[t.category] || t.category).toLowerCase().includes(searchQuery.toLowerCase())
-              ).map(t => ({ type: 'expense' as const, id: t.id, title: t.storeName, subtitle: `${new Date(t.date).toLocaleDateString()} • ${categoryLabels[t.category] || t.category}`, amount: t.amount, original: t }));
-            
-            const budResults = rawBudgets.filter((b) => 
-                (categoryLabels[b.category] || b.category).toLowerCase().includes(searchQuery.toLowerCase())
-              ).map(b => ({ type: 'budget' as const, id: b.id, title: `${categoryLabels[b.category] || b.category} Budget`, subtitle: b.period, amount: b.limit, original: b }));
-
-            const searchResults = [...expResults, ...budResults].slice(0, 6);
-
-            return (
-              <div className="absolute left-0 right-0 top-full mt-2 overflow-hidden rounded-xl border border-surface-200 bg-white shadow-lg dark:border-surface-700 dark:bg-surface-800 animate-in fade-in slide-in-from-top-2">
+          {isSearchOpen && searchQuery && (
+              <div className="absolute left-0 right-0 top-full mt-2 overflow-hidden rounded-2xl border border-surface-200 bg-white shadow-xl shadow-surface-900/10 dark:border-surface-700 dark:bg-surface-800 dark:shadow-surface-950/40 animate-in fade-in slide-in-from-top-2">
                 {searchResults.length > 0 ? (
-                  <div className="max-h-80 overflow-y-auto py-2">
-                    <div className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-surface-400">Results</div>
-                    {searchResults.map((t) => (
-                      <button
-                        key={`${t.type}-${t.id}`}
-                        onClick={() => {
-                          setSelectedItem({ type: t.type, data: t.original });
-                          setEditForm({
-                            ...t.original,
-                            amount: t.type === 'expense' ? t.original.amount : t.original.limit
-                          });
-                          setIsSearchOpen(false);
-                          setSearchQuery('');
-                        }}
-                        className="w-full flex items-center justify-between px-4 py-2 hover:bg-surface-50 dark:hover:bg-surface-700/50 transition-colors text-left"
-                      >
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-surface-900 dark:text-white">{t.title} <span className="text-[10px] ml-1 bg-surface-100 dark:bg-surface-700 px-1 rounded uppercase tracking-wider text-surface-500">{t.type}</span></span>
-                          <span className="text-xs text-surface-400">{t.subtitle}</span>
-                        </div>
-                        <span className="text-sm font-semibold text-surface-900 dark:text-white">
-                          ${t.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </span>
-                      </button>
+                  <>
+                    <div
+                      className="max-h-80 overflow-y-auto pb-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                      onMouseLeave={() => {
+                        setActiveSearchIndex(null);
+                        setSearchInteractionMode(null);
+                      }}
+                    >
+                    <div className="sticky top-0 z-20 flex flex-nowrap items-center justify-between border-b border-surface-100 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wider text-surface-400 dark:border-surface-700 dark:bg-surface-800">
+                      <span className="whitespace-nowrap">Results</span>
+                      <span className="whitespace-nowrap">{searchResults.length} matches</span>
+                    </div>
+                    {searchResults.map((t, idx) => (
+                      (() => {
+                        const ItemIcon = categoryIcons[t.category] || MoreHorizontal;
+                        const categoryColor = categoryColors[t.category] || '#64748b';
+                        const showTypeHeader = idx === 0 || searchResults[idx - 1].type !== t.type;
+                        return (
+                          <div key={`${t.type}-${t.id}`}>
+                            {showTypeHeader && (
+                              <div className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-surface-400 dark:text-surface-500">
+                                {t.type === 'expense' ? 'Transactions' : 'Budgets'}
+                              </div>
+                            )}
+                            <button
+                              ref={(el) => {
+                                searchItemRefs.current[idx] = el;
+                              }}
+                              onClick={() => handleSelectSearchItem(t)}
+                              onMouseEnter={() => {
+                                setSearchInteractionMode('mouse');
+                                setActiveSearchIndex(idx);
+                              }}
+                              className={`mx-2 my-0.5 flex w-[calc(100%-1rem)] items-center justify-between gap-3 rounded-xl border p-2.5 transition-colors text-left ${
+                                idx === activeSearchIndex
+                                  ? 'border-surface-300 bg-surface-50 dark:border-surface-600 dark:bg-surface-700/50'
+                                  : searchInteractionMode === 'keyboard'
+                                  ? 'border-transparent'
+                                  : 'border-transparent hover:border-surface-200 hover:bg-surface-50 dark:hover:border-surface-600 dark:hover:bg-surface-700/40'
+                              }`}
+                            >
+                              <div className="flex min-w-0 flex-1 items-center gap-3">
+                                <div
+                                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                                  style={{ backgroundColor: `${categoryColor}15` }}
+                                >
+                                  <ItemIcon size={16} style={{ color: categoryColor }} />
+                                </div>
+                                <div className="flex flex-col min-w-0 flex-1">
+                                  <span className="text-sm font-medium text-surface-900 dark:text-white truncate">{t.title} <span className="text-[10px] ml-1 bg-surface-100 dark:bg-surface-700 px-1 rounded uppercase tracking-wider text-surface-500">{t.type}</span></span>
+                                  <span className="text-xs text-surface-500 dark:text-surface-400 truncate">{t.subtitle}</span>
+                                </div>
+                              </div>
+                              <span className="ml-3 shrink-0 whitespace-nowrap text-sm font-semibold text-surface-900 dark:text-white">
+                                ${t.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                              </span>
+                            </button>
+                          </div>
+                        );
+                      })()
                     ))}
                   </div>
+                  </>
                 ) : (
-                  <div className="p-4 text-center text-sm text-surface-500 dark:text-surface-400">
-                    No results found for "{searchQuery}"
+                  <div className="p-6 text-center">
+                    <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-surface-100 dark:bg-surface-700">
+                      <Search size={16} className="text-surface-400" />
+                    </div>
+                    <p className="text-sm font-medium text-surface-700 dark:text-surface-300">No results for "{searchQuery}"</p>
+                    <p className="mt-1 text-xs text-surface-400">Try a store name or category like food, transport, or shopping.</p>
                   </div>
                 )}
               </div>
-            );
-          })()}
+          )}
         </div>
       </div>
 
