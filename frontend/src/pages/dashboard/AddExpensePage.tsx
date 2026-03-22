@@ -595,37 +595,38 @@ export default function AddExpensePage() {
                 </div>
               </div>
 
-              {/* Date */}
-              <div>
-                <DatePicker
-                  value={formData.date}
-                  onChange={(val) => handleChange('date', val)}
-                  label="Date"
-                  error={!!errors.date}
-                />
-                {errors.date && (
-                  <p className="mt-1.5 text-xs text-danger-500">{errors.date}</p>
-                )}
-              </div>
+              {/* Date + Payment Method */}
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <DatePicker
+                    value={formData.date}
+                    onChange={(val) => handleChange('date', val)}
+                    label="Date"
+                    error={!!errors.date}
+                  />
+                  {errors.date && (
+                    <p className="mt-1.5 text-xs text-danger-500">{errors.date}</p>
+                  )}
+                </div>
 
-              {/* Payment Method */}
-              <div>
-                <label className="label">Payment Method</label>
-                <Dropdown
-                  value={formData.paymentMethod}
-                  onChange={(val) => handleChange('paymentMethod', val)}
-                  options={[
-                    { value: 'card', label: 'Card' },
-                    { value: 'cash', label: 'Cash' },
-                    { value: 'bank_transfer', label: 'Bank Transfer' },
-                    { value: 'qr_scan', label: 'Receipt Scan' },
-                  ]}
-                  icon={<CreditCard size={16} />}
-                  fullWidth
-                />
-                {errors.paymentMethod && (
-                  <p className="mt-1.5 text-xs text-danger-500">{errors.paymentMethod}</p>
-                )}
+                <div>
+                  <label className="label">Payment Method</label>
+                  <Dropdown
+                    value={formData.paymentMethod}
+                    onChange={(val) => handleChange('paymentMethod', val)}
+                    options={[
+                      { value: 'card', label: 'Card' },
+                      { value: 'cash', label: 'Cash' },
+                      { value: 'bank_transfer', label: 'Bank Transfer' },
+                      { value: 'qr_scan', label: 'Receipt Scan' },
+                    ]}
+                    icon={<CreditCard size={16} />}
+                    fullWidth
+                  />
+                  {errors.paymentMethod && (
+                    <p className="mt-1.5 text-xs text-danger-500">{errors.paymentMethod}</p>
+                  )}
+                </div>
               </div>
 
               {/* Notes */}
