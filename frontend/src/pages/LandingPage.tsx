@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useRef } from 'react';
 import {
   ScanLine,
   BarChart3,
@@ -11,6 +12,7 @@ import {
   Mail,
   Heart,
 } from 'lucide-react';
+import { motion, type Variants } from 'framer-motion';
 
 const XIcon = ({ size = 16 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
@@ -37,12 +39,37 @@ import fintrackLogo from '../assets/fintrack-logo.svg';
 export default function LandingPage() {
   const { isAuthenticated, user, isLoading } = useAuth();
   const navigate = useNavigate();
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  const scrollToSection = (anchor: string) => {
+    sectionRefs.current[anchor]?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   // Redirect authenticated users to their dashboard
   if (!isLoading && isAuthenticated) {
     navigate(user?.role === 'admin' ? '/admin' : '/dashboard', { replace: true });
     return null;
   }
+
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: 'easeOut' },
+    },
+  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-surface-950">
@@ -68,7 +95,7 @@ export default function LandingPage() {
                 href={`#${item.anchor}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  document.getElementById(item.anchor)?.scrollIntoView({ behavior: 'smooth' });
+                  scrollToSection(item.anchor);
                 }}
                 className="text-sm font-medium text-surface-600 hover:text-surface-900 dark:text-surface-400 dark:hover:text-white transition-colors"
               >
@@ -97,25 +124,30 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8 lg:py-32">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
             {/* Left — Text Content */}
-            <div className="max-w-xl">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 py-1.5 text-sm font-medium text-primary-700 dark:border-primary-500/20 dark:bg-primary-500/10 dark:text-primary-400">
+            <motion.div
+              className="max-w-xl"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <motion.div variants={itemVariants} className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 py-1.5 text-sm font-medium text-primary-700 dark:border-primary-500/20 dark:bg-primary-500/10 dark:text-primary-400">
                 <Zap size={14} />
                 Smart receipt scanning powered by QR technology
-              </div>
+              </motion.div>
 
-              <h1 className="text-3xl font-extrabold tracking-tight text-surface-900 dark:text-white sm:text-4xl lg:text-5xl">
+              <motion.h1 variants={itemVariants} className="text-3xl font-extrabold tracking-tight text-surface-900 dark:text-white sm:text-4xl lg:text-5xl">
                 Take control of your{' '}
                 <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
                   finances
                 </span>
-              </h1>
+              </motion.h1>
 
-              <p className="mt-6 text-base text-surface-600 dark:text-surface-400 leading-relaxed">
+              <motion.p variants={itemVariants} className="mt-6 text-base text-surface-600 dark:text-surface-400 leading-relaxed">
                 Track expenses, scan receipts with QR codes, manage budgets, and get powerful
                 analytics — all in one beautiful dashboard.
-              </p>
+              </motion.p>
 
-              <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+              <motion.div variants={itemVariants} className="mt-10 flex flex-col gap-4 sm:flex-row">
                 <Link to="/register" className="btn-primary px-8 py-3 text-sm">
                   Get Started
                   <ArrowRight size={18} />
@@ -123,10 +155,10 @@ export default function LandingPage() {
                 <Link to="/login" className="btn-secondary px-8 py-3 text-sm">
                   Sign in to Dashboard
                 </Link>
-              </div>
+              </motion.div>
 
               {/* Stats row */}
-              <div className="mt-12 flex items-center gap-8">
+              <motion.div variants={itemVariants} className="mt-12 flex items-center gap-8">
                 <div>
                   <p className="text-xl font-bold text-surface-900 dark:text-white">10K+</p>
                   <p className="text-sm text-surface-500 dark:text-surface-400">Active Users</p>
@@ -141,11 +173,16 @@ export default function LandingPage() {
                   <p className="text-xl font-bold text-surface-900 dark:text-white">50K+</p>
                   <p className="text-sm text-surface-500 dark:text-surface-400">Receipts Scanned</p>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
             {/* Right — Credit Card Visuals */}
-            <div className="relative flex justify-center lg:justify-end">
+            <motion.div 
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
+              className="relative flex justify-center lg:justify-end"
+            >
               <div className="relative w-full max-w-lg h-[420px] sm:h-[480px]">
 
                 {/* ═══ White/Light Card — back, tilted left ═══ */}
@@ -276,23 +313,29 @@ export default function LandingPage() {
                 </div>
 
               </div>
-            </div>
+            </motion.div>
           </div>
 
         </div>
       </section>
 
       {/* QR Scanning Section */}
-      <section id="how-it-works" className="border-t border-surface-200 bg-surface-50 dark:border-surface-800 dark:bg-surface-900">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+      <section id="how-it-works" ref={(el) => { sectionRefs.current['how-it-works'] = el; }} className="border-t border-surface-200 bg-surface-50 dark:border-surface-800 dark:bg-surface-900">
+        <motion.div 
+          className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
+          <motion.div variants={itemVariants} className="text-center mb-16">
             <h2 className="text-2xl font-bold text-surface-900 dark:text-white sm:text-3xl">
               How QR Receipt Scanning Works
             </h2>
             <p className="mt-4 text-base text-surface-600 dark:text-surface-400 max-w-2xl mx-auto">
               Stop entering expenses manually. Just scan and go.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid gap-8 md:grid-cols-3">
             {[
@@ -315,30 +358,36 @@ export default function LandingPage() {
                 description: 'Your expense is instantly added to your dashboard with full analytics and budget tracking.',
               },
             ].map((item) => (
-              <div key={item.step} className="card text-center group hover:shadow-md transition-shadow">
+              <motion.div variants={itemVariants} key={item.step} className="card text-center group hover:shadow-md transition-shadow">
                 <div className="mb-4 text-sm font-bold text-primary-500">{item.step}</div>
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary-50 dark:bg-primary-500/10 group-hover:bg-primary-100 dark:group-hover:bg-primary-500/20 transition-colors">
                   <item.icon size={24} className="text-primary-600 dark:text-primary-400" />
                 </div>
                 <h3 className="text-lg font-semibold text-surface-900 dark:text-white mb-2">{item.title}</h3>
                 <p className="text-sm text-surface-500 dark:text-surface-400">{item.description}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Features */}
-      <section id="features" className="border-t border-surface-200 dark:border-surface-800">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+      <section id="features" ref={(el) => { sectionRefs.current.features = el; }} className="border-t border-surface-200 dark:border-surface-800">
+        <motion.div 
+          className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
+          <motion.div variants={itemVariants} className="text-center mb-16">
             <h2 className="text-2xl font-bold text-surface-900 dark:text-white sm:text-3xl">
               Everything you need to manage your money
             </h2>
             <p className="mt-4 text-base text-surface-600 dark:text-surface-400 max-w-2xl mx-auto">
               Powerful features designed for modern personal finance management.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[
@@ -373,9 +422,10 @@ export default function LandingPage() {
                 description: 'Full responsive design. Track expenses on the go from any device.',
               },
             ].map((feature) => (
-              <div
+              <motion.div
+                variants={itemVariants}
                 key={feature.title}
-                className="card group hover:shadow-md hover:border-primary-200 dark:hover:border-primary-500/20 transition-all duration-300"
+                className="card group hover:shadow-md hover:border-primary-200 dark:hover:border-primary-500/20 transition-shadow transition-colors duration-300"
               >
                 <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-500/10 group-hover:bg-primary-100 dark:group-hover:bg-primary-500/20 transition-colors">
                   <feature.icon size={20} className="text-primary-600 dark:text-primary-400" />
@@ -386,23 +436,29 @@ export default function LandingPage() {
                 <p className="text-sm text-surface-500 dark:text-surface-400 leading-relaxed">
                   {feature.description}
                 </p>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Security */}
-      <section id="security" className="border-t border-surface-200 bg-surface-50 dark:border-surface-800 dark:bg-surface-900">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+      <section id="security" ref={(el) => { sectionRefs.current.security = el; }} className="border-t border-surface-200 bg-surface-50 dark:border-surface-800 dark:bg-surface-900">
+        <motion.div 
+          className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
+          <motion.div variants={itemVariants} className="text-center mb-16">
             <h2 className="text-2xl font-bold text-surface-900 dark:text-white sm:text-3xl">
               Your data is safe with us
             </h2>
             <p className="mt-4 text-base text-surface-600 dark:text-surface-400 max-w-2xl mx-auto">
               We take security seriously. Your financial data is protected with industry-leading practices.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
@@ -427,22 +483,28 @@ export default function LandingPage() {
                 description: 'Your financial information is never sold or shared with advertisers.',
               },
             ].map((item) => (
-              <div key={item.title} className="card text-center group hover:shadow-md transition-shadow">
+              <motion.div variants={itemVariants} key={item.title} className="card text-center group hover:shadow-md transition-shadow">
                 <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary-50 dark:bg-primary-500/10 group-hover:bg-primary-100 dark:group-hover:bg-primary-500/20 transition-colors">
                   <item.icon size={22} className="text-primary-600 dark:text-primary-400" />
                 </div>
                 <h3 className="text-base font-semibold text-surface-900 dark:text-white mb-1.5">{item.title}</h3>
                 <p className="text-sm text-surface-500 dark:text-surface-400 leading-relaxed">{item.description}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* CTA */}
       <section className="border-t border-surface-200 dark:border-surface-800">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-primary-500/30 bg-surface-50 dark:border-primary-500/20 dark:bg-surface-800/50 p-8 sm:p-12 text-center backdrop-blur-sm">
+        <motion.div 
+          className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
+          <motion.div variants={itemVariants} className="rounded-2xl border border-primary-500/30 bg-surface-50 dark:border-primary-500/20 dark:bg-surface-800/50 p-8 sm:p-12 text-center backdrop-blur-sm relative overflow-hidden">
             {/* Yellow accent line at top */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-1 bg-primary-500 rounded-full" />
             
@@ -467,8 +529,8 @@ export default function LandingPage() {
                 Sign in
               </Link>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* Footer */}
@@ -523,7 +585,7 @@ export default function LandingPage() {
                       href={`#${link.anchor}`}
                       onClick={(e) => {
                         e.preventDefault();
-                        document.getElementById(link.anchor)?.scrollIntoView({ behavior: 'smooth' });
+                        scrollToSection(link.anchor);
                       }}
                       className="text-sm text-surface-500 transition-colors hover:text-primary-600 dark:text-surface-400 dark:hover:text-primary-400"
                     >
@@ -589,7 +651,7 @@ export default function LandingPage() {
           </div>
 
           {/* Newsletter */}
-          <div id="contact" className="mt-12 rounded-xl border border-surface-200 bg-white p-6 dark:border-surface-700 dark:bg-surface-800/50 sm:flex sm:items-center sm:justify-between sm:p-8">
+          <div id="contact" ref={(el) => { sectionRefs.current.contact = el; }} className="mt-12 rounded-xl border border-surface-200 bg-white p-6 dark:border-surface-700 dark:bg-surface-800/50 sm:flex sm:items-center sm:justify-between sm:p-8">
             <div>
               <h4 className="text-base font-semibold text-surface-900 dark:text-white">
                 Stay up to date

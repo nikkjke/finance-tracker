@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Mail, MapPin, Clock, Send } from 'lucide-react';
 import { ThemeToggle } from '../../components/ui/ThemeToggle';
 import fintrackLogo from '../../assets/fintrack-logo.svg';
+import { motion } from 'framer-motion';
+import { containerVariants, itemVariants } from '../../lib/animations';
 import { useState } from 'react';
 
 export default function ContactPage() {
@@ -30,30 +32,41 @@ export default function ContactPage() {
       <section className="relative overflow-hidden border-b border-surface-200 dark:border-surface-800">
         <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-white dark:from-surface-950 dark:via-surface-900 dark:to-surface-950" />
         <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full bg-primary-500/5 blur-3xl dark:bg-primary-500/[0.03]" />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 py-1.5 text-sm font-medium text-primary-700 dark:border-primary-500/20 dark:bg-primary-500/10 dark:text-primary-400">
+        <motion.div 
+          className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 text-center"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div variants={itemVariants} className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 py-1.5 text-sm font-medium text-primary-700 dark:border-primary-500/20 dark:bg-primary-500/10 dark:text-primary-400">
             <Mail size={14} />
             Get in Touch
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-surface-900 dark:text-white sm:text-4xl lg:text-5xl">
+          </motion.div>
+          <motion.h1 variants={itemVariants} className="text-3xl font-extrabold tracking-tight text-surface-900 dark:text-white sm:text-4xl lg:text-5xl">
             Contact{' '}
             <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
               our team
             </span>
-          </h1>
-          <p className="mt-6 text-base text-surface-600 dark:text-surface-400 max-w-2xl mx-auto leading-relaxed">
+          </motion.h1>
+          <motion.p variants={itemVariants} className="mt-6 text-base text-surface-600 dark:text-surface-400 max-w-2xl mx-auto leading-relaxed">
             Have a question, feedback, or partnership inquiry? We'd love to hear from you.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
       </section>
 
       {/* Content */}
       <section className="border-b border-surface-200 dark:border-surface-800">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+        <motion.div 
+          className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
           <div className="grid gap-12 lg:grid-cols-2">
             {/* Contact Info */}
             <div>
-              <h2 className="text-2xl font-bold text-surface-900 dark:text-white mb-8">Reach Us Directly</h2>
+              <motion.h2 variants={itemVariants} className="text-2xl font-bold text-surface-900 dark:text-white mb-8">Reach Us Directly</motion.h2>
               <div className="space-y-6">
                 {[
                   {
@@ -75,7 +88,7 @@ export default function ContactPage() {
                     sub: 'Emergency email support available 24/7.',
                   },
                 ].map((item) => (
-                  <div key={item.title} className="flex gap-4">
+                  <motion.div variants={itemVariants} key={item.title} className="flex gap-4">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-500/10">
                       <item.icon size={20} className="text-primary-600 dark:text-primary-400" />
                     </div>
@@ -84,13 +97,13 @@ export default function ContactPage() {
                       <p className="text-sm text-surface-700 dark:text-surface-300">{item.detail}</p>
                       <p className="text-xs text-surface-500 dark:text-surface-400 mt-0.5">{item.sub}</p>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
 
             {/* Contact Form */}
-            <div className="card">
+            <motion.div variants={itemVariants} className="card">
               <h3 className="text-lg font-semibold text-surface-900 dark:text-white mb-6">Send a Message</h3>
               {submitted ? (
                 <div className="text-center py-12">
@@ -153,9 +166,9 @@ export default function ContactPage() {
                   </button>
                 </form>
               )}
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Footer */}

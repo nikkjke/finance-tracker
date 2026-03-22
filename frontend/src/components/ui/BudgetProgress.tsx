@@ -74,17 +74,23 @@ function getCustomDurationLabel(startDate: string, endDate: string): string {
   return `${dayCount} day${dayCount === 1 ? '' : 's'}`;
 }
 
-function getBudgetBadgeLabel(budget: Budget): string {
+function getBudgetBadgeParts(budget: Budget): { periodLabel: string; rangeLabel: string } {
   const period = budget.period ?? 'monthly';
   const { start, end } = getBudgetPeriodRange(period, budget.startDate, budget.endDate);
   const referenceYear = new Date().getFullYear();
   const rangeLabel = `${formatCompactDate(start, referenceYear)} - ${formatCompactDate(end, referenceYear)}`;
 
   if (period === 'custom' && budget.startDate && budget.endDate) {
-    return `${getCustomDurationLabel(budget.startDate, budget.endDate)} • ${rangeLabel}`;
+    return {
+      periodLabel: getCustomDurationLabel(budget.startDate, budget.endDate),
+      rangeLabel,
+    };
   }
 
-  return `${periodLabels[period]} • ${rangeLabel}`;
+  return {
+    periodLabel: periodLabels[period],
+    rangeLabel,
+  };
 }
 
 interface BudgetProgressProps {
@@ -97,7 +103,7 @@ export default function BudgetProgress({ budget, actions }: BudgetProgressProps)
   const remaining = budget.limit - budget.spent;
   const color = categoryColors[budget.category] || '#64748b';
   const barColor = percent > 90 ? '#ef4444' : percent > 70 ? '#f59e0b' : color;
-  const badgeLabel = getBudgetBadgeLabel(budget);
+  const { periodLabel, rangeLabel } = getBudgetBadgeParts(budget);
 
   return (
     <div className="w-full space-y-3">
@@ -113,9 +119,14 @@ export default function BudgetProgress({ budget, actions }: BudgetProgressProps)
           </span>
         </div>
         <div className="grid w-full min-w-0 grid-cols-[1fr_auto] items-center gap-2 sm:flex sm:w-auto sm:shrink-0 sm:grid-cols-none">
-          <span className="min-w-0 truncate rounded-md bg-surface-100 px-2 py-0.5 text-[11px] font-medium text-surface-500 dark:bg-surface-700 dark:text-surface-400">
-            {badgeLabel}
-          </span>
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+            <span className="inline-flex h-6 min-w-0 items-center truncate rounded-md bg-surface-100 px-2 text-[11px] leading-none font-semibold text-surface-600 dark:bg-surface-700 dark:text-surface-300">
+              {periodLabel}
+            </span>
+            <span className="inline-flex h-6 min-w-0 items-center truncate rounded-md bg-surface-100 px-2 text-[11px] leading-none font-medium text-surface-600 dark:bg-surface-700 dark:text-surface-300">
+              {rangeLabel}
+            </span>
+          </div>
           <div className="flex items-center justify-end gap-1">
             {actions}
           </div>

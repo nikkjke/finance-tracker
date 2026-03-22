@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { ThemeToggle } from '../../components/ui/ThemeToggle';
 import fintrackLogo from '../../assets/fintrack-logo.svg';
+import { motion } from 'framer-motion';
+import { containerVariants, itemVariants } from '../../lib/animations';
 
 export default function PrivacyPolicyPage() {
   const sections = [
@@ -88,32 +90,43 @@ export default function PrivacyPolicyPage() {
       <section className="relative overflow-hidden border-b border-surface-200 dark:border-surface-800">
         <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-white dark:from-surface-950 dark:via-surface-900 dark:to-surface-950" />
         <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full bg-primary-500/5 blur-3xl dark:bg-primary-500/[0.03]" />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 py-1.5 text-sm font-medium text-primary-700 dark:border-primary-500/20 dark:bg-primary-500/10 dark:text-primary-400">
+        <motion.div 
+          className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 text-center"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div variants={itemVariants} className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-200 bg-primary-50 px-4 py-1.5 text-sm font-medium text-primary-700 dark:border-primary-500/20 dark:bg-primary-500/10 dark:text-primary-400">
             <Shield size={14} />
             Privacy Policy
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-surface-900 dark:text-white sm:text-4xl lg:text-5xl">
+          </motion.div>
+          <motion.h1 variants={itemVariants} className="text-3xl font-extrabold tracking-tight text-surface-900 dark:text-white sm:text-4xl lg:text-5xl">
             Your privacy{' '}
             <span className="bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
               matters to us
             </span>
-          </h1>
-          <p className="mt-6 text-base text-surface-600 dark:text-surface-400 max-w-2xl mx-auto leading-relaxed">
+          </motion.h1>
+          <motion.p variants={itemVariants} className="mt-6 text-base text-surface-600 dark:text-surface-400 max-w-2xl mx-auto leading-relaxed">
             We are committed to protecting your personal information and being transparent about how we handle your data.
-          </p>
-          <p className="mt-3 text-sm text-surface-400 dark:text-surface-500">
+          </motion.p>
+          <motion.p variants={itemVariants} className="mt-3 text-sm text-surface-400 dark:text-surface-500">
             Last updated: March 15, 2026
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
       </section>
 
       {/* Content */}
       <section>
-        <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+        <motion.div 
+          className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
           <div className="space-y-10">
             {sections.map((section) => (
-              <div key={section.title}>
+              <motion.div variants={itemVariants} key={section.title}>
                 <h2 className="text-lg font-bold text-surface-900 dark:text-white mb-4">{section.title}</h2>
                 <ul className="space-y-3">
                   {section.content.map((item, i) => (
@@ -123,11 +136,11 @@ export default function PrivacyPolicyPage() {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </motion.div>
             ))}
           </div>
 
-          <div className="mt-12 rounded-xl border border-surface-200 bg-surface-50 p-6 dark:border-surface-700 dark:bg-surface-800/50">
+          <motion.div variants={itemVariants} className="mt-12 rounded-xl border border-surface-200 bg-surface-50 p-6 dark:border-surface-700 dark:bg-surface-800/50">
             <p className="text-sm text-surface-600 dark:text-surface-400 leading-relaxed">
               If you have questions about this Privacy Policy, please contact us at{' '}
               <a href="mailto:privacy@fintrack.com" className="text-primary-600 dark:text-primary-400 font-medium hover:underline">
@@ -135,8 +148,8 @@ export default function PrivacyPolicyPage() {
               </a>
               .
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* Footer */}

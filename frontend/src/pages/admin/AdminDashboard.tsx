@@ -13,7 +13,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import StatCard from '../../components/ui/StatCard';
-import BarChart from '../../components/ui/BarChart';
+import { AreaChart, Area, Grid, XAxis, ChartTooltip } from '../../components/ui/AreaChart';
 import Spinner from '../../components/ui/Spinner';
 import { mockUsers, mockAdminStats, mockExpenses } from '../../data/mockData';
 import { exportUsers, exportTransactions } from '../../services';
@@ -62,22 +62,29 @@ export default function AdminDashboard() {
     }
   };
 
-  const userGrowthData = [
-    { label: 'Sep', value: 45 },
-    { label: 'Oct', value: 62 },
-    { label: 'Nov', value: 58 },
-    { label: 'Dec', value: 91 },
-    { label: 'Jan', value: 78 },
-    { label: 'Feb', value: stats.newUsersThisMonth },
+  // Convert month-label data to Date-keyed format for AreaChart
+  const monthToDate: Record<string, Date> = {
+    'Sep': new Date(2025, 8, 1), 'Oct': new Date(2025, 9, 1),
+    'Nov': new Date(2025, 10, 1), 'Dec': new Date(2025, 11, 1),
+    'Jan': new Date(2026, 0, 1), 'Feb': new Date(2026, 1, 1),
+  };
+
+  const userGrowthChartData = [
+    { date: monthToDate['Sep'], value: 45 },
+    { date: monthToDate['Oct'], value: 62 },
+    { date: monthToDate['Nov'], value: 58 },
+    { date: monthToDate['Dec'], value: 91 },
+    { date: monthToDate['Jan'], value: 78 },
+    { date: monthToDate['Feb'], value: stats.newUsersThisMonth },
   ];
 
-  const revenueData = [
-    { label: 'Sep', value: 2450 },
-    { label: 'Oct', value: 3200 },
-    { label: 'Nov', value: 2890 },
-    { label: 'Dec', value: 4100 },
-    { label: 'Jan', value: 3650 },
-    { label: 'Feb', value: stats.totalRevenue || 3800 },
+  const revenueChartData = [
+    { date: monthToDate['Sep'], value: 2450 },
+    { date: monthToDate['Oct'], value: 3200 },
+    { date: monthToDate['Nov'], value: 2890 },
+    { date: monthToDate['Dec'], value: 4100 },
+    { date: monthToDate['Jan'], value: 3650 },
+    { date: monthToDate['Feb'], value: stats.totalRevenue || 3800 },
   ];
 
   return (
@@ -122,31 +129,34 @@ export default function AdminDashboard() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
               title="Total Users"
-              value={stats.totalUsers.toLocaleString()}
+              value={stats.totalUsers}
               icon={<Users size={20} />}
               change={7.2}
               changeLabel="this month"
+              isCurrency={false}
             />
             <StatCard
               title="Active Users"
-              value={stats.activeUsers.toLocaleString()}
+              value={stats.activeUsers}
               icon={<Activity size={20} />}
               change={3.1}
               changeLabel="this month"
+              isCurrency={false}
             />
             <StatCard
               title="Total Revenue"
-              value={`$${stats.totalRevenue.toLocaleString()}`}
+              value={stats.totalRevenue}
               icon={<DollarSign size={20} />}
               change={12.5}
               changeLabel="this month"
             />
             <StatCard
               title="New Users"
-              value={stats.newUsersThisMonth.toString()}
+              value={stats.newUsersThisMonth}
               icon={<UserPlus size={20} />}
               change={-2.3}
               changeLabel="vs last month"
+              isCurrency={false}
             />
           </div>
 
@@ -160,7 +170,17 @@ export default function AdminDashboard() {
             </h2>
             <p className="text-sm text-surface-400">New users per month</p>
           </div>
-          <BarChart data={userGrowthData} height={200} color="#22c55e" />
+          <AreaChart
+            data={userGrowthChartData as Record<string, unknown>[]}
+            xDataKey="date"
+            className="h-[250px] w-full"
+            margin={{ top: 16, right: 4, bottom: 32, left: 4 }}
+          >
+            <Grid horizontal />
+            <Area dataKey="value" fill="#22c55e" fillOpacity={0.3} />
+            <XAxis numTicks={6} tickFormat={(d) => d.toLocaleDateString('en-US', { month: 'short' })} />
+            <ChartTooltip rows={(p) => [{ color: '#22c55e', label: 'New Users', value: (p.value as number) ?? 0 }]} />
+          </AreaChart>
         </div>
 
         {/* Revenue Chart */}
@@ -171,7 +191,17 @@ export default function AdminDashboard() {
             </h2>
             <p className="text-sm text-surface-400">Monthly revenue overview</p>
           </div>
-          <BarChart data={revenueData} height={200} color="#3b82f6" />
+          <AreaChart
+            data={revenueChartData as Record<string, unknown>[]}
+            xDataKey="date"
+            className="h-[250px] w-full"
+            margin={{ top: 16, right: 4, bottom: 32, left: 4 }}
+          >
+            <Grid horizontal />
+            <Area dataKey="value" fill="#3b82f6" fillOpacity={0.3} />
+            <XAxis numTicks={6} tickFormat={(d) => d.toLocaleDateString('en-US', { month: 'short' })} />
+            <ChartTooltip rows={(p) => [{ color: '#3b82f6', label: 'Revenue', value: `$${((p.value as number) ?? 0).toLocaleString()}` }]} />
+          </AreaChart>
         </div>
       </div>
 

@@ -5,7 +5,6 @@ import {
   Download,
   Calendar,
   DollarSign,
-  TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
   BarChart3,
@@ -14,7 +13,7 @@ import {
   ArrowUpDown,
 } from 'lucide-react';
 import { useExpenses } from '../../contexts/ExpenseContext';
-import BarChart from '../../components/ui/BarChart';
+import { AreaChart, Area, Grid, XAxis, ChartTooltip } from '../../components/ui/AreaChart';
 import DonutChart from '../../components/ui/DonutChart';
 import Dropdown from '../../components/ui/Dropdown';
 import Modal from '../../components/ui/Modal';
@@ -22,6 +21,7 @@ import Pagination from '../../components/ui/Pagination';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
+import StatCard from '../../components/ui/StatCard';
 import { applyFilters, presetToDateRange, exportTransactions, exportReport } from '../../services';
 import { categoryLabels } from '../../data/mockData';
 import type { Expense, ExpenseStatus } from '../../types';
@@ -135,13 +135,19 @@ export default function AdminTransactions() {
     exportReport(type as any);
   };
 
+  const monthToDate: Record<string, Date> = {
+    'Sep': new Date(2025, 8, 1), 'Oct': new Date(2025, 9, 1),
+    'Nov': new Date(2025, 10, 1), 'Dec': new Date(2025, 11, 1),
+    'Jan': new Date(2026, 0, 1), 'Feb': new Date(2026, 1, 1),
+  };
+
   const revenueData = [
-    { label: 'Sep', value: 2450 },
-    { label: 'Oct', value: 3200 },
-    { label: 'Nov', value: 2890 },
-    { label: 'Dec', value: 4100 },
-    { label: 'Jan', value: 3650 },
-    { label: 'Feb', value: 3800 },
+    { date: monthToDate['Sep'], value: 2450 },
+    { date: monthToDate['Oct'], value: 3200 },
+    { date: monthToDate['Nov'], value: 2890 },
+    { date: monthToDate['Dec'], value: 4100 },
+    { date: monthToDate['Jan'], value: 3650 },
+    { date: monthToDate['Feb'], value: 3800 },
   ];
 
   const categoryData = [
@@ -152,14 +158,25 @@ export default function AdminTransactions() {
     { label: 'Other', value: 12, color: '#8b5cf6' },
   ];
 
+  // Map day-of-week labels to real dates (current week Mon–Sun)
+  const getWeekDate = (dayOffset: number) => {
+    const now = new Date();
+    const day = now.getDay(); // 0=Sun
+    const mon = new Date(now);
+    mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+    const d = new Date(mon);
+    d.setDate(mon.getDate() + dayOffset);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  };
+
   const userActivityData = [
-    { label: 'Mon', value: 156 },
-    { label: 'Tue', value: 189 },
-    { label: 'Wed', value: 175 },
-    { label: 'Thu', value: 201 },
-    { label: 'Fri', value: 234 },
-    { label: 'Sat', value: 145 },
-    { label: 'Sun', value: 98 },
+    { date: getWeekDate(0), value: 156 },
+    { date: getWeekDate(1), value: 189 },
+    { date: getWeekDate(2), value: 175 },
+    { date: getWeekDate(3), value: 201 },
+    { date: getWeekDate(4), value: 234 },
+    { date: getWeekDate(5), value: 145 },
+    { date: getWeekDate(6), value: 98 },
   ];
 
   const getCategoryColor = (category: string) => {
@@ -278,73 +295,31 @@ export default function AdminTransactions() {
         <>
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="card group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-primary-200/60 hover:shadow-xl hover:shadow-primary-500/[0.06] dark:hover:border-primary-500/25 dark:hover:shadow-primary-500/[0.08]">
-          <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full dark:via-white/[0.04]" />
-          <div className="absolute -bottom-10 -right-10 h-28 w-28 rounded-full bg-primary-400/0 blur-2xl transition-all duration-500 group-hover:bg-primary-400/10 dark:group-hover:bg-primary-400/[0.07]" />
-          <div className="relative flex items-center justify-between">
-            <div>
-              <p className="text-sm text-surface-500 dark:text-surface-400">Total Volume</p>
-              <p className="text-2xl font-bold text-surface-900 dark:text-white mt-1">
-                ${stats.total.toFixed(2)}
-              </p>
-            </div>
-            <div className="h-12 w-12 rounded-full bg-primary-100 dark:bg-primary-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
-              <DollarSign size={24} className="text-primary-600 dark:text-primary-400 transition-transform duration-300 group-hover:scale-110" />
-            </div>
-          </div>
-          <div className="flex items-center gap-1 mt-2 text-xs text-success-600 dark:text-success-400">
-            <TrendingUp size={12} />
-            <span>+12.5% from last month</span>
-          </div>
-        </div>
-
-        <div className="card group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-primary-200/60 hover:shadow-xl hover:shadow-primary-500/[0.06] dark:hover:border-primary-500/25 dark:hover:shadow-primary-500/[0.08]">
-          <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full dark:via-white/[0.04]" />
-          <div className="absolute -bottom-10 -right-10 h-28 w-28 rounded-full bg-primary-400/0 blur-2xl transition-all duration-500 group-hover:bg-primary-400/10 dark:group-hover:bg-primary-400/[0.07]" />
-          <div className="relative flex items-center justify-between">
-            <div>
-              <p className="text-sm text-surface-500 dark:text-surface-400">Completed</p>
-              <p className="text-2xl font-bold text-surface-900 dark:text-white mt-1">
-                {stats.completed}
-              </p>
-            </div>
-            <div className="h-12 w-12 rounded-full bg-success-100 dark:bg-success-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
-              <ArrowUpRight size={24} className="text-success-600 dark:text-success-400 transition-transform duration-300 group-hover:scale-110" />
-            </div>
-          </div>
-        </div>
-
-        <div className="card group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-primary-200/60 hover:shadow-xl hover:shadow-primary-500/[0.06] dark:hover:border-primary-500/25 dark:hover:shadow-primary-500/[0.08]">
-          <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full dark:via-white/[0.04]" />
-          <div className="absolute -bottom-10 -right-10 h-28 w-28 rounded-full bg-primary-400/0 blur-2xl transition-all duration-500 group-hover:bg-primary-400/10 dark:group-hover:bg-primary-400/[0.07]" />
-          <div className="relative flex items-center justify-between">
-            <div>
-              <p className="text-sm text-surface-500 dark:text-surface-400">Pending</p>
-              <p className="text-2xl font-bold text-surface-900 dark:text-white mt-1">
-                {stats.pending}
-              </p>
-            </div>
-            <div className="h-12 w-12 rounded-full bg-warning-100 dark:bg-warning-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
-              <Calendar size={24} className="text-warning-600 dark:text-warning-400 transition-transform duration-300 group-hover:scale-110" />
-            </div>
-          </div>
-        </div>
-
-        <div className="card group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-primary-200/60 hover:shadow-xl hover:shadow-primary-500/[0.06] dark:hover:border-primary-500/25 dark:hover:shadow-primary-500/[0.08]">
-          <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full dark:via-white/[0.04]" />
-          <div className="absolute -bottom-10 -right-10 h-28 w-28 rounded-full bg-primary-400/0 blur-2xl transition-all duration-500 group-hover:bg-primary-400/10 dark:group-hover:bg-primary-400/[0.07]" />
-          <div className="relative flex items-center justify-between">
-            <div>
-              <p className="text-sm text-surface-500 dark:text-surface-400">Cancelled</p>
-              <p className="text-2xl font-bold text-surface-900 dark:text-white mt-1">
-                {stats.cancelled}
-              </p>
-            </div>
-            <div className="h-12 w-12 rounded-full bg-danger-100 dark:bg-danger-500/20 flex items-center justify-center transition-all duration-300 group-hover:rotate-6">
-              <ArrowDownRight size={24} className="text-danger-600 dark:text-danger-400 transition-transform duration-300 group-hover:scale-110" />
-            </div>
-          </div>
-        </div>
+        <StatCard
+          title="Total Volume"
+          value={stats.total}
+          icon={<DollarSign size={20} />}
+          change={12.5}
+          changeLabel="from last month"
+        />
+        <StatCard
+          title="Completed"
+          value={stats.completed}
+          icon={<ArrowUpRight size={20} />}
+          isCurrency={false}
+        />
+        <StatCard
+          title="Pending"
+          value={stats.pending}
+          icon={<Calendar size={20} />}
+          isCurrency={false}
+        />
+        <StatCard
+          title="Cancelled"
+          value={stats.cancelled}
+          icon={<ArrowDownRight size={20} />}
+          isCurrency={false}
+        />
       </div>
 
       {/* Filters and Transactions */}
@@ -723,7 +698,17 @@ export default function AdminTransactions() {
               Export
             </button>
           </div>
-          <BarChart data={revenueData} height={250} color="#3b82f6" />
+          <AreaChart
+            data={revenueData as Record<string, unknown>[]}
+            xDataKey="date"
+            className="h-[250px] w-full"
+            margin={{ top: 16, right: 4, bottom: 32, left: 4 }}
+          >
+            <Grid horizontal />
+            <Area dataKey="value" fill="#3b82f6" fillOpacity={0.3} />
+            <XAxis numTicks={6} tickFormat={(d) => d.toLocaleDateString('en-US', { month: 'short' })} />
+            <ChartTooltip rows={(p) => [{ color: '#3b82f6', label: 'Revenue', value: `$${((p.value as number) ?? 0).toLocaleString()}` }]} />
+          </AreaChart>
         </div>
 
         {/* Category Distribution */}
@@ -764,7 +749,17 @@ export default function AdminTransactions() {
             Export
           </button>
         </div>
-        <BarChart data={userActivityData} height={200} color="#22c55e" />
+        <AreaChart
+          data={userActivityData as Record<string, unknown>[]}
+          xDataKey="date"
+          className="h-[250px] w-full"
+          margin={{ top: 16, right: 4, bottom: 32, left: 4 }}
+        >
+          <Grid horizontal />
+          <Area dataKey="value" fill="#22c55e" fillOpacity={0.3} />
+          <XAxis numTicks={7} tickFormat={(d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} />
+          <ChartTooltip rows={(p) => [{ color: '#22c55e', label: 'Active Users', value: (p.value as number) ?? 0 }]} />
+        </AreaChart>
       </div>
 
       {/* Export Options */}

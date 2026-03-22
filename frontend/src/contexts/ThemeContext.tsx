@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { STORAGE_KEYS } from '../types';
 
 type Theme = 'light' | 'dark';
@@ -11,6 +11,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  const switchTimeoutRef = useRef<number | null>(null);
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(STORAGE_KEYS.THEME) as Theme;
@@ -21,39 +22,39 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    const root = document.documentElement;
-    root.classList.remove('light', 'dark');
-    root.classList.add(theme);
     localStorage.setItem(STORAGE_KEYS.THEME, theme);
-
-    if (theme === 'dark') {
-      document.body.style.backgroundColor = '#0f172a';
-      document.body.style.color = '#e2e8f0';
-    } else {
-      document.body.style.backgroundColor = '#ffffff';
-      document.body.style.color = '#0f172a';
-    }
   }, [theme]);
 
-  const toggleTheme = () => {
-    // Disable transitions temporarily to avoid visual delay
-    const css = document.createElement('style');
-    css.textContent = '*, *::before, *::after { transition: none !important; }';
-    document.head.appendChild(css);
+  const [isThemeSwitching, setIsThemeSwitching] = useState(false);
 
+  useEffect(() => {
+    return () => {
+      if (switchTimeoutRef.current !== null) {
+        window.clearTimeout(switchTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    setIsThemeSwitching(true);
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
 
-    // Re-enable transitions after a frame
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        document.head.removeChild(css);
-      });
-    });
-  };
+    if (switchTimeoutRef.current !== null) {
+      window.clearTimeout(switchTimeoutRef.current);
+    }
+
+    // Keep transitions disabled briefly so every component flips theme instantly.
+    switchTimeoutRef.current = window.setTimeout(() => {
+      setIsThemeSwitching(false);
+      switchTimeoutRef.current = null;
+    }, 250);
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
+      <div className={`${theme} ${isThemeSwitching ? 'theme-switching' : ''} min-h-screen bg-surface-50 text-surface-900 dark:bg-surface-950 dark:text-surface-100`}>
+        {children}
+      </div>
     </ThemeContext.Provider>
   );
 }

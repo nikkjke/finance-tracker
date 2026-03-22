@@ -9,6 +9,7 @@ import { NotificationProvider } from './contexts/NotificationContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import DashboardLayout from './components/layout/DashboardLayout';
+import ScrollToTop from './components/layout/ScrollToTop';
 
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/auth/LoginPage';
@@ -32,6 +33,7 @@ import { AboutUsPage, SupportPage, ContactPage, PrivacyPolicyPage, TermsOfServic
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <ThemeProvider>
         <AuthProvider>
           <ExpenseProvider>
