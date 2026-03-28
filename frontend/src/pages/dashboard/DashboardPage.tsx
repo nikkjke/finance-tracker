@@ -19,7 +19,6 @@ import EmptyState from '../../components/ui/EmptyState';
 import Spinner from '../../components/ui/Spinner';
 import {
   categoryLabels,
-  mockMonthlySpending,
 } from '../../data/mockData';
 import { useExpenses } from '../../contexts/ExpenseContext';
 import { useIncome } from '../../contexts/IncomeContext';
@@ -144,55 +143,32 @@ export default function DashboardPage() {
 
   // Memoized monthly spending + income trends
   const monthlyTrendsData = useMemo(() => {
-    const isDemoUser = user?.id === '1';
+    // Aggregate by month for the last 6 months using live context data.
+    const now = new Date();
+    const startMonth = new Date(now.getFullYear(), now.getMonth() - 5, 1);
 
-    if (isDemoUser) {
-      // Build 6-month date-keyed data for demo user
-      const monthMap: Record<string, { month: number; year: number }> = {
-        'Sep': { month: 8, year: 2025 }, 'Oct': { month: 9, year: 2025 },
-        'Nov': { month: 10, year: 2025 }, 'Dec': { month: 11, year: 2025 },
-        'Jan': { month: 0, year: 2026 }, 'Feb': { month: 1, year: 2026 },
-      };
-      const mockIncomeByMonth: Record<string, number> = {
-        'Sep': 3800, 'Oct': 4200, 'Nov': 4100, 'Dec': 5200, 'Jan': 4500, 'Feb': 6870,
-      };
-      const chartData = mockMonthlySpending.map((d) => {
-        const mapping = monthMap[d.label];
-        return {
-          date: mapping ? new Date(mapping.year, mapping.month, 1) : new Date(),
-          spending: d.value,
-          income: mockIncomeByMonth[d.label] ?? 0,
-        };
-      });
-      const avgSpending = mockMonthlySpending.reduce((s, m) => s + m.value, 0) / mockMonthlySpending.length;
-      const sorted = [...mockMonthlySpending].sort((a, b) => a.value - b.value);
-      return { data: chartData, average: avgSpending, highest: sorted[sorted.length - 1], lowest: sorted[0] };
+    const monthBuckets: Record<string, { date: Date; spending: number; income: number }> = {};
+    for (let i = 0; i < 6; i += 1) {
+      const monthDate = new Date(startMonth.getFullYear(), startMonth.getMonth() + i, 1);
+      const key = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`;
+      monthBuckets[key] = { date: monthDate, spending: 0, income: 0 };
     }
 
-    // For real users: aggregate by day this month
-    const now = new Date();
-    const thisMonth = now.getMonth();
-    const thisYear = now.getFullYear();
-    const dailyMap: Record<string, { date: Date; spending: number; income: number }> = {};
-
     userExpenses.forEach((expense) => {
-      const d = new Date(expense.date);
-      if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) {
-        const key = d.toISOString().slice(0, 10);
-        if (!dailyMap[key]) dailyMap[key] = { date: new Date(d.getFullYear(), d.getMonth(), d.getDate()), spending: 0, income: 0 };
-        dailyMap[key].spending += expense.amount;
-      }
-    });
-    userIncome.forEach((inc) => {
-      const d = new Date(inc.date);
-      if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) {
-        const key = d.toISOString().slice(0, 10);
-        if (!dailyMap[key]) dailyMap[key] = { date: new Date(d.getFullYear(), d.getMonth(), d.getDate()), spending: 0, income: 0 };
-        dailyMap[key].income += inc.amount;
+      const key = expense.date.slice(0, 7);
+      if (monthBuckets[key]) {
+        monthBuckets[key].spending += expense.amount;
       }
     });
 
-    const chartData = Object.values(dailyMap).sort((a, b) => a.date.getTime() - b.date.getTime());
+    userIncome.forEach((inc) => {
+      const key = inc.date.slice(0, 7);
+      if (monthBuckets[key]) {
+        monthBuckets[key].income += inc.amount;
+      }
+    });
+
+    const chartData = Object.values(monthBuckets).sort((a, b) => a.date.getTime() - b.date.getTime());
     if (chartData.length === 0) return { data: [], average: 0, highest: { label: '', value: 0 }, lowest: { label: '', value: 0 } };
 
     const avgSpending = chartData.reduce((s, d) => s + d.spending, 0) / chartData.length;
@@ -203,7 +179,7 @@ export default function DashboardPage() {
       highest: { label: '', value: sortedBySpend[sortedBySpend.length - 1]?.spending ?? 0 },
       lowest: { label: '', value: sortedBySpend[0]?.spending ?? 0 },
     };
-  }, [userExpenses, userIncome, user?.id]);
+  }, [userExpenses, userIncome]);
 
   // Memoized recent transactions summary (live from context)
   const transactionsData = useMemo(() => {
@@ -296,10 +272,10 @@ export default function DashboardPage() {
               <div className="mb-6 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-surface-900 dark:text-white">
-                    {user?.id === '1' ? 'Income and Expenses' : 'Income & Spending Activity'}
+                    Income and Expenses
                   </h2>
                   <p className="text-sm text-surface-400">
-                    {user?.id === '1' ? 'Last 6 months overview' : 'This month by day'}
+                    Last 6 months overview
                   </p>
                 </div>
               </div>
@@ -332,7 +308,7 @@ export default function DashboardPage() {
                     />
                     <XAxis 
                       numTicks={6} 
-                      tickFormat={(d) => user?.id === '1' ? d.toLocaleDateString('en-US', { month: 'short' }) : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      tickFormat={(d) => d.toLocaleDateString('en-US', { month: 'short' })}
                     />
                     <ChartTooltip
                       rows={(point) => [

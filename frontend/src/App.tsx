@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AxiosProvider } from './contexts/AxiosContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ExpenseProvider } from './contexts/ExpenseContext';
@@ -34,13 +35,14 @@ function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <ThemeProvider>
-        <AuthProvider>
-          <ExpenseProvider>
-            <IncomeProvider>
-              <BudgetProvider>
-                <NotificationProvider>
-                  <ErrorBoundary>
+      <AxiosProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <ExpenseProvider>
+              <IncomeProvider>
+                <BudgetProvider>
+                  <NotificationProvider>
+                    <ErrorBoundary>
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
@@ -106,13 +108,14 @@ function App() {
             {/* Catch-all: any unknown route → 404 */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
-                </ErrorBoundary>
-              </NotificationProvider>
-            </BudgetProvider>
-          </IncomeProvider>
-          </ExpenseProvider>
-        </AuthProvider>
-      </ThemeProvider>
+                    </ErrorBoundary>
+                  </NotificationProvider>
+                </BudgetProvider>
+              </IncomeProvider>
+            </ExpenseProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </AxiosProvider>
     </BrowserRouter>
   );
 }

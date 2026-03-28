@@ -1,7 +1,12 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
-import { mockBudgets } from '../data/mockData';
-import { STORAGE_KEYS } from '../types';
 import type { Budget, CreateBudgetDTO, UpdateBudgetDTO, ServiceResponse } from '../types';
+import { useAuth } from './AuthContext';
+import {
+  getBudgets as fetchBudgets,
+  addBudget as createBudget,
+  updateBudget as editBudget,
+  deleteBudget as removeBudget,
+} from '../services/budgetService';
 
 interface BudgetContextType {
   budgets: Budget[];
@@ -15,45 +20,22 @@ interface BudgetContextType {
 
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
 
-/** Load budgets from localStorage, seeding demo user with mock data on first load. */
-function loadInitialBudgets(): Budget[] {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEYS.BUDGETS);
-    if (stored) {
-      const budgets = JSON.parse(stored) as Budget[];
-      // If storage exists but is empty, check if we should seed demo user
-      if (budgets.length === 0) {
-        // Seed demo user budgets on first load
-        const demoUserBudgets = mockBudgets.filter(b => b.userId === '1');
-        if (demoUserBudgets.length > 0) {
-          localStorage.setItem(STORAGE_KEYS.BUDGETS, JSON.stringify(demoUserBudgets));
-          return demoUserBudgets;
-        }
-      }
-      return budgets;
-    } else {
-      // First time - seed with demo user budgets only
-      const demoUserBudgets = mockBudgets.filter(b => b.userId === '1');
-      localStorage.setItem(STORAGE_KEYS.BUDGETS, JSON.stringify(demoUserBudgets));
-      return demoUserBudgets;
-    }
-  } catch {
-    // ignore
-  }
-  return [];
-}
-
 export function BudgetProvider({ children }: { children: ReactNode }) {
-  const [budgets, setBudgets] = useState<Budget[]>(loadInitialBudgets);
+  const { user } = useAuth();
+  const [budgets, setBudgets] = useState<Budget[]>([]);
 
-  // Persist budgets to localStorage whenever they change
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.BUDGETS, JSON.stringify(budgets));
-    } catch {
-      console.warn('Failed to persist budgets to localStorage');
+  const loadBudgets = useCallback(async () => {
+    const result = await fetchBudgets(user?.id);
+    if (!result.success) {
+      return;
     }
-  }, [budgets]);
+
+    setBudgets(result.data ?? []);
+  }, [user?.id]);
+
+  useEffect(() => {
+    void loadBudgets();
+  }, [loadBudgets]);
 
   const getBudgets = useCallback((userId?: string) => {
     if (!userId) return budgets;
@@ -65,99 +47,41 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   }, [budgets]);
 
   const addBudget = useCallback(async (userId: string, dto: CreateBudgetDTO): Promise<ServiceResponse<Budget>> => {
-    // Validation
-    if (dto.limit <= 0) {
-      return { success: false, error: 'Budget limit must be greater than zero.' };
-    }
-    if (!dto.month) {
-      return { success: false, error: 'Month is required.' };
+    const result = await createBudget(userId, dto);
+
+    if (!result.success || !result.data) {
+      return result;
     }
 
-    // Check for duplicate: same category + same period (+ same date range for custom)
-    const duplicate = budgets.find((b) => {
-      if (b.userId !== userId || b.category !== dto.category) return false;
-      if (b.period !== dto.period) return false;
-      if (dto.period === 'custom') {
-        return b.startDate === dto.startDate && b.endDate === dto.endDate;
-      }
-      return true;
-    });
-    if (duplicate) {
-      const periodLabel: Record<string, string> = {
-        weekly: 'this week', monthly: 'this month', quarterly: 'this quarter',
-        yearly: 'this year', custom: 'that date range',
-      };
-      return {
-        success: false,
-        error: `A ${dto.period} budget for "${dto.category}" already exists for ${periodLabel[dto.period] ?? dto.period}.`,
-      };
-    }
-
-    const newBudget: Budget = {
-      id: `b-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-      userId,
-      category: dto.category,
-      limit: dto.limit,
-      spent: 0,
-      month: dto.month,
-      period: dto.period,
-      startDate: dto.startDate,
-      endDate: dto.endDate,
-    };
-
-    setBudgets((prev) => [newBudget, ...prev]);
-    return { success: true, data: newBudget };
-  }, [budgets]);
-
-  const updateBudget = useCallback(async (id: string, dto: UpdateBudgetDTO): Promise<ServiceResponse<Budget>> => {
-    let updatedBudget: Budget | undefined;
-
-    setBudgets((prev) =>
-      prev.map((budget) => {
-        if (budget.id !== id) return budget;
-
-        // Validate limit if provided
-        if (dto.limit !== undefined && dto.limit <= 0) {
-          return budget; // Skip update if invalid
-        }
-
-        updatedBudget = {
-          ...budget,
-          ...(dto.category !== undefined && { category: dto.category }),
-          ...(dto.limit !== undefined && { limit: dto.limit }),
-          ...(dto.spent !== undefined && { spent: dto.spent }),
-          ...(dto.month !== undefined && { month: dto.month }),
-          ...(dto.period !== undefined && { period: dto.period }),
-          ...(dto.startDate !== undefined && { startDate: dto.startDate }),
-          ...(dto.endDate !== undefined && { endDate: dto.endDate }),
-        };
-
-        return updatedBudget;
-      }),
-    );
-
-    if (!updatedBudget) {
-      return { success: false, error: `Budget with ID "${id}" not found or validation failed.` };
-    }
-
-    return { success: true, data: updatedBudget };
+    setBudgets((prev) => [result.data as Budget, ...prev]);
+    return result;
   }, []);
 
-  const deleteBudget = useCallback(async (id: string): Promise<ServiceResponse<null>> => {
-    const budgetExists = budgets.some((b) => b.id === id);
+  const updateBudget = useCallback(async (id: string, dto: UpdateBudgetDTO): Promise<ServiceResponse<Budget>> => {
+    const result = await editBudget(id, dto, user?.id);
 
-    if (!budgetExists) {
-      return { success: false, error: `Budget with ID "${id}" not found.` };
+    if (!result.success || !result.data) {
+      return result;
+    }
+
+    setBudgets((prev) => prev.map((budget) => (budget.id === id ? { ...budget, ...result.data } : budget)));
+    return result;
+  }, [user?.id]);
+
+  const deleteBudget = useCallback(async (id: string): Promise<ServiceResponse<null>> => {
+    const result = await removeBudget(id, user?.id);
+
+    if (!result.success) {
+      return { success: false, error: result.error };
     }
 
     setBudgets((prev) => prev.filter((budget) => budget.id !== id));
     return { success: true, data: null };
-  }, [budgets]);
+  }, [user?.id]);
 
   const refreshBudgets = useCallback(() => {
-    const stored = loadInitialBudgets();
-    setBudgets(stored);
-  }, []);
+    void loadBudgets();
+  }, [loadBudgets]);
 
   const value: BudgetContextType = {
     budgets,

@@ -1,7 +1,12 @@
 import { createContext, useContext, useMemo, useState, useCallback, useEffect, type ReactNode } from 'react';
-import { mockExpenses } from '../data/mockData';
-import { STORAGE_KEYS } from '../types';
 import type { Expense, CreateExpenseDTO, UpdateExpenseDTO, ServiceResponse } from '../types';
+import { useAuth } from './AuthContext';
+import {
+  getExpenses as fetchExpenses,
+  addExpense as createExpense,
+  updateExpense as editExpense,
+  deleteExpense as removeExpense,
+} from '../services/expenseService';
 
 interface ExpenseContextType {
   expenses: Expense[];
@@ -14,28 +19,28 @@ interface ExpenseContextType {
 
 const ExpenseContext = createContext<ExpenseContextType | undefined>(undefined);
 
-/** Load expenses from localStorage, falling back to mock data on first use. */
-function loadInitialExpenses(): Expense[] {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEYS.EXPENSES);
-    if (stored) return JSON.parse(stored) as Expense[];
-  } catch {
-    // ignore
-  }
-  return [...mockExpenses];
-}
-
 export function ExpenseProvider({ children }: { children: ReactNode }) {
-  const [expenses, setExpenses] = useState<Expense[]>(loadInitialExpenses);
+  const { user } = useAuth();
+  const [expenses, setExpenses] = useState<Expense[]>([]);
 
-  // Persist expenses to localStorage whenever they change
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(expenses));
-    } catch {
-      console.warn('Failed to persist expenses to localStorage');
-    }
-  }, [expenses]);
+    let isMounted = true;
+
+    const loadExpenses = async () => {
+      const result = await fetchExpenses(user?.id);
+      if (!isMounted || !result.success) {
+        return;
+      }
+
+      setExpenses(result.data ?? []);
+    };
+
+    void loadExpenses();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id]);
 
   const getExpenses = useCallback((userId?: string) => {
     if (!userId) return expenses;
@@ -47,63 +52,40 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
   }, [expenses]);
 
   const addExpense = useCallback(async (userId: string, dto: CreateExpenseDTO): Promise<ServiceResponse<Expense>> => {
-    const newExpense: Expense = {
-      id: `exp-${Date.now()}`,
-      userId,
-      storeName: dto.storeName.trim(),
-      amount: dto.amount,
-      category: dto.category,
-      date: dto.date,
-      notes: dto.notes,
-      paymentMethod: dto.paymentMethod,
-      status: 'completed',
-    };
+    const result = await createExpense(userId, dto);
 
-    setExpenses((prev) => [newExpense, ...prev]);
-    return { success: true, data: newExpense };
+    if (!result.success || !result.data) {
+      return result;
+    }
+
+    setExpenses((prev) => [result.data as Expense, ...prev]);
+    return result;
   }, []);
 
   const updateExpense = useCallback(async (id: string, dto: UpdateExpenseDTO): Promise<ServiceResponse<Expense>> => {
-    let updatedExpense: Expense | undefined;
+    const result = await editExpense(id, dto, user?.id);
 
-    setExpenses((prev) =>
-      prev.map((expense) => {
-        if (expense.id !== id) return expense;
-
-        updatedExpense = {
-          ...expense,
-          ...dto,
-          storeName: dto.storeName?.trim() ?? expense.storeName,
-        };
-
-        return updatedExpense;
-      }),
-    );
-
-    if (!updatedExpense) {
-      return { success: false, error: `Expense with ID "${id}" not found.` };
+    if (!result.success || !result.data) {
+      return result;
     }
 
-    return { success: true, data: updatedExpense };
-  }, []);
+    setExpenses((prev) =>
+      prev.map((expense) => (expense.id === id ? { ...expense, ...result.data } : expense)),
+    );
+
+    return result;
+  }, [user?.id]);
 
   const deleteExpense = useCallback(async (id: string): Promise<ServiceResponse<null>> => {
-    let found = false;
+    const result = await removeExpense(id, user?.id);
 
-    setExpenses((prev) =>
-      prev.filter((expense) => {
-        const isMatch = expense.id === id;
-        if (isMatch) found = true;
-        return !isMatch;
-      }),
-    );
-
-    if (!found) {
-      return { success: false, error: `Expense with ID "${id}" not found.` };
+    if (!result.success) {
+      return { success: false, error: result.error };
     }
 
+    setExpenses((prev) => prev.filter((expense) => expense.id !== id));
     return { success: true, data: null };
-  }, []);
+  }, [user?.id]);
 
   const value = useMemo(
     () => ({
