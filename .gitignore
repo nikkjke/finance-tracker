@@ -12,6 +12,20 @@ dist
 dist-ssr
 *.local
 .vite
+bin/
+obj/
+.vs/
+*.DotSettings.user
+
+# Generic environment files
+.env
+.env.*
+
+# Frontend environment files
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+!frontend/.env.example
 
 # Editor directories and files
 .vscode/*
@@ -21,5 +35,4 @@ dist-ssr
 *.suo
 *.ntvs*
 *.njsproj
-*.sln
 *.sw?
