@@ -1,7 +1,12 @@
 import { createContext, useContext, useMemo, useState, useCallback, useEffect, type ReactNode } from 'react';
-import { mockIncome } from '../data/mockData';
-import { STORAGE_KEYS } from '../types';
 import type { Income, CreateIncomeDTO, UpdateIncomeDTO, ServiceResponse } from '../types';
+import { useAuth } from './AuthContext';
+import {
+  getIncome as fetchIncome,
+  addIncome as createIncome,
+  updateIncome as editIncome,
+  deleteIncome as removeIncome,
+} from '../services/incomeService';
 
 interface IncomeContextType {
   income: Income[];
@@ -14,28 +19,28 @@ interface IncomeContextType {
 
 const IncomeContext = createContext<IncomeContextType | undefined>(undefined);
 
-/** Load income from localStorage, falling back to mock data on first use. */
-function loadInitialIncome(): Income[] {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEYS.INCOME);
-    if (stored) return JSON.parse(stored) as Income[];
-  } catch {
-    // ignore
-  }
-  return [...mockIncome];
-}
-
 export function IncomeProvider({ children }: { children: ReactNode }) {
-  const [income, setIncome] = useState<Income[]>(loadInitialIncome);
+  const { user } = useAuth();
+  const [income, setIncome] = useState<Income[]>([]);
 
-  // Persist income to localStorage whenever it changes
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.INCOME, JSON.stringify(income));
-    } catch {
-      console.warn('Failed to persist income to localStorage');
-    }
-  }, [income]);
+    let isMounted = true;
+
+    const loadIncome = async () => {
+      const result = await fetchIncome(user?.id);
+      if (!isMounted || !result.success) {
+        return;
+      }
+
+      setIncome(result.data ?? []);
+    };
+
+    void loadIncome();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id]);
 
   const getIncome = useCallback((userId?: string) => {
     if (!userId) return income;
@@ -47,62 +52,37 @@ export function IncomeProvider({ children }: { children: ReactNode }) {
   }, [income]);
 
   const addIncome = useCallback(async (userId: string, dto: CreateIncomeDTO): Promise<ServiceResponse<Income>> => {
-    const newIncome: Income = {
-      id: `inc-${Date.now()}`,
-      userId,
-      source: dto.source.trim(),
-      amount: dto.amount,
-      category: dto.category,
-      date: dto.date,
-      notes: dto.notes,
-      status: 'completed',
-    };
+    const result = await createIncome(userId, dto);
 
-    setIncome((prev) => [newIncome, ...prev]);
-    return { success: true, data: newIncome };
+    if (!result.success || !result.data) {
+      return result;
+    }
+
+    setIncome((prev) => [result.data as Income, ...prev]);
+    return result;
   }, []);
 
   const updateIncome = useCallback(async (id: string, dto: UpdateIncomeDTO): Promise<ServiceResponse<Income>> => {
-    let updatedIncome: Income | undefined;
+    const result = await editIncome(id, dto, user?.id);
 
-    setIncome((prev) =>
-      prev.map((inc) => {
-        if (inc.id !== id) return inc;
-
-        updatedIncome = {
-          ...inc,
-          ...dto,
-          source: dto.source?.trim() ?? inc.source,
-        };
-
-        return updatedIncome;
-      }),
-    );
-
-    if (!updatedIncome) {
-      return { success: false, error: `Income with ID "${id}" not found.` };
+    if (!result.success || !result.data) {
+      return result;
     }
 
-    return { success: true, data: updatedIncome };
-  }, []);
+    setIncome((prev) => prev.map((entry) => (entry.id === id ? { ...entry, ...result.data } : entry)));
+    return result;
+  }, [user?.id]);
 
   const deleteIncome = useCallback(async (id: string): Promise<ServiceResponse<null>> => {
-    let found = false;
+    const result = await removeIncome(id, user?.id);
 
-    setIncome((prev) =>
-      prev.filter((inc) => {
-        const isMatch = inc.id === id;
-        if (isMatch) found = true;
-        return !isMatch;
-      }),
-    );
-
-    if (!found) {
-      return { success: false, error: `Income with ID "${id}" not found.` };
+    if (!result.success) {
+      return { success: false, error: result.error };
     }
 
+    setIncome((prev) => prev.filter((entry) => entry.id !== id));
     return { success: true, data: null };
-  }, []);
+  }, [user?.id]);
 
   const value = useMemo(
     () => ({
