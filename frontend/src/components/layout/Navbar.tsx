@@ -363,7 +363,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                 </div>
                 <button
                   onClick={() => {
-                    navigate('/notifications');
+                    navigate(user?.role === 'admin' ? '/admin/alerts' : '/notifications');
                     setShowNotifications(false);
                   }}
                   className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-semibold"
@@ -429,7 +429,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                 <div className="border-t border-surface-200 px-4 py-2 text-center dark:border-surface-700">
                   <button
                     onClick={() => {
-                      navigate('/notifications');
+                      navigate(user?.role === 'admin' ? '/admin/alerts' : '/notifications');
                       setShowNotifications(false);
                     }}
                     className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-semibold"
