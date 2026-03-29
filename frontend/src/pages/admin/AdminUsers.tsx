@@ -18,6 +18,7 @@ import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
 import StatCard from '../../components/ui/StatCard';
 import { applyFilters, exportUsers } from '../../services';
+import { useNotification } from '../../contexts/NotificationContext';
 import type { User } from '../../types';
 import type { FilterPipelineConfig, SortConfig } from '../../services/filterService';
 
@@ -40,6 +41,7 @@ const initialFormData: UserFormData = {
 };
 
 export default function AdminUsers() {
+  const { pushNotification } = useNotification();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -162,29 +164,53 @@ export default function AdminUsers() {
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     if (editingUser) {
+      const nextName = formData.name.trim();
+      const nextEmail = formData.email.trim();
+      const nextRole = formData.role;
+      const changedFields: string[] = [];
+      if (nextName !== editingUser.name) changedFields.push('name');
+      if (nextEmail !== editingUser.email) changedFields.push('email');
+      if (nextRole !== editingUser.role) changedFields.push('role');
+
       // Update existing user
       setUsers((prev) =>
         prev.map((u) =>
           u.id === editingUser.id
             ? {
                 ...u,
-                name: formData.name.trim(),
-                email: formData.email.trim(),
-                role: formData.role,
+                name: nextName,
+                email: nextEmail,
+                role: nextRole,
               }
             : u
         )
       );
+
+      if (changedFields.length > 0) {
+        pushNotification({
+          title: 'Admin updated user',
+          message: `${editingUser.name} was updated (${changedFields.join(', ')}).`,
+          type: 'security',
+          priority: 'medium',
+        });
+      }
     } else {
       // Create new user
+      const newName = formData.name.trim();
       const newUser: User = {
         id: `user-${Date.now()}`,
-        name: formData.name.trim(),
+        name: newName,
         email: formData.email.trim(),
         role: formData.role,
         createdAt: new Date().toISOString(),
       };
       setUsers((prev) => [newUser, ...prev]);
+      pushNotification({
+        title: 'Admin created user',
+        message: `${newName} was added as ${formData.role}.`,
+        type: 'system',
+        priority: 'low',
+      });
     }
 
     setIsSaving(false);
@@ -193,22 +219,48 @@ export default function AdminUsers() {
   };
 
   const handleDeleteUser = (id: string) => {
+    const userToDelete = users.find((u) => u.id === id);
     if (window.confirm('Are you sure you want to delete this user?')) {
       setUsers((prev) => prev.filter((u) => u.id !== id));
+      pushNotification({
+        title: 'Admin deleted user',
+        message: `${userToDelete?.name ?? 'A user'} was removed from the platform.`,
+        type: 'security',
+        priority: 'high',
+      });
     }
   };
 
   const handleToggleRole = (id: string) => {
+    const targetUser = users.find((u) => u.id === id);
+    if (!targetUser) {
+      return;
+    }
+
+    const nextRole = targetUser.role === 'admin' ? 'user' : 'admin';
     setUsers((prev) =>
       prev.map((u) =>
-        u.id === id ? { ...u, role: u.role === 'admin' ? 'user' : 'admin' } : u
+        u.id === id ? { ...u, role: nextRole } : u
       )
     );
+
+    pushNotification({
+      title: 'Admin changed role',
+      message: `${targetUser.name} role changed from ${targetUser.role} to ${nextRole}.`,
+      type: 'security',
+      priority: 'high',
+    });
   };
 
   const handleExport = () => {
     // Export filtered users to CSV
     exportUsers(filteredUsers, { filename: 'users', format: 'csv' });
+    pushNotification({
+      title: 'Users export generated',
+      message: `Admin exported ${filteredUsers.length} user records.`,
+      type: 'system',
+      priority: 'low',
+    });
   };
 
   const stats = {
