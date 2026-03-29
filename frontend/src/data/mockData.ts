@@ -237,6 +237,7 @@ export const mockNotifications: Notification[] = [
     priority: 'high',
     timestamp: '2026-02-15T10:30:00',
     read: false,
+    resolved: false,
   },
   {
     id: 'n2',
@@ -246,6 +247,7 @@ export const mockNotifications: Notification[] = [
     priority: 'low',
     timestamp: '2026-02-14T14:20:00',
     read: false,
+    resolved: false,
   },
   {
     id: 'n3',
@@ -255,6 +257,7 @@ export const mockNotifications: Notification[] = [
     priority: 'medium',
     timestamp: '2026-02-12T09:00:00',
     read: true,
+    resolved: true,
   },
   {
     id: 'n4',
@@ -264,6 +267,7 @@ export const mockNotifications: Notification[] = [
     priority: 'medium',
     timestamp: '2026-02-07T18:45:00',
     read: true,
+    resolved: true,
   },
 ];
 

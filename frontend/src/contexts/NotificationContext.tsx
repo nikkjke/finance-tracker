@@ -13,12 +13,22 @@ export interface Notification {
   priority: NotificationPriority;
   timestamp: string;
   read: boolean;
+  resolved: boolean;
 }
+
+type CreateNotificationInput = {
+  title: string;
+  message: string;
+  type: NotificationType;
+  priority?: NotificationPriority;
+};
 
 interface NotificationContextType {
   notifications: Notification[];
+  pushNotification: (input: CreateNotificationInput) => void;
   markAsRead: (id: string) => void;
   markAsUnread: (id: string) => void;
+  resolveNotification: (id: string) => void;
   markAllAsRead: () => void;
   deleteNotification: (id: string) => void;
   clearAll: () => void;
@@ -26,6 +36,12 @@ interface NotificationContextType {
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+
+const normalizeNotifications = (items: Notification[]) =>
+  items.map((notification) => ({
+    ...notification,
+    resolved: notification.resolved ?? false,
+  }));
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -40,20 +56,21 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         try {
-          return JSON.parse(saved);
+          return normalizeNotifications(JSON.parse(saved) as Notification[]);
         } catch {
           // If parsing fails, return appropriate default
-          return user.id === '1' ? initialNotifications : [];
+          return user.id === '1' ? normalizeNotifications(initialNotifications) : [];
         }
       }
     }
     
     // For demo user (ID '1'), return mock notifications
     // For new users, return empty array
-    return user.id === '1' ? initialNotifications : [];
+    return user.id === '1' ? normalizeNotifications(initialNotifications) : [];
   });
 
-  // Update notifications when user changes
+  // Reload notifications only when account identity changes.
+  // Profile updates (name/email/avatar) should not reset in-memory notifications.
   useEffect(() => {
     if (!user) {
       setNotifications([]);
@@ -66,16 +83,16 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         try {
-          setNotifications(JSON.parse(saved));
+          setNotifications(normalizeNotifications(JSON.parse(saved) as Notification[]));
         } catch {
-          setNotifications(user.id === '1' ? initialNotifications : []);
+          setNotifications(user.id === '1' ? normalizeNotifications(initialNotifications) : []);
         }
       } else {
         // No saved notifications, set based on user type
-        setNotifications(user.id === '1' ? initialNotifications : []);
+        setNotifications(user.id === '1' ? normalizeNotifications(initialNotifications) : []);
       }
     }
-  }, [user]);
+  }, [user?.id]);
 
   // Persist to localStorage whenever notifications change
   useEffect(() => {
@@ -84,6 +101,25 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       localStorage.setItem(storageKey, JSON.stringify(notifications));
     }
   }, [notifications, user]);
+
+  const pushNotification = useCallback((input: CreateNotificationInput) => {
+    if (!user) {
+      return;
+    }
+
+    const notification: Notification = {
+      id: `n_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      title: input.title,
+      message: input.message,
+      type: input.type,
+      priority: input.priority ?? 'low',
+      timestamp: new Date().toISOString(),
+      read: false,
+      resolved: false,
+    };
+
+    setNotifications((prev) => [notification, ...prev]);
+  }, [user]);
 
   const markAsRead = useCallback((id: string) => {
     setNotifications((prev) =>
@@ -101,6 +137,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   }, []);
 
+  const resolveNotification = useCallback((id: string) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, resolved: true, read: true } : n))
+    );
+  }, []);
+
   const deleteNotification = useCallback((id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   }, []);
@@ -113,8 +155,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   const value: NotificationContextType = {
     notifications,
+    pushNotification,
     markAsRead,
     markAsUnread,
+    resolveNotification,
     markAllAsRead,
     deleteNotification,
     clearAll,
