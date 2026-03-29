@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Edit2, Trash2, Save, X, Tag, DollarSign, FileText } from 'lucide-react';
 import Modal from '../../components/ui/Modal';
+import { useNotification } from '../../contexts/NotificationContext';
 
 interface Category {
   id: string;
@@ -23,6 +24,8 @@ interface StatusOption {
 }
 
 export default function AdminContent() {
+  const { pushNotification } = useNotification();
+
   // Expense Categories
   const [expenseCategories, setExpenseCategories] = useState<Category[]>([
     { id: '1', key: 'food', label: 'Food & Groceries' },
@@ -96,17 +99,30 @@ export default function AdminContent() {
     if (!categoryForm.key || !categoryForm.label) return;
 
     if (editingCategory) {
+      const previousLabel = editingCategory.label;
       setExpenseCategories(prev =>
         prev.map(cat => cat.id === editingCategory.id
           ? { ...cat, key: categoryForm.key, label: categoryForm.label }
           : cat
         )
       );
+      pushNotification({
+        title: 'Content updated',
+        message: `Expense category "${previousLabel}" was updated.`,
+        type: 'system',
+        priority: 'medium',
+      });
     } else {
       setExpenseCategories(prev => [
         ...prev,
         { id: Date.now().toString(), key: categoryForm.key, label: categoryForm.label }
       ]);
+      pushNotification({
+        title: 'Category added',
+        message: `Expense category "${categoryForm.label}" was added.`,
+        type: 'system',
+        priority: 'low',
+      });
     }
 
     setShowCategoryModal(false);
@@ -116,7 +132,14 @@ export default function AdminContent() {
 
   const handleDeleteExpenseCategory = (id: string) => {
     if (confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+      const categoryToDelete = expenseCategories.find((cat) => cat.id === id);
       setExpenseCategories(prev => prev.filter(cat => cat.id !== id));
+      pushNotification({
+        title: 'Category deleted',
+        message: `Expense category "${categoryToDelete?.label ?? 'Unknown'}" was deleted.`,
+        type: 'security',
+        priority: 'high',
+      });
     }
   };
 
@@ -137,17 +160,30 @@ export default function AdminContent() {
     if (!incomeForm.key || !incomeForm.label) return;
 
     if (editingIncome) {
+      const previousLabel = editingIncome.label;
       setIncomeCategories(prev =>
         prev.map(cat => cat.id === editingIncome.id
           ? { ...cat, key: incomeForm.key, label: incomeForm.label }
           : cat
         )
       );
+      pushNotification({
+        title: 'Content updated',
+        message: `Income category "${previousLabel}" was updated.`,
+        type: 'system',
+        priority: 'medium',
+      });
     } else {
       setIncomeCategories(prev => [
         ...prev,
         { id: Date.now().toString(), key: incomeForm.key, label: incomeForm.label }
       ]);
+      pushNotification({
+        title: 'Category added',
+        message: `Income category "${incomeForm.label}" was added.`,
+        type: 'system',
+        priority: 'low',
+      });
     }
 
     setShowIncomeModal(false);
@@ -157,7 +193,14 @@ export default function AdminContent() {
 
   const handleDeleteIncomeCategory = (id: string) => {
     if (confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+      const categoryToDelete = incomeCategories.find((cat) => cat.id === id);
       setIncomeCategories(prev => prev.filter(cat => cat.id !== id));
+      pushNotification({
+        title: 'Category deleted',
+        message: `Income category "${categoryToDelete?.label ?? 'Unknown'}" was deleted.`,
+        type: 'security',
+        priority: 'high',
+      });
     }
   };
 
@@ -178,17 +221,30 @@ export default function AdminContent() {
     if (!currencyForm.code || !currencyForm.symbol || !currencyForm.name) return;
 
     if (editingCurrency) {
+      const previousCode = editingCurrency.code;
       setCurrencies(prev =>
         prev.map(curr => curr.id === editingCurrency.id
           ? { ...curr, ...currencyForm }
           : curr
         )
       );
+      pushNotification({
+        title: 'Currency updated',
+        message: `Currency "${previousCode}" was updated to "${currencyForm.code}".`,
+        type: 'system',
+        priority: 'medium',
+      });
     } else {
       setCurrencies(prev => [
         ...prev,
         { id: Date.now().toString(), ...currencyForm }
       ]);
+      pushNotification({
+        title: 'Currency added',
+        message: `Currency "${currencyForm.code}" was added.`,
+        type: 'system',
+        priority: 'low',
+      });
     }
 
     setShowCurrencyModal(false);
@@ -198,7 +254,14 @@ export default function AdminContent() {
 
   const handleDeleteCurrency = (id: string) => {
     if (confirm('Are you sure you want to delete this currency? This action cannot be undone.')) {
+      const currencyToDelete = currencies.find((curr) => curr.id === id);
       setCurrencies(prev => prev.filter(curr => curr.id !== id));
+      pushNotification({
+        title: 'Currency deleted',
+        message: `Currency "${currencyToDelete?.code ?? 'Unknown'}" was deleted.`,
+        type: 'security',
+        priority: 'high',
+      });
     }
   };
 
@@ -219,17 +282,30 @@ export default function AdminContent() {
     if (!statusForm.value || !statusForm.label) return;
 
     if (editingStatus) {
+      const previousLabel = editingStatus.label;
       setTransactionStatuses(prev =>
         prev.map(stat => stat.id === editingStatus.id
           ? { ...stat, ...statusForm }
           : stat
         )
       );
+      pushNotification({
+        title: 'Status updated',
+        message: `Transaction status "${previousLabel}" was updated.`,
+        type: 'system',
+        priority: 'medium',
+      });
     } else {
       setTransactionStatuses(prev => [
         ...prev,
         { id: Date.now().toString(), ...statusForm }
       ]);
+      pushNotification({
+        title: 'Status added',
+        message: `Transaction status "${statusForm.label}" was added.`,
+        type: 'system',
+        priority: 'low',
+      });
     }
 
     setShowStatusModal(false);
@@ -239,7 +315,14 @@ export default function AdminContent() {
 
   const handleDeleteStatus = (id: string) => {
     if (confirm('Are you sure you want to delete this status? This action cannot be undone.')) {
+      const statusToDelete = transactionStatuses.find((stat) => stat.id === id);
       setTransactionStatuses(prev => prev.filter(stat => stat.id !== id));
+      pushNotification({
+        title: 'Status deleted',
+        message: `Transaction status "${statusToDelete?.label ?? 'Unknown'}" was deleted.`,
+        type: 'security',
+        priority: 'high',
+      });
     }
   };
 

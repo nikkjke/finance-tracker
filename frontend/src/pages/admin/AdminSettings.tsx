@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Save, Shield, Bell, Database, Clock, FileText } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotification } from '../../contexts/NotificationContext';
 import { ThemeToggle } from '../../components/ui/ThemeToggle';
 import Dropdown from '../../components/ui/Dropdown';
 
 export default function AdminSettings() {
   const { user } = useAuth();
+  const { pushNotification } = useNotification();
   const [saved, setSaved] = useState(false);
 
   // System Settings
@@ -28,6 +30,125 @@ export default function AdminSettings() {
   // Backup Settings
   const [autoBackup, setAutoBackup] = useState(true);
   const [backupFrequency, setBackupFrequency] = useState('daily');
+
+  const dataRetentionLabels: Record<string, string> = {
+    '90': '90 days',
+    '180': '180 days',
+    '365': '1 year',
+    '730': '2 years',
+    unlimited: 'unlimited',
+  };
+
+  const sessionTimeoutLabels: Record<string, string> = {
+    '15': '15 minutes',
+    '30': '30 minutes',
+    '60': '1 hour',
+    '120': '2 hours',
+    '480': '8 hours',
+  };
+
+  const passwordMinLengthLabels: Record<string, string> = {
+    '6': '6 characters',
+    '8': '8 characters',
+    '10': '10 characters',
+    '12': '12 characters',
+  };
+
+  const loginAttemptsLabels: Record<string, string> = {
+    '3': '3 attempts',
+    '5': '5 attempts',
+    '10': '10 attempts',
+    unlimited: 'unlimited attempts',
+  };
+
+  const handleToggleMaintenanceMode = () => {
+    const nextValue = !maintenanceMode;
+    setMaintenanceMode(nextValue);
+    pushNotification({
+      title: 'Maintenance mode updated',
+      message: `Maintenance mode was ${nextValue ? 'enabled' : 'disabled'} by an admin.`,
+      type: 'system',
+      priority: 'high',
+    });
+  };
+
+  const handleDataRetentionChange = (nextValue: string) => {
+    if (nextValue === dataRetention) {
+      return;
+    }
+
+    setDataRetention(nextValue);
+    pushNotification({
+      title: 'Data retention updated',
+      message: `Data retention changed from ${dataRetentionLabels[dataRetention] ?? dataRetention} to ${dataRetentionLabels[nextValue] ?? nextValue}.`,
+      type: 'system',
+      priority: 'medium',
+    });
+  };
+
+  const handleSessionTimeoutChange = (nextValue: string) => {
+    if (nextValue === sessionTimeout) {
+      return;
+    }
+
+    setSessionTimeout(nextValue);
+    pushNotification({
+      title: 'Session timeout updated',
+      message: `Session timeout changed from ${sessionTimeoutLabels[sessionTimeout] ?? sessionTimeout} to ${sessionTimeoutLabels[nextValue] ?? nextValue}.`,
+      type: 'security',
+      priority: 'medium',
+    });
+  };
+
+  const handlePasswordMinLengthChange = (nextValue: string) => {
+    if (nextValue === passwordMinLength) {
+      return;
+    }
+
+    setPasswordMinLength(nextValue);
+    pushNotification({
+      title: 'Password policy updated',
+      message: `Minimum password length changed from ${passwordMinLengthLabels[passwordMinLength] ?? passwordMinLength} to ${passwordMinLengthLabels[nextValue] ?? nextValue}.`,
+      type: 'security',
+      priority: 'medium',
+    });
+  };
+
+  const handleLoginAttemptsChange = (nextValue: string) => {
+    if (nextValue === loginAttempts) {
+      return;
+    }
+
+    setLoginAttempts(nextValue);
+    pushNotification({
+      title: 'Login attempts policy updated',
+      message: `Max login attempts changed from ${loginAttemptsLabels[loginAttempts] ?? loginAttempts} to ${loginAttemptsLabels[nextValue] ?? nextValue}.`,
+      type: 'security',
+      priority: 'medium',
+    });
+  };
+
+  const handleToggleRequireSpecialChars = () => {
+    const nextValue = !requireSpecialChars;
+    setRequireSpecialChars(nextValue);
+    pushNotification({
+      title: 'Password requirements updated',
+      message: `Require special characters was ${nextValue ? 'enabled' : 'disabled'}.`,
+      type: 'security',
+      priority: 'high',
+    });
+  };
+
+  const handleToggleTwoFactorAuth = () => {
+    const nextValue = !twoFactorAuth;
+    setTwoFactorAuth(nextValue);
+    pushNotification({
+      title: 'Two-factor authentication updated',
+      message: `Two-factor authentication was ${nextValue ? 'enabled' : 'disabled'} for admins.`,
+      type: 'security',
+      priority: 'high',
+    });
+  };
 
   const handleSave = () => {
     setSaved(true);
@@ -76,7 +197,7 @@ export default function AdminSettings() {
               <p className="text-xs text-surface-400">Temporarily disable user access for maintenance</p>
             </div>
             <button
-              onClick={() => setMaintenanceMode(!maintenanceMode)}
+              onClick={handleToggleMaintenanceMode}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 maintenanceMode ? 'bg-primary-600' : 'bg-surface-300 dark:bg-surface-600'
               }`}
@@ -94,7 +215,7 @@ export default function AdminSettings() {
               <label className="label">Data Retention (days)</label>
               <Dropdown
                 value={dataRetention}
-                onChange={setDataRetention}
+                onChange={handleDataRetentionChange}
                 icon={<Database size={16} />}
                 fullWidth
                 options={[
@@ -110,7 +231,7 @@ export default function AdminSettings() {
               <label className="label">Session Timeout (minutes)</label>
               <Dropdown
                 value={sessionTimeout}
-                onChange={setSessionTimeout}
+                onChange={handleSessionTimeoutChange}
                 icon={<Clock size={16} />}
                 fullWidth
                 options={[
@@ -148,7 +269,7 @@ export default function AdminSettings() {
               <label className="label">Password Min Length</label>
               <Dropdown
                 value={passwordMinLength}
-                onChange={setPasswordMinLength}
+                onChange={handlePasswordMinLengthChange}
                 icon={<Shield size={16} />}
                 fullWidth
                 options={[
@@ -163,7 +284,7 @@ export default function AdminSettings() {
               <label className="label">Max Login Attempts</label>
               <Dropdown
                 value={loginAttempts}
-                onChange={setLoginAttempts}
+                onChange={handleLoginAttemptsChange}
                 icon={<Shield size={16} />}
                 fullWidth
                 options={[
@@ -182,7 +303,7 @@ export default function AdminSettings() {
               <p className="text-xs text-surface-400">Passwords must contain special characters</p>
             </div>
             <button
-              onClick={() => setRequireSpecialChars(!requireSpecialChars)}
+              onClick={handleToggleRequireSpecialChars}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 requireSpecialChars ? 'bg-primary-600' : 'bg-surface-300 dark:bg-surface-600'
               }`}
@@ -201,7 +322,7 @@ export default function AdminSettings() {
               <p className="text-xs text-surface-400">Require 2FA for all admin accounts</p>
             </div>
             <button
-              onClick={() => setTwoFactorAuth(!twoFactorAuth)}
+              onClick={handleToggleTwoFactorAuth}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 twoFactorAuth ? 'bg-primary-600' : 'bg-surface-300 dark:bg-surface-600'
               }`}

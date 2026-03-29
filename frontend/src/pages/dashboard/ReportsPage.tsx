@@ -13,6 +13,7 @@ import { categoryLabels, incomeLabels } from '../../data/mockData';
 import { useExpenses } from '../../contexts/ExpenseContext';
 import { useIncome } from '../../contexts/IncomeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotification } from '../../contexts/NotificationContext';
 import StatCard from '../../components/ui/StatCard';
 import { applyFilters, presetToDateRange, exportReport } from '../../services';
 import type { FilterPipelineConfig, SortConfig } from '../../services/filterService';
@@ -22,6 +23,7 @@ export default function ReportsPage() {
   const { expenses: storeExpenses, updateExpense, deleteExpense } = useExpenses();
   const { income: storeIncome, updateIncome, deleteIncome } = useIncome();
   const { user } = useAuth();
+  const { pushNotification } = useNotification();
 
   // Filter by current user (stable references via useMemo)
   const userExpenses = useMemo(() => storeExpenses.filter((e) => !user || e.userId === user.id), [storeExpenses, user]);
@@ -260,16 +262,32 @@ export default function ReportsPage() {
   }, [incomeSearchQuery, incomeCategoryFilter, incomeStatusFilter, incomeDateRange, incomeSortBy]);
 
   const handleExportReport = async () => {
-    await exportReport('financial', {
-      expenses: filteredExpenses,
-      income: filteredIncomeResult.items,
-      summary: {
-        totalSpent,
-        totalIncome: filteredIncomeResult.items.reduce((sum, inc) => sum + inc.amount, 0),
-        periodStart: presetToDateRange(dateRange as '7days' | '30days' | '6months' | '1year').start,
-        periodEnd: presetToDateRange(dateRange as '7days' | '30days' | '6months' | '1year').end,
-      }
-    });
+    try {
+      await exportReport('financial', {
+        expenses: filteredExpenses,
+        income: filteredIncomeResult.items,
+        summary: {
+          totalSpent,
+          totalIncome: filteredIncomeResult.items.reduce((sum, inc) => sum + inc.amount, 0),
+          periodStart: presetToDateRange(dateRange as '7days' | '30days' | '6months' | '1year').start,
+          periodEnd: presetToDateRange(dateRange as '7days' | '30days' | '6months' | '1year').end,
+        }
+      });
+
+      pushNotification({
+        title: 'Report exported',
+        message: `Exported ${filteredExpenses.length} transactions and ${filteredIncomeResult.items.length} income records.`,
+        type: 'system',
+        priority: 'low',
+      });
+    } catch {
+      pushNotification({
+        title: 'Report export failed',
+        message: 'We could not export your report. Please try again.',
+        type: 'system',
+        priority: 'high',
+      });
+    }
   };
 
   return (

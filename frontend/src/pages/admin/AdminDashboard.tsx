@@ -17,9 +17,11 @@ import { AreaChart, Area, Grid, XAxis, ChartTooltip } from '../../components/ui/
 import Spinner from '../../components/ui/Spinner';
 import { mockUsers, mockAdminStats, mockExpenses } from '../../data/mockData';
 import { exportUsers, exportTransactions } from '../../services';
+import { useNotification } from '../../contexts/NotificationContext';
 
 export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
+  const { pushNotification } = useNotification();
   
   // Simulate loading admin statistics with setTimeout
   useEffect(() => {
@@ -49,16 +51,47 @@ export default function AdminDashboard() {
   ];
 
   const handleExportData = (type: 'users' | 'transactions' | 'all') => {
-    if (type === 'users') {
-      exportUsers(users, { filename: 'users', format: 'csv' });
-    } else if (type === 'transactions') {
-      exportTransactions(mockExpenses, { filename: 'transactions', format: 'csv' });
-    } else {
-      // Export both datasets
-      exportUsers(users, { filename: 'users', format: 'csv' });
-      setTimeout(() => {
+    try {
+      if (type === 'users') {
+        exportUsers(users, { filename: 'users', format: 'csv' });
+        pushNotification({
+          title: 'Users export generated',
+          message: `Admin exported ${users.length} users from the dashboard.`,
+          type: 'system',
+          priority: 'low',
+        });
+      } else if (type === 'transactions') {
         exportTransactions(mockExpenses, { filename: 'transactions', format: 'csv' });
-      }, 100);
+      } else {
+        // Export both datasets
+        exportUsers(users, { filename: 'users', format: 'csv' });
+        setTimeout(() => {
+          try {
+            exportTransactions(mockExpenses, { filename: 'transactions', format: 'csv' });
+          } catch {
+            pushNotification({
+              title: 'Export failed',
+              message: 'Transactions export failed while exporting all dashboard data.',
+              type: 'system',
+              priority: 'high',
+            });
+          }
+        }, 100);
+
+        pushNotification({
+          title: 'Dashboard data exported',
+          message: `Admin exported ${users.length} users and ${mockExpenses.length} transactions.`,
+          type: 'system',
+          priority: 'low',
+        });
+      }
+    } catch {
+      pushNotification({
+        title: 'Export failed',
+        message: 'We could not complete the export. Please try again.',
+        type: 'system',
+        priority: 'high',
+      });
     }
   };
 
