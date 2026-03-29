@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type { Expense, CreateExpenseDTO, UpdateExpenseDTO, ServiceResponse } from '../types';
 import { useAuth } from './AuthContext';
+import { useNotification } from './NotificationContext';
 import {
   getExpenses as fetchExpenses,
   addExpense as createExpense,
@@ -13,7 +14,11 @@ interface ExpenseContextType {
   getExpenses: (userId?: string) => Expense[];
   getExpenseById: (id: string) => Expense | undefined;
   addExpense: (userId: string, dto: CreateExpenseDTO) => Promise<ServiceResponse<Expense>>;
-  updateExpense: (id: string, dto: UpdateExpenseDTO) => Promise<ServiceResponse<Expense>>;
+  updateExpense: (
+    id: string,
+    dto: UpdateExpenseDTO,
+    options?: { notify?: boolean }
+  ) => Promise<ServiceResponse<Expense>>;
   deleteExpense: (id: string) => Promise<ServiceResponse<null>>;
 }
 
@@ -21,6 +26,7 @@ const ExpenseContext = createContext<ExpenseContextType | undefined>(undefined);
 
 export function ExpenseProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { pushNotification } = useNotification();
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
   useEffect(() => {
@@ -59,10 +65,21 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     }
 
     setExpenses((prev) => [result.data as Expense, ...prev]);
+    pushNotification({
+      title: 'Transaction added',
+      message: `Expense at ${result.data.storeName} for $${result.data.amount.toFixed(2)} was added.`,
+      type: 'expense',
+      priority: 'low',
+    });
     return result;
-  }, []);
+  }, [pushNotification]);
 
-  const updateExpense = useCallback(async (id: string, dto: UpdateExpenseDTO): Promise<ServiceResponse<Expense>> => {
+  const updateExpense = useCallback(async (
+    id: string,
+    dto: UpdateExpenseDTO,
+    options?: { notify?: boolean },
+  ): Promise<ServiceResponse<Expense>> => {
+    const previousExpense = expenses.find((expense) => expense.id === id);
     const result = await editExpense(id, dto, user?.id);
 
     if (!result.success || !result.data) {
@@ -73,10 +90,23 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
       prev.map((expense) => (expense.id === id ? { ...expense, ...result.data } : expense)),
     );
 
+    const storeName = result.data.storeName ?? previousExpense?.storeName ?? 'transaction';
+    const amount = result.data.amount ?? previousExpense?.amount;
+    const amountText = typeof amount === 'number' ? `$${amount.toFixed(2)}` : 'new amount';
+    if (options?.notify !== false) {
+      pushNotification({
+        title: 'Transaction updated',
+        message: `Expense at ${storeName} was updated (${amountText}).`,
+        type: 'expense',
+        priority: 'low',
+      });
+    }
+
     return result;
-  }, [user?.id]);
+  }, [expenses, user?.id, pushNotification]);
 
   const deleteExpense = useCallback(async (id: string): Promise<ServiceResponse<null>> => {
+    const deletedExpense = expenses.find((expense) => expense.id === id);
     const result = await removeExpense(id, user?.id);
 
     if (!result.success) {
@@ -84,8 +114,14 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     }
 
     setExpenses((prev) => prev.filter((expense) => expense.id !== id));
+    pushNotification({
+      title: 'Transaction deleted',
+      message: `Expense at ${deletedExpense?.storeName ?? 'transaction'} was deleted.`,
+      type: 'expense',
+      priority: 'medium',
+    });
     return { success: true, data: null };
-  }, [user?.id]);
+  }, [expenses, user?.id, pushNotification]);
 
   const value = useMemo(
     () => ({

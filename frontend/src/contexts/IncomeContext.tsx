@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, useState, useCallback, useEffect, type ReactNode } from 'react';
 import type { Income, CreateIncomeDTO, UpdateIncomeDTO, ServiceResponse } from '../types';
 import { useAuth } from './AuthContext';
+import { useNotification } from './NotificationContext';
 import {
   getIncome as fetchIncome,
   addIncome as createIncome,
@@ -21,6 +22,7 @@ const IncomeContext = createContext<IncomeContextType | undefined>(undefined);
 
 export function IncomeProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { pushNotification } = useNotification();
   const [income, setIncome] = useState<Income[]>([]);
 
   useEffect(() => {
@@ -59,10 +61,17 @@ export function IncomeProvider({ children }: { children: ReactNode }) {
     }
 
     setIncome((prev) => [result.data as Income, ...prev]);
+    pushNotification({
+      title: 'Transaction added',
+      message: `Income from ${result.data.source} for $${result.data.amount.toFixed(2)} was added.`,
+      type: 'income',
+      priority: 'low',
+    });
     return result;
-  }, []);
+  }, [pushNotification]);
 
   const updateIncome = useCallback(async (id: string, dto: UpdateIncomeDTO): Promise<ServiceResponse<Income>> => {
+    const previousIncome = income.find((entry) => entry.id === id);
     const result = await editIncome(id, dto, user?.id);
 
     if (!result.success || !result.data) {
@@ -70,10 +79,20 @@ export function IncomeProvider({ children }: { children: ReactNode }) {
     }
 
     setIncome((prev) => prev.map((entry) => (entry.id === id ? { ...entry, ...result.data } : entry)));
+    const source = result.data.source ?? previousIncome?.source ?? 'income transaction';
+    const amount = result.data.amount ?? previousIncome?.amount;
+    const amountText = typeof amount === 'number' ? `$${amount.toFixed(2)}` : 'new amount';
+    pushNotification({
+      title: 'Transaction updated',
+      message: `Income from ${source} was updated (${amountText}).`,
+      type: 'income',
+      priority: 'low',
+    });
     return result;
-  }, [user?.id]);
+  }, [income, user?.id, pushNotification]);
 
   const deleteIncome = useCallback(async (id: string): Promise<ServiceResponse<null>> => {
+    const deletedIncome = income.find((entry) => entry.id === id);
     const result = await removeIncome(id, user?.id);
 
     if (!result.success) {
@@ -81,8 +100,14 @@ export function IncomeProvider({ children }: { children: ReactNode }) {
     }
 
     setIncome((prev) => prev.filter((entry) => entry.id !== id));
+    pushNotification({
+      title: 'Transaction deleted',
+      message: `Income from ${deletedIncome?.source ?? 'income transaction'} was deleted.`,
+      type: 'income',
+      priority: 'medium',
+    });
     return { success: true, data: null };
-  }, [user?.id]);
+  }, [income, user?.id, pushNotification]);
 
   const value = useMemo(
     () => ({
