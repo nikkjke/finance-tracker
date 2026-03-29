@@ -17,7 +17,7 @@ interface AuthContextType {
   register: (name: string, email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   logout: () => void;
   switchRole: (role: UserRole) => void;
-  updateUser: (updates: Partial<Pick<User, 'name' | 'email'>>) => void;
+  updateUser: (updates: Partial<Pick<User, 'name' | 'email' | 'avatar'>>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
-  const updateUser = useCallback((updates: Partial<Pick<User, 'name' | 'email'>>) => {
+  const updateUser = useCallback((updates: Partial<Pick<User, 'name' | 'email' | 'avatar'>>) => {
     if (user) {
       const updatedUser = { ...user, ...updates };
       setUser(updatedUser);

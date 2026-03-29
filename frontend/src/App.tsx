@@ -38,10 +38,10 @@ function App() {
       <AxiosProvider>
         <ThemeProvider>
           <AuthProvider>
-            <ExpenseProvider>
-              <IncomeProvider>
-                <BudgetProvider>
-                  <NotificationProvider>
+            <NotificationProvider>
+              <ExpenseProvider>
+                <IncomeProvider>
+                  <BudgetProvider>
                     <ErrorBoundary>
           <Routes>
             {/* Public Routes */}
@@ -109,10 +109,10 @@ function App() {
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
                     </ErrorBoundary>
-                  </NotificationProvider>
-                </BudgetProvider>
-              </IncomeProvider>
-            </ExpenseProvider>
+                  </BudgetProvider>
+                </IncomeProvider>
+              </ExpenseProvider>
+            </NotificationProvider>
           </AuthProvider>
         </ThemeProvider>
       </AxiosProvider>

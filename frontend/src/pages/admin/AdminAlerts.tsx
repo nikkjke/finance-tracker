@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import {
   AlertCircle,
   AlertTriangle,
@@ -11,98 +11,69 @@ import {
   Eye,
 } from 'lucide-react';
 import Dropdown from '../../components/ui/Dropdown';
-import Spinner from '../../components/ui/Spinner';
 import StatCard from '../../components/ui/StatCard';
+import { useNotification } from '../../contexts/NotificationContext';
+import type { Notification } from '../../contexts/NotificationContext';
 
-interface Alert {
+type AlertType = 'info' | 'warning' | 'error' | 'success';
+
+type AlertSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+type AdminAlert = {
   id: string;
   title: string;
   message: string;
-  type: 'info' | 'warning' | 'error' | 'success';
-  severity: 'low' | 'medium' | 'high' | 'critical';
+  type: AlertType;
+  severity: AlertSeverity;
   timestamp: string;
   read: boolean;
   resolved: boolean;
-}
+};
+
+const mapNotificationToAlert = (notification: Notification): AdminAlert => {
+  const typeByNotification: Record<Notification['type'], AlertType> = {
+    budget: 'warning',
+    expense: 'info',
+    income: 'success',
+    system: 'info',
+    security: 'error',
+  };
+
+  const severityByPriority: Record<Notification['priority'], AlertSeverity> = {
+    low: 'low',
+    medium: 'medium',
+    high: notification.type === 'security' ? 'critical' : 'high',
+  };
+
+  return {
+    id: notification.id,
+    title: notification.title,
+    message: notification.message,
+    type: typeByNotification[notification.type],
+    severity: severityByPriority[notification.priority],
+    timestamp: notification.timestamp,
+    read: notification.read,
+    resolved: notification.resolved,
+  };
+};
 
 export default function AdminAlerts() {
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Simulate loading alerts with setTimeout
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 250);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const [alerts, setAlerts] = useState<Alert[]>([
-    {
-      id: '1',
-      title: 'Payment Gateway Latency',
-      message: 'Spike in payment processing time detected. Monitoring for stability.',
-      type: 'warning',
-      severity: 'high',
-      timestamp: '2026-02-19T14:10:00',
-      read: false,
-      resolved: false,
-    },
-    {
-      id: '2',
-      title: 'QR Service Degraded',
-      message: 'QR scanning service has 12 pending requests in queue. Processing time increased.',
-      type: 'warning',
-      severity: 'medium',
-      timestamp: '2026-02-19T13:45:00',
-      read: false,
-      resolved: false,
-    },
-    {
-      id: '3',
-      title: 'Backup Completed',
-      message: 'Daily database backup completed successfully. 2.4GB backed up to cloud storage.',
-      type: 'success',
-      severity: 'low',
-      timestamp: '2026-02-19T12:00:00',
-      read: true,
-      resolved: true,
-    },
-    {
-      id: '4',
-      title: 'Failed Login Attempts',
-      message: 'Multiple failed login attempts detected from IP 192.168.1.45. Possible security threat.',
-      type: 'error',
-      severity: 'critical',
-      timestamp: '2026-02-19T11:30:00',
-      read: false,
-      resolved: false,
-    },
-    {
-      id: '5',
-      title: 'New Users Spike',
-      message: 'Unusual increase in new user registrations (+45% above average). Monitor for spam.',
-      type: 'info',
-      severity: 'medium',
-      timestamp: '2026-02-19T10:15:00',
-      read: true,
-      resolved: false,
-    },
-    {
-      id: '6',
-      title: 'Payment Gateway Update',
-      message: 'Payment gateway will undergo maintenance on Feb 21, 2026 from 2:00 AM - 4:00 AM.',
-      type: 'info',
-      severity: 'low',
-      timestamp: '2026-02-18T16:00:00',
-      read: true,
-      resolved: false,
-    },
-  ]);
+  const {
+    notifications,
+    markAsRead,
+    resolveNotification,
+    markAllAsRead,
+    deleteNotification,
+  } = useNotification();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'info' | 'warning' | 'error' | 'success'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'unread' | 'unresolved'>('all');
+
+  const alerts = useMemo(
+    () => notifications.map(mapNotificationToAlert),
+    [notifications],
+  );
 
   const filteredAlerts = alerts.filter((alert) => {
     const matchesSearch =
@@ -117,34 +88,28 @@ export default function AdminAlerts() {
   });
 
   const handleMarkAsRead = (id: string) => {
-    setAlerts((prev) =>
-      prev.map((alert) => (alert.id === id ? { ...alert, read: true } : alert))
-    );
+    markAsRead(id);
   };
 
   const handleResolve = (id: string) => {
-    setAlerts((prev) =>
-      prev.map((alert) =>
-        alert.id === id ? { ...alert, resolved: true, read: true } : alert
-      )
-    );
+    resolveNotification(id);
   };
 
   const handleDelete = (id: string) => {
     if (window.confirm('Are you sure you want to delete this alert?')) {
-      setAlerts((prev) => prev.filter((alert) => alert.id !== id));
+      deleteNotification(id);
     }
   };
 
   const handleMarkAllAsRead = () => {
-    setAlerts((prev) => prev.map((alert) => ({ ...alert, read: true })));
+    markAllAsRead();
   };
 
   const stats = {
     total: alerts.length,
     unread: alerts.filter((a) => !a.read).length,
-    critical: alerts.filter((a) => a.severity === 'critical' && !a.resolved).length,
-    unresolved: alerts.filter((a) => !a.resolved).length,
+      critical: alerts.filter((a) => a.severity === 'critical' && !a.read).length,
+      unresolved: alerts.filter((a) => !a.resolved).length,
   };
 
   const getAlertIcon = (type: string) => {
@@ -185,12 +150,6 @@ export default function AdminAlerts() {
 
   return (
     <div className="space-y-6">
-      {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <Spinner size={40} />
-          <p className="mt-4 text-surface-600 dark:text-surface-300">Loading alerts...</p>
-        </div>
-      ) : (
         <>
           {/* Header */}
           <div className="flex items-start justify-between">
@@ -402,7 +361,6 @@ export default function AdminAlerts() {
         )}
       </div>
         </>
-      )}
     </div>
   );
 }
