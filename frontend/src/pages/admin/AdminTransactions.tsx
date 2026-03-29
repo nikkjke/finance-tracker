@@ -24,6 +24,7 @@ import ErrorState from '../../components/ui/ErrorState';
 import StatCard from '../../components/ui/StatCard';
 import { applyFilters, presetToDateRange, exportTransactions, exportReport } from '../../services';
 import { categoryLabels } from '../../data/mockData';
+import { useNotification } from '../../contexts/NotificationContext';
 import type { Expense, ExpenseStatus } from '../../types';
 import type { FilterPipelineConfig, SortConfig } from '../../services/filterService';
 
@@ -44,6 +45,7 @@ const initialStatusForm: StatusChangeFormData = {
 
 export default function AdminTransactions() {
   const { expenses: storeExpenses, updateExpense } = useExpenses();
+  const { pushNotification } = useNotification();
   const [transactions, setTransactions] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -128,11 +130,23 @@ export default function AdminTransactions() {
   const handleExport = () => {
     // Export filtered transactions to CSV
     exportTransactions(filteredTransactions, { filename: 'transactions', format: 'csv' });
+    pushNotification({
+      title: 'Transactions export generated',
+      message: `Admin exported ${filteredTransactions.length} transactions.`,
+      type: 'system',
+      priority: 'low',
+    });
   };
 
   const handleExportReport = (type: string) => {
     // Export formatted report (PDF/Excel in production)
     exportReport(type as any);
+    pushNotification({
+      title: 'Analytics report exported',
+      message: `Admin exported the ${type.replace('-', ' ')} report.`,
+      type: 'system',
+      priority: 'low',
+    });
   };
 
   const monthToDate: Record<string, Date> = {
@@ -222,13 +236,21 @@ export default function AdminTransactions() {
     if (!validateForm() || !selectedTransaction) return;
 
     setIsSaving(true);
+    const previousStatus = selectedTransaction.status;
 
     const updateResult = await updateExpense(selectedTransaction.id, {
       status: statusForm.status,
-    });
+    }, { notify: false });
 
     if (!updateResult.success) {
       setError(updateResult.error ?? 'Failed to update transaction status.');
+    } else {
+      pushNotification({
+        title: 'Transaction status changed',
+        message: `${selectedTransaction.storeName} changed from ${previousStatus} to ${statusForm.status}.`,
+        type: 'security',
+        priority: 'medium',
+      });
     }
 
     setIsSaving(false);
