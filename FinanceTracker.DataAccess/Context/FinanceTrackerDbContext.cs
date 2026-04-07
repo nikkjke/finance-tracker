@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinanceTracker.DataAccess.Context
 {
-    public class FinanceTrackerContext : DbContext
+    public class FinanceTrackerDbContext : DbContext
     {
         public DbSet<BudgetData> Budgets { get; set; }
         public DbSet<ExpenseData> Expenses { get; set; }
