@@ -2,8 +2,7 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// FinanceTracker.DataAccess.DbSession.ConnectionString =
-//         builder.Configuration.GetConnectionString("DefaultConnection");
+FinanceTracker.DataAccess.DbSession.ConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
