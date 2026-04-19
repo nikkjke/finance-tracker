@@ -20,6 +20,13 @@ obj/
 # Generic environment files
 .env
 .env.*
+!.env.example
+
+# Local .NET configuration overrides (keep non-secret defaults in tracked appsettings.json)
+**/appsettings.Local.json
+**/appsettings.*.local.json
+**/appsettings.Secrets.json
+FinanceTracker.API/appsettings.Development.json
 
 # Frontend environment files
 frontend/.env
@@ -33,6 +40,35 @@ frontend/.env.*.local
 .idea
 .DS_Store
 *.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
 *.ntvs*
 *.njsproj
 *.sw?
+
+# Build and test artifacts
+TestResults/
+artifacts/
+publish/
+coverage/
+frontend/coverage/
+*.trx
+*.coverage
+*.coveragexml
+
+# Tooling caches
+*.tsbuildinfo
+.eslintcache
+.pnpm-store/
+.parcel-cache/
+.next/
+.nuxt/
+.svelte-kit/
+.turbo/
+
+# Publish profiles and package outputs
+*.pubxml.user
+*.nupkg
+*.snupkg

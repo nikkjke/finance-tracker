@@ -8,11 +8,16 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.25" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\FinanceTracker.BusinessLayer\FinanceTracker.BusinessLayer.csproj" />
+    <ProjectReference Include="..\FinanceTracker.DataAccess\FinanceTracker.DataAccess.csproj" />
     <ProjectReference Include="..\FinanceTracker.Domain\FinanceTracker.Domain.csproj" />
   </ItemGroup>
 

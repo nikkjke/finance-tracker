@@ -61,6 +61,24 @@ function normalizeDateString(value: unknown, fallback: string): string {
   return parsed.toISOString().split('T')[0];
 }
 
+function toUtcIsoFromDateInput(value: string | undefined): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  // Convert YYYY-MM-DD inputs to an explicit UTC timestamp expected by timestamptz.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return `${value}T00:00:00Z`;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return undefined;
+  }
+
+  return parsed.toISOString();
+}
+
 function mapEnum<T extends string>(value: unknown, allowed: readonly T[], fallback: T): T {
   if (typeof value === 'string') {
     return allowed.includes(value as T) ? (value as T) : fallback;
@@ -88,7 +106,7 @@ export function mapCreateExpenseToApi(dto: CreateExpenseDTO): {
     storeName: dto.storeName,
     amount: dto.amount,
     category: dto.category,
-    date: dto.date,
+    date: toUtcIsoFromDateInput(dto.date) ?? dto.date,
     notes: dto.notes,
     paymentMethod: dto.paymentMethod,
     status: 'completed',
@@ -100,7 +118,7 @@ export function mapUpdateExpenseToApi(dto: UpdateExpenseDTO): Record<string, unk
     ...(dto.storeName !== undefined ? { storeName: dto.storeName } : {}),
     ...(dto.amount !== undefined ? { amount: dto.amount } : {}),
     ...(dto.category !== undefined ? { category: dto.category } : {}),
-    ...(dto.date !== undefined ? { date: dto.date } : {}),
+    ...(dto.date !== undefined ? { date: toUtcIsoFromDateInput(dto.date) ?? dto.date } : {}),
     ...(dto.notes !== undefined ? { notes: dto.notes } : {}),
     ...(dto.paymentMethod !== undefined ? { paymentMethod: dto.paymentMethod } : {}),
     ...(dto.status !== undefined ? { status: dto.status } : {}),
@@ -119,7 +137,7 @@ export function mapCreateIncomeToApi(dto: CreateIncomeDTO): {
     source: dto.source,
     amount: dto.amount,
     category: dto.category,
-    date: dto.date,
+    date: toUtcIsoFromDateInput(dto.date) ?? dto.date,
     notes: dto.notes,
     status: 'completed',
   };
@@ -130,7 +148,7 @@ export function mapUpdateIncomeToApi(dto: UpdateIncomeDTO): Record<string, unkno
     ...(dto.source !== undefined ? { source: dto.source } : {}),
     ...(dto.amount !== undefined ? { amount: dto.amount } : {}),
     ...(dto.category !== undefined ? { category: dto.category } : {}),
-    ...(dto.date !== undefined ? { date: dto.date } : {}),
+    ...(dto.date !== undefined ? { date: toUtcIsoFromDateInput(dto.date) ?? dto.date } : {}),
     ...(dto.notes !== undefined ? { notes: dto.notes } : {}),
     ...(dto.status !== undefined ? { status: dto.status } : {}),
   };
@@ -149,8 +167,8 @@ export function mapCreateBudgetToApi(dto: CreateBudgetDTO): {
     limit: dto.limit,
     month: dto.month,
     period: dto.period,
-    startDate: dto.startDate,
-    endDate: dto.endDate,
+    startDate: toUtcIsoFromDateInput(dto.startDate),
+    endDate: toUtcIsoFromDateInput(dto.endDate),
   };
 }
 
@@ -161,8 +179,8 @@ export function mapUpdateBudgetToApi(dto: UpdateBudgetDTO): Record<string, unkno
     ...(dto.spent !== undefined ? { spent: dto.spent } : {}),
     ...(dto.month !== undefined ? { month: dto.month } : {}),
     ...(dto.period !== undefined ? { period: dto.period } : {}),
-    ...(dto.startDate !== undefined ? { startDate: dto.startDate } : {}),
-    ...(dto.endDate !== undefined ? { endDate: dto.endDate } : {}),
+    ...(dto.startDate !== undefined ? { startDate: toUtcIsoFromDateInput(dto.startDate) ?? dto.startDate } : {}),
+    ...(dto.endDate !== undefined ? { endDate: toUtcIsoFromDateInput(dto.endDate) ?? dto.endDate } : {}),
   };
 }
 

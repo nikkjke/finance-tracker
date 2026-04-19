@@ -11,9 +11,9 @@ namespace FinanceTracker.BusinessLayer.Interfaces
     public interface IBudgetAction
     {
         List<BudgetDto> GetAllBudgetsAction();
-        BudgetDto GetBudgetByIdAction(Guid id);
+        BudgetDto? GetBudgetByIdAction(Guid id);
         BudgetDto CreateBudgetAction(BudgetDto dto);
-        BudgetDto UpdateBudgetAction(Guid id, BudgetDto dto);
+        BudgetDto? UpdateBudgetAction(Guid id, BudgetDto dto);
         bool DeleteBudgetAction(Guid id);
     }
 };

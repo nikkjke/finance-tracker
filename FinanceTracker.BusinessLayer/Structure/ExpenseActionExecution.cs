@@ -12,9 +12,9 @@ namespace FinanceTracker.BusinessLayer.Structure
     public class ExpenseActionExecution : ExpenseActions, IExpenseAction
     {
         public List<ExpenseDto> GetAllExpensesAction() => GetAllExpensesActionExecution();
-        public ExpenseDto GetExpenseByIdAction(Guid id) => GetExpenseByIdActionExecution(id);
+        public ExpenseDto? GetExpenseByIdAction(Guid id) => GetExpenseByIdActionExecution(id);
         public ExpenseDto CreateExpenseAction(ExpenseDto dto) => CreateExpenseActionExecution(dto);
-        public ExpenseDto UpdateExpenseAction(Guid id, ExpenseDto dto) => UpdateExpenseActionExecution(id, dto);
+        public ExpenseDto? UpdateExpenseAction(Guid id, ExpenseDto dto) => UpdateExpenseActionExecution(id, dto);
         public bool DeleteExpenseAction(Guid id) => DeleteExpenseActionExecution(id);
     }
 }
