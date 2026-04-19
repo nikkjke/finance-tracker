@@ -11,9 +11,9 @@ namespace FinanceTracker.BusinessLayer.Interfaces
     public interface IIncomeAction
     {
         List<IncomeDto> GetAllIncomesAction();
-        IncomeDto GetIncomeByIdAction(Guid id);
+        IncomeDto? GetIncomeByIdAction(Guid id);
         IncomeDto CreateIncomeAction(IncomeDto dto);
-        IncomeDto UpdateIncomeAction(Guid id, IncomeDto dto);
+        IncomeDto? UpdateIncomeAction(Guid id, IncomeDto dto);
         bool DeleteIncomeAction(Guid id);
     }
 }

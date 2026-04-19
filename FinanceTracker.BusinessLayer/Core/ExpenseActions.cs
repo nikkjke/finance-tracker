@@ -85,7 +85,7 @@ namespace FinanceTracker.BusinessLayer.Core
             }
         }
 
-        internal ExpenseDto UpdateExpenseActionExecution(Guid id, ExpenseDto dto)
+        internal ExpenseDto? UpdateExpenseActionExecution(Guid id, ExpenseDto dto)
         {
             using (var db = new FinanceTrackerDbContext())
             {

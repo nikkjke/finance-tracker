@@ -12,9 +12,9 @@ namespace FinanceTracker.BusinessLayer.Structure
     public class BudgetActionExecution : BudgetActions, IBudgetAction
     {
         public List<BudgetDto> GetAllBudgetsAction() => GetAllBudgetsActionExecution();
-        public BudgetDto GetBudgetByIdAction(Guid id) => GetBudgetByIdActionExecution(id);
+        public BudgetDto? GetBudgetByIdAction(Guid id) => GetBudgetByIdActionExecution(id);
         public BudgetDto CreateBudgetAction(BudgetDto dto) => CreateBudgetActionExecution(dto);
-        public BudgetDto UpdateBudgetAction(Guid id, BudgetDto dto) => UpdateBudgetActionExecution(id, dto);
+        public BudgetDto? UpdateBudgetAction(Guid id, BudgetDto dto) => UpdateBudgetActionExecution(id, dto);
         public bool DeleteBudgetAction(Guid id) => DeleteBudgetActionExecution(id);
     }
 }

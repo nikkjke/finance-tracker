@@ -91,7 +91,7 @@ namespace FinanceTracker.BusinessLayer.Core
             }
         }
 
-        internal BudgetDto UpdateBudgetActionExecution(Guid id, BudgetDto dto)
+        internal BudgetDto? UpdateBudgetActionExecution(Guid id, BudgetDto dto)
         {
             using (var db = new FinanceTrackerDbContext())
             {

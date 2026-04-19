@@ -82,7 +82,7 @@ namespace FinanceTracker.BusinessLayer.Core
             }
         }
 
-        internal IncomeDto UpdateIncomeActionExecution(Guid id, IncomeDto dto)
+        internal IncomeDto? UpdateIncomeActionExecution(Guid id, IncomeDto dto)
         {
             using (var db = new FinanceTrackerDbContext())
             {
