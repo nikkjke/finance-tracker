@@ -1,10 +1,13 @@
 using FinanceTracker.BusinessLayer.Interfaces;
 using FinanceTracker.Domain.Models.Expense;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FinanceTracker.API.Controllers
 {
+    [Authorize]
     [Route("api/expenses")]
     [ApiController]
     public class ExpensesController : ControllerBase
@@ -16,48 +19,65 @@ namespace FinanceTracker.API.Controllers
             _expense = bl.ExpenseAction();
         }
 
+        private Guid GetUserId()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out Guid userId))
+                throw new UnauthorizedAccessException("User not found or invalid token.");
+            return userId;
+        }
+
         [HttpGet("getAll")]
         public IActionResult GetAllExpenses()
         {
-            var expenses = _expense.GetAllExpensesAction();
-            return Ok(expenses);
+            try {
+                var expenses = _expense.GetAllExpensesAction(GetUserId());
+                return Ok(expenses);
+            } catch (UnauthorizedAccessException) { return Unauthorized(); }
         }
 
         [HttpGet("getById/{id:guid}")]
         public IActionResult GetById(Guid id)
         {
-            var expense = _expense.GetExpenseByIdAction(id);
-            if (expense is null)
-            {
-                return NotFound();
-            }
-
-            return Ok(expense);
+            try {
+                var expense = _expense.GetExpenseByIdAction(id, GetUserId());
+                if (expense is null)
+                {
+                    return NotFound();
+                }
+                return Ok(expense);
+            } catch (UnauthorizedAccessException) { return Unauthorized(); }
         }
 
         [HttpPost("create")]
         public IActionResult CreateExpense([FromBody] ExpenseDto dto)
         {
-            var created = _expense.CreateExpenseAction(dto);
-            return Ok(created);
+            try {
+                var created = _expense.CreateExpenseAction(dto, GetUserId());
+                return Ok(created);
+            } catch (UnauthorizedAccessException) { return Unauthorized(); }
         }
 
         [HttpPut("update/{id}")]
         public IActionResult UpdateExpense(Guid id, [FromBody] ExpenseDto dto)
         {
-            var updated = _expense.UpdateExpenseAction(id, dto);
-            if (updated is null)
-                return NotFound();
-            return Ok(updated);
+            try {
+                var updated = _expense.UpdateExpenseAction(id, dto, GetUserId());
+                if (updated is null)
+                    return NotFound();
+                return Ok(updated);
+            } catch (UnauthorizedAccessException) { return Unauthorized(); }
         }
 
         [HttpDelete("delete/{id}")]
         public IActionResult DeleteExpense(Guid id)
         {
-            var deleted = _expense.DeleteExpenseAction(id);
-            if (!deleted)
-                return NotFound();
-            return NoContent();
+            try {
+                var deleted = _expense.DeleteExpenseAction(id, GetUserId());
+                if (!deleted)
+                    return NotFound();
+                return NoContent();
+            } catch (UnauthorizedAccessException) { return Unauthorized(); }
         }
     }
 }
