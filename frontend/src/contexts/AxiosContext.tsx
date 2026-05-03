@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react';
 import { isAxiosError, type AxiosInstance } from 'axios';
 import { createApiClient, setApiClient } from '../services/httpClient';
+import { STORAGE_KEYS } from '../types';
 
 export interface ApiErrorEventDetail {
   status: number;
@@ -33,7 +34,20 @@ export function AxiosProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setApiClient(axiosInstance);
 
-    const interceptorId = axiosInstance.interceptors.response.use(
+    // ── Request interceptor: attach JWT Bearer token automatically ────────
+    const requestInterceptorId = axiosInstance.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem(STORAGE_KEYS.JWT_TOKEN);
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error),
+    );
+
+    // ── Response interceptor: global error handling & redirects ───────────
+    const responseInterceptorId = axiosInstance.interceptors.response.use(
       (response) => response,
       (error: unknown) => {
         if (isAxiosError(error)) {
@@ -55,8 +69,11 @@ export function AxiosProvider({ children }: { children: ReactNode }) {
             path,
           });
 
-          if (status === 401 && window.location.pathname !== '/401') {
-            window.location.assign('/401');
+          if (status === 401 && window.location.pathname !== '/login') {
+            // Token expired or invalid — clear session and redirect to login
+            localStorage.removeItem(STORAGE_KEYS.JWT_TOKEN);
+            localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+            window.location.assign('/login');
           } else if (status === 403 && window.location.pathname !== '/403') {
             window.location.assign('/403');
           } else if (status >= 500 && window.location.pathname !== '/500') {
@@ -69,7 +86,8 @@ export function AxiosProvider({ children }: { children: ReactNode }) {
     );
 
     return () => {
-      axiosInstance.interceptors.response.eject(interceptorId);
+      axiosInstance.interceptors.request.eject(requestInterceptorId);
+      axiosInstance.interceptors.response.eject(responseInterceptorId);
     };
   }, [axiosInstance]);
 
@@ -84,4 +102,3 @@ export function useAxios(): AxiosInstance {
 
   return context.axios;
 }
-
