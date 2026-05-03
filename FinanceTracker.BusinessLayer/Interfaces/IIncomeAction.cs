@@ -10,10 +10,10 @@ namespace FinanceTracker.BusinessLayer.Interfaces
 {
     public interface IIncomeAction
     {
-        List<IncomeDto> GetAllIncomesAction();
-        IncomeDto? GetIncomeByIdAction(Guid id);
-        IncomeDto CreateIncomeAction(IncomeDto dto);
-        IncomeDto? UpdateIncomeAction(Guid id, IncomeDto dto);
-        bool DeleteIncomeAction(Guid id);
+        List<IncomeDto> GetAllIncomesAction(Guid userId);
+        IncomeDto? GetIncomeByIdAction(Guid id, Guid userId);
+        IncomeDto CreateIncomeAction(IncomeDto dto, Guid userId);
+        IncomeDto? UpdateIncomeAction(Guid id, IncomeDto dto, Guid userId);
+        bool DeleteIncomeAction(Guid id, Guid userId);
     }
 }
