@@ -1,150 +1,144 @@
-import type { User, UserRole, AuthResult } from '../types';
+import type { User, AuthResult } from '../types';
 import { STORAGE_KEYS } from '../types';
-import { mockUsers } from '../data/mockData';
+import { getApiClient } from './httpClient';
 
 // Re-export so existing consumers don't break
 export type { AuthResult } from '../types';
 
-// ─── Storage Keys ────────────────────────────────────────────────
-const STORAGE_KEY = STORAGE_KEYS.CURRENT_USER;
+// ─── Storage helpers ──────────────────────────────────────────────
 
-// ─── Mock credentials (for demo login) ──────────────────────────
-const MOCK_CREDENTIALS: Record<string, string> = {
-  'mariana@example.com': 'user123',
-  'admin@fintrack.com': 'admin123',
-  'ion@example.com': 'user123',
-  'elena@example.com': 'user123',
-  'andrei@example.com': 'user123',
-};
-
-// ─── Simulated network delay ────────────────────────────────────
-function simulateDelay(ms = 500): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function saveToken(token: string): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.JWT_TOKEN, token);
+  } catch {
+    console.warn('Failed to save token');
+  }
 }
 
-// ─── Auth Service ────────────────────────────────────────────────
+function saveUser(user: User): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
+  } catch {
+    console.warn('Failed to save user');
+  }
+}
+
+function clearSession(): void {
+  localStorage.removeItem(STORAGE_KEYS.JWT_TOKEN);
+  localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+}
+
+// ─── Auth Service ─────────────────────────────────────────────────
 
 /**
- * Authenticate a user with email and password.
- * Checks mock credentials first, then allows any email for demo purposes.
+ * Authenticate a user with email and password against the real backend.
+ * On success the JWT token and user object are persisted to localStorage.
  */
 export async function loginUser(email: string, password: string): Promise<AuthResult> {
-  await simulateDelay(600);
+  try {
+    const response = await getApiClient().post<{ token: string; user: User }>('/api/auth/login', {
+      email,
+      password,
+    });
 
-  // Check if user exists in mock data
-  const existingUser = mockUsers.find((u) => u.email === email);
-
-  if (existingUser) {
-    // Validate password for known mock users
-    const expectedPassword = MOCK_CREDENTIALS[email];
-    if (expectedPassword && password !== expectedPassword) {
-      return { success: false, error: 'Invalid password. Try "user123" or "admin123".' };
-    }
-    // Persist session
-    persistSession(existingUser);
-    return { success: true, user: existingUser };
+    const { token, user } = response.data;
+    saveToken(token);
+    saveUser(user);
+    return { success: true, user };
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { data?: { message?: string }; status?: number } };
+    const message =
+      axiosError?.response?.data?.message ??
+      (axiosError?.response?.status === 401
+        ? 'Invalid email or password.'
+        : 'Login failed. Please try again.');
+    return { success: false, error: message };
   }
-
-  // For demo: allow any email/password to create a temporary user
-  const newUser: User = {
-    id: crypto.randomUUID(),
-    name: email.split('@')[0],
-    email,
-    role: 'user',
-    createdAt: new Date().toISOString(),
-  };
-  persistSession(newUser);
-  return { success: true, user: newUser };
 }
 
 /**
  * Register a new user account.
- * In a real app this would call a backend API.
+ * On success the JWT token and user object are persisted to localStorage.
  */
 export async function registerUser(
   name: string,
   email: string,
-  _password: string
+  password: string,
 ): Promise<AuthResult> {
-  await simulateDelay(600);
+  try {
+    const response = await getApiClient().post<{ token: string; user: User }>('/api/auth/register', {
+      name,
+      email,
+      password,
+    });
 
-  // Check if email is already taken
-  const exists = mockUsers.find((u) => u.email === email);
-  if (exists) {
-    return { success: false, error: 'This email is already registered.' };
+    const { token, user } = response.data;
+    saveToken(token);
+    saveUser(user);
+    return { success: true, user };
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { data?: { message?: string }; status?: number }, message?: string };
+    
+    // First try to use the backend's explicit message
+    let message = axiosError?.response?.data?.message;
+    
+    // If no backend message, determine based on status or network error
+    if (!message) {
+      if (axiosError?.response?.status === 409) {
+        message = 'This email is already registered.';
+      } else if (axiosError?.response?.status === 500) {
+        message = 'Server error during registration. (Please check console)';
+      } else if (!axiosError?.response) {
+        message = `Network error: ${axiosError.message || 'Unable to reach the server'}`;
+      } else {
+        message = `Registration failed (Status: ${axiosError.response.status}). Please try again.`;
+      }
+    }
+    
+    console.error("Register Error:", error);
+    return { success: false, error: message };
   }
-
-  const newUser: User = {
-    id: crypto.randomUUID(),
-    name,
-    email,
-    role: 'user',
-    createdAt: new Date().toISOString(),
-  };
-  persistSession(newUser);
-  return { success: true, user: newUser };
 }
 
 /**
  * Log the current user out and clear the persisted session.
  */
 export function logoutUser(): void {
-  localStorage.removeItem(STORAGE_KEY);
-}
-
-/**
- * Switch the current user's role (for demo/testing purposes).
- * 
- * - If switching to a role different from the original user's role, load a
- *   matching mock user for that role (e.g. the admin mock user).
- * - If switching back to the original user's role, restore the original user.
- */
-export function switchUserRole(originalUser: User, role: UserRole): User {
-  let updatedUser: User;
-
-  if (role === originalUser.role) {
-    // Switching back to the original role → restore the original user
-    updatedUser = { ...originalUser };
-  } else {
-    // Switching to a different role → find a mock user with that role
-    const matchingUser = mockUsers.find((u) => u.role === role);
-    updatedUser = matchingUser ? { ...matchingUser } : { ...originalUser, role };
-  }
-
-  persistSession(updatedUser);
-  return updatedUser;
-}
-
-// ─── Session Persistence ─────────────────────────────────────────
-
-/**
- * Save the user object to localStorage for session persistence.
- */
-function persistSession(user: User): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-  } catch (error) {
-    console.warn('Failed to persist session:', error);
-  }
+  clearSession();
 }
 
 /**
  * Restore a previously saved session from localStorage.
+ * Reads both the stored user object and validates the JWT has not expired.
  * Returns null if no valid session exists.
  */
 export function restoreSession(): User | null {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return null;
+    const token = localStorage.getItem(STORAGE_KEYS.JWT_TOKEN);
+    const stored = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
+
+    if (!token || !stored) return null;
+
+    // Decode JWT payload to check expiry (no signature verification — server does that)
+    const payloadBase64 = token.split('.')[1];
+    if (!payloadBase64) return null;
+
+    const payload = JSON.parse(atob(payloadBase64)) as { exp?: number };
+    const now = Math.floor(Date.now() / 1000);
+
+    if (payload.exp && payload.exp < now) {
+      // Token has expired — remove stale session
+      clearSession();
+      return null;
+    }
+
     const user = JSON.parse(stored) as User;
-    // Basic validation — ensure required fields exist
     if (user && user.id && user.email && user.role) {
       return user;
     }
     return null;
-  } catch (error) {
-    console.warn('Failed to restore session:', error);
-    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    clearSession();
     return null;
   }
 }
