@@ -3,6 +3,7 @@ using System;
 using FinanceTracker.DataAccess.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FinanceTracker.DataAccess.Migrations
 {
     [DbContext(typeof(FinanceTrackerDbContext))]
-    partial class FinanceTrackerContextModelSnapshot : ModelSnapshot
+    [Migration("20260420084724_AddUsersTable")]
+    partial class AddUsersTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,9 +52,6 @@ namespace FinanceTracker.DataAccess.Migrations
                     b.Property<DateTime?>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
                     b.ToTable("Budgets");
@@ -84,9 +84,6 @@ namespace FinanceTracker.DataAccess.Migrations
                     b.Property<string>("StoreName")
                         .HasColumnType("text");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
                     b.ToTable("Expenses");
@@ -115,9 +112,6 @@ namespace FinanceTracker.DataAccess.Migrations
 
                     b.Property<string>("Status")
                         .HasColumnType("text");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
