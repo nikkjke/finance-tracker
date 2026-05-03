@@ -30,11 +30,13 @@ namespace FinanceTracker.BusinessLayer.Core
         {
         }
 
-        internal List<BudgetDto> GetAllBudgetsActionExecution()
+        internal List<BudgetDto> GetAllBudgetsActionExecution(Guid userId)
         {
             using (var db = new FinanceTrackerDbContext())
             {
-                var budgets = db.Budgets.ToList();
+                var budgets = db.Budgets
+                    .Where(x => x.UserId == userId)
+                    .ToList();
                 return budgets.Select(item => new BudgetDto
                 {
                     Id = item.Id,
@@ -49,11 +51,11 @@ namespace FinanceTracker.BusinessLayer.Core
             }
         }
 
-        internal BudgetDto? GetBudgetByIdActionExecution(Guid id)
+        internal BudgetDto? GetBudgetByIdActionExecution(Guid id, Guid userId)
         {
             using (var db = new FinanceTrackerDbContext())
             {
-                var item = db.Budgets.FirstOrDefault(x => x.Id == id);
+                var item = db.Budgets.FirstOrDefault(x => x.Id == id && x.UserId == userId);
                 if (item == null) return null;
                 return new BudgetDto
                 {
@@ -69,13 +71,14 @@ namespace FinanceTracker.BusinessLayer.Core
             }
         }
 
-        internal BudgetDto CreateBudgetActionExecution(BudgetDto dto)
+        internal BudgetDto CreateBudgetActionExecution(BudgetDto dto, Guid userId)
         {
             using (var db = new FinanceTrackerDbContext())
             {
                 var entity = new BudgetData
                 {
                     Id = Guid.NewGuid(),
+                    UserId = userId,
                     Category = dto.Category,
                     Limit = dto.Limit,
                     Spent = dto.Spent,
@@ -91,11 +94,11 @@ namespace FinanceTracker.BusinessLayer.Core
             }
         }
 
-        internal BudgetDto? UpdateBudgetActionExecution(Guid id, BudgetDto dto)
+        internal BudgetDto? UpdateBudgetActionExecution(Guid id, BudgetDto dto, Guid userId)
         {
             using (var db = new FinanceTrackerDbContext())
             {
-                var entity = db.Budgets.FirstOrDefault(x => x.Id == id);
+                var entity = db.Budgets.FirstOrDefault(x => x.Id == id && x.UserId == userId);
                 if (entity == null) return null;
                 entity.Category = dto.Category;
                 entity.Limit = dto.Limit;
@@ -111,11 +114,11 @@ namespace FinanceTracker.BusinessLayer.Core
             }
         }
 
-        internal bool DeleteBudgetActionExecution(Guid id)
+        internal bool DeleteBudgetActionExecution(Guid id, Guid userId)
         {
             using (var db = new FinanceTrackerDbContext())
             {
-                var entity = db.Budgets.FirstOrDefault(x => x.Id == id);
+                var entity = db.Budgets.FirstOrDefault(x => x.Id == id && x.UserId == userId);
                 if (entity == null) return false;
                 db.Budgets.Remove(entity);
                 db.SaveChanges();

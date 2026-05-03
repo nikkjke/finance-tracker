@@ -34,7 +34,6 @@ import DatePicker from '../ui/DatePicker';
 import { DebouncedInput, DebouncedTextarea } from '../ui/DebouncedInput';
 import { categoryLabels, categoryColors } from '../../data/mockData';
 import type { UserRole } from '../../types';
-
 interface NavbarProps {
   onMenuClick: () => void;
   onToggleSidebar: () => void;
@@ -65,7 +64,7 @@ const categoryIcons: Record<string, typeof ShoppingBag> = {
 };
 
 export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed, isScrolled = false }: NavbarProps) {
-  const { user, switchRole } = useAuth();
+  const { user } = useAuth();
   const { notifications, markAsRead, deleteNotification, unreadCount } = useNotification();
   const { getExpenses, updateExpense } = useExpenses();
   const { getBudgets, updateBudget } = useBudgets();
@@ -93,11 +92,9 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
     setSearchInteractionMode(null);
   };
 
-  const handleRoleSwitch = (role: UserRole) => {
-    switchRole(role);
+  const handleRoleSwitch = (_role: UserRole) => {
+    // Role switching is disabled — roles are assigned by the backend via JWT
     setShowProfile(false);
-    // Navigate to the correct dashboard for the new role
-    navigate(role === 'admin' ? '/admin' : '/dashboard');
   };
 
   const searchResults = useMemo<SearchResultItem[]>(() => {
@@ -465,35 +462,16 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                 <p className="text-xs text-surface-400">{user?.email}</p>
                 <span className="badge-primary mt-1.5">{user?.role}</span>
               </div>
-              <div className="p-3">
-                <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-surface-400">
-                  Switch Role
-                </p>
-                <div className="relative flex w-full rounded-lg bg-surface-100 p-1 dark:bg-surface-900">
-                  {/* Sliding Background */}
-                  <div
-                    className="absolute bottom-1 top-1 w-[calc(50%-4px)] rounded-md bg-white shadow-sm transition-transform duration-200 ease-out dark:bg-surface-700"
-                    style={{
-                      transform: user?.role === 'admin' ? 'translateX(100%)' : 'translateX(0)',
-                    }}
-                  />
-                  <button
-                    onClick={() => handleRoleSwitch('user')}
-                    className={`relative z-10 flex-1 rounded-md py-1.5 text-xs font-medium transition-colors ${
-                      user?.role === 'user' ? 'text-surface-900 dark:text-white' : 'text-surface-500 hover:text-surface-700 dark:text-surface-400 dark:hover:text-surface-300'
-                    }`}
-                  >
-                    User
-                  </button>
-                  <button
-                    onClick={() => handleRoleSwitch('admin')}
-                    className={`relative z-10 flex-1 rounded-md py-1.5 text-xs font-medium transition-colors ${
-                      user?.role === 'admin' ? 'text-surface-900 dark:text-white' : 'text-surface-500 hover:text-surface-700 dark:text-surface-400 dark:hover:text-surface-300'
-                    }`}
-                  >
-                    Admin
-                  </button>
-                </div>
+              <div className="p-3 space-y-1">
+                <button
+                  onClick={() => {
+                    navigate('/profile');
+                    setShowProfile(false);
+                  }}
+                  className="w-full text-left rounded-lg px-3 py-2 text-sm text-surface-700 hover:bg-surface-100 dark:text-surface-200 dark:hover:bg-surface-700 transition-colors"
+                >
+                  View Profile
+                </button>
               </div>
             </div>
           )}

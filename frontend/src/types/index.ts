@@ -203,8 +203,10 @@ export interface UpdateIncomeDTO extends Partial<CreateIncomeDTO> {
  */
 export const STORAGE_KEYS = {
   CURRENT_USER: 'currentUser',
+  JWT_TOKEN: 'jwt_token',
   EXPENSES: 'expenses',
   BUDGETS: 'budgets',
   INCOME: 'income',
   THEME: 'theme',
 } as const;
+

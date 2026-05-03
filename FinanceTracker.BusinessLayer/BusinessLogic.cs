@@ -28,4 +28,15 @@ public class BusinessLogic
     {
         return new BudgetActionExecution();
     }
+
+    public IAuthAction AuthAction(string jwtKey, string jwtIssuer, string jwtAudience, int expiresInMinutes)
+    {
+        return new AuthActionExecution(jwtKey, jwtIssuer, jwtAudience, expiresInMinutes);
+    }
+
+    public IAdminAction AdminAction()
+    {
+        return new AdminActionExecution();
+    }
 }
+

@@ -7,7 +7,6 @@ export {
   loginUser,
   registerUser,
   logoutUser,
-  switchUserRole,
   restoreSession,
 } from './authService';
 
@@ -67,3 +66,5 @@ export type {
   FilterPipelineConfig,
   FilterPipelineResult,
 } from './filterService';
+
+export { adminService } from './adminService';

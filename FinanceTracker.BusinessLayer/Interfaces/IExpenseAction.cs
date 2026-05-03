@@ -10,10 +10,10 @@ namespace FinanceTracker.BusinessLayer.Interfaces
 {
     public interface IExpenseAction
     {
-        List<ExpenseDto> GetAllExpensesAction();
-        ExpenseDto? GetExpenseByIdAction(Guid id);
-        ExpenseDto CreateExpenseAction(ExpenseDto dto);
-        ExpenseDto? UpdateExpenseAction(Guid id, ExpenseDto dto);
-        bool DeleteExpenseAction(Guid id);
+        List<ExpenseDto> GetAllExpensesAction(Guid userId);
+        ExpenseDto? GetExpenseByIdAction(Guid id, Guid userId);
+        ExpenseDto CreateExpenseAction(ExpenseDto dto, Guid userId);
+        ExpenseDto? UpdateExpenseAction(Guid id, ExpenseDto dto, Guid userId);
+        bool DeleteExpenseAction(Guid id, Guid userId);
     }
 }

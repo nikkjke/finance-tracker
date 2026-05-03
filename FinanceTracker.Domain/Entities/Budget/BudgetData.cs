@@ -9,6 +9,7 @@ namespace FinanceTracker.Domain.Entities.Budget
     public class BudgetData
     {
         public Guid Id { get; set; }
+        public Guid UserId { get; set; }   // owner
         public string? Category { get; set; }
         public decimal Limit { get; set; }
         public decimal Spent { get; set; }
