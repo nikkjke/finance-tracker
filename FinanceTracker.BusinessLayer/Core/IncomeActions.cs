@@ -24,11 +24,13 @@ namespace FinanceTracker.BusinessLayer.Core
         {
         }
 
-        internal List<IncomeDto> GetAllIncomesActionExecution()
+        internal List<IncomeDto> GetAllIncomesActionExecution(Guid userId)
         {
             using (var db = new FinanceTrackerDbContext())
             {
-                var incomes = db.Incomes.ToList();
+                var incomes = db.Incomes
+                    .Where(x => x.UserId == userId)
+                    .ToList();
                 return incomes.Select(item => new IncomeDto
                 {
                     Id = item.Id,
@@ -42,11 +44,11 @@ namespace FinanceTracker.BusinessLayer.Core
             }
         }
 
-        internal IncomeDto? GetIncomeByIdActionExecution(Guid id)
+        internal IncomeDto? GetIncomeByIdActionExecution(Guid id, Guid userId)
         {
             using (var db = new FinanceTrackerDbContext())
             {
-                var item = db.Incomes.FirstOrDefault(x => x.Id == id);
+                var item = db.Incomes.FirstOrDefault(x => x.Id == id && x.UserId == userId);
                 if (item == null) return null;
                 return new IncomeDto
                 {
@@ -61,13 +63,14 @@ namespace FinanceTracker.BusinessLayer.Core
             }
         }
 
-        internal IncomeDto CreateIncomeActionExecution(IncomeDto dto)
+        internal IncomeDto CreateIncomeActionExecution(IncomeDto dto, Guid userId)
         {
             using (var db = new FinanceTrackerDbContext())
             {
                 var entity = new IncomeData
                 {
                     Id = Guid.NewGuid(),
+                    UserId = userId,
                     Source = dto.Source,
                     Amount = dto.Amount,
                     Category = dto.Category,
@@ -82,11 +85,11 @@ namespace FinanceTracker.BusinessLayer.Core
             }
         }
 
-        internal IncomeDto? UpdateIncomeActionExecution(Guid id, IncomeDto dto)
+        internal IncomeDto? UpdateIncomeActionExecution(Guid id, IncomeDto dto, Guid userId)
         {
             using (var db = new FinanceTrackerDbContext())
             {
-                var entity = db.Incomes.FirstOrDefault(x => x.Id == id);
+                var entity = db.Incomes.FirstOrDefault(x => x.Id == id && x.UserId == userId);
                 if (entity == null) return null;
                 entity.Source = dto.Source;
                 entity.Amount = dto.Amount;
@@ -101,11 +104,11 @@ namespace FinanceTracker.BusinessLayer.Core
             }
         }
 
-        internal bool DeleteIncomeActionExecution(Guid id)
+        internal bool DeleteIncomeActionExecution(Guid id, Guid userId)
         {
             using (var db = new FinanceTrackerDbContext())
             {
-                var entity = db.Incomes.FirstOrDefault(x => x.Id == id);
+                var entity = db.Incomes.FirstOrDefault(x => x.Id == id && x.UserId == userId);
                 if (entity == null) return false;
                 db.Incomes.Remove(entity);
                 db.SaveChanges();

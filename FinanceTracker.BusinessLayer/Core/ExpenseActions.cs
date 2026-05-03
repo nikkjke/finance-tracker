@@ -24,11 +24,13 @@ namespace FinanceTracker.BusinessLayer.Core
         {
         }
 
-        internal List<ExpenseDto> GetAllExpensesActionExecution()
+        internal List<ExpenseDto> GetAllExpensesActionExecution(Guid userId)
         {
             using (var db = new FinanceTrackerDbContext())
             {
-                var expenses = db.Expenses.ToList();
+                var expenses = db.Expenses
+                    .Where(x => x.UserId == userId)
+                    .ToList();
                 return expenses.Select(item => new ExpenseDto
                 {
                     Id = item.Id,
@@ -43,11 +45,11 @@ namespace FinanceTracker.BusinessLayer.Core
             }
         }
 
-        internal ExpenseDto? GetExpenseByIdActionExecution(Guid id)
+        internal ExpenseDto? GetExpenseByIdActionExecution(Guid id, Guid userId)
         {
             using (var db = new FinanceTrackerDbContext())
             {
-                var item = db.Expenses.FirstOrDefault(x => x.Id == id);
+                var item = db.Expenses.FirstOrDefault(x => x.Id == id && x.UserId == userId);
                 if (item == null) return null;
                 return new ExpenseDto
                 {
@@ -63,13 +65,14 @@ namespace FinanceTracker.BusinessLayer.Core
             }
         }
 
-        internal ExpenseDto CreateExpenseActionExecution(ExpenseDto dto)
+        internal ExpenseDto CreateExpenseActionExecution(ExpenseDto dto, Guid userId)
         {
             using (var db = new FinanceTrackerDbContext())
             {
                 var entity = new ExpenseData
                 {
                     Id = Guid.NewGuid(),
+                    UserId = userId,
                     StoreName = dto.StoreName,
                     Amount = dto.Amount,
                     Category = dto.Category,
@@ -85,11 +88,11 @@ namespace FinanceTracker.BusinessLayer.Core
             }
         }
 
-        internal ExpenseDto? UpdateExpenseActionExecution(Guid id, ExpenseDto dto)
+        internal ExpenseDto? UpdateExpenseActionExecution(Guid id, ExpenseDto dto, Guid userId)
         {
             using (var db = new FinanceTrackerDbContext())
             {
-                var entity = db.Expenses.FirstOrDefault(x => x.Id == id);
+                var entity = db.Expenses.FirstOrDefault(x => x.Id == id && x.UserId == userId);
                 if (entity == null) return null;
                 entity.StoreName = dto.StoreName;
                 entity.Amount = dto.Amount;
@@ -105,11 +108,11 @@ namespace FinanceTracker.BusinessLayer.Core
             }
         }
 
-        internal bool DeleteExpenseActionExecution(Guid id)
+        internal bool DeleteExpenseActionExecution(Guid id, Guid userId)
         {
             using (var db = new FinanceTrackerDbContext())
             {
-                var entity = db.Expenses.FirstOrDefault(x => x.Id == id);
+                var entity = db.Expenses.FirstOrDefault(x => x.Id == id && x.UserId == userId);
                 if (entity == null) return false;
                 db.Expenses.Remove(entity);
                 db.SaveChanges();
