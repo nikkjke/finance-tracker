@@ -38,5 +38,10 @@ public class BusinessLogic
     {
         return new AdminActionExecution();
     }
+
+    public IReceiptScanAction ReceiptScanAction()
+    {
+        return new ReceiptScanActionExecution();
+    }
 }
 

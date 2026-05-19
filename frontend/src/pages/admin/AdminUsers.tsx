@@ -96,7 +96,7 @@ export default function AdminUsers() {
         pushNotification({
           title: 'Error',
           message: 'Failed to delete user.',
-          type: 'error',
+          type: 'system',
           priority: 'high',
         });
       }
@@ -129,7 +129,7 @@ export default function AdminUsers() {
       pushNotification({
         title: 'Error',
         message: 'Failed to change user role.',
-        type: 'error',
+        type: 'system',
         priority: 'high',
       });
     }

@@ -24,6 +24,7 @@
     "clsx": "^2.1.1",
     "d3-array": "^3.2.4",
     "framer-motion": "^12.35.2",
+    "jsqr": "^1.4.0",
     "lucide-react": "^0.564.0",
     "motion": "^12.38.0",
     "radix-ui": "^1.4.3",
