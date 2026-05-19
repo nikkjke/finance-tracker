@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { User } from '../types';
+import { STORAGE_KEYS } from '../types';
 import {
   loginUser,
   registerUser,
@@ -11,8 +12,8 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
-  register: (name: string, email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<{ success: boolean; user?: User; error?: string }>;
+  register: (name: string, email: string, password: string, termsAccepted: boolean) => Promise<{ success: boolean; user?: User; error?: string }>;
   logout: () => void;
   updateUser: (updates: Partial<Pick<User, 'name' | 'email' | 'avatar'>>) => void;
 }
@@ -32,8 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const result = await loginUser(email, password);
+  const login = useCallback(async (email: string, password: string, rememberMe = true) => {
+    const result = await loginUser(email, password, rememberMe);
     if (result.success && result.user) {
       setUser(result.user);
       return { success: true, user: result.user };
@@ -41,8 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { success: false, error: result.error };
   }, []);
 
-  const register = useCallback(async (name: string, email: string, password: string) => {
-    const result = await registerUser(name, email, password);
+  const register = useCallback(async (name: string, email: string, password: string, termsAccepted: boolean) => {
+    const result = await registerUser(name, email, password, termsAccepted);
     if (result.success && result.user) {
       setUser(result.user);
       return { success: true, user: result.user };
@@ -59,9 +60,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) {
       const updatedUser = { ...user, ...updates };
       setUser(updatedUser);
+      const storage = sessionStorage.getItem(STORAGE_KEYS.JWT_TOKEN) ? sessionStorage : localStorage;
       // Persist the updated user info locally (token remains unchanged)
       try {
-        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        storage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(updatedUser));
       } catch {
         console.warn('Failed to persist updated user');
       }

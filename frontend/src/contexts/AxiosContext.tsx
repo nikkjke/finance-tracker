@@ -31,13 +31,16 @@ function emitApiError(detail: ApiErrorEventDetail): void {
 export function AxiosProvider({ children }: { children: ReactNode }) {
   const axiosInstance = useMemo(() => createApiClient(), []);
 
+  const getStoredToken = () =>
+    localStorage.getItem(STORAGE_KEYS.JWT_TOKEN) || sessionStorage.getItem(STORAGE_KEYS.JWT_TOKEN);
+
   useEffect(() => {
     setApiClient(axiosInstance);
 
     // ── Request interceptor: attach JWT Bearer token automatically ────────
     const requestInterceptorId = axiosInstance.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem(STORAGE_KEYS.JWT_TOKEN);
+        const token = getStoredToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -70,9 +73,16 @@ export function AxiosProvider({ children }: { children: ReactNode }) {
           });
 
           if (status === 401 && window.location.pathname !== '/login') {
+            const token = getStoredToken();
+            if (!token) {
+              return Promise.reject(error);
+            }
+
             // Token expired or invalid — clear session and redirect to login
             localStorage.removeItem(STORAGE_KEYS.JWT_TOKEN);
             localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+            sessionStorage.removeItem(STORAGE_KEYS.JWT_TOKEN);
+            sessionStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
             window.location.assign('/login');
           } else if (status === 403 && window.location.pathname !== '/403') {
             window.location.assign('/403');

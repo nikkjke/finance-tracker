@@ -1,15 +1,11 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
   PlusCircle,
   BarChart3,
   Wallet,
-  Settings,
-  LogOut,
   X,
   Users,
-  Activity,
-  AlertCircle,
   TrendingUp,
   FileText,
   Bell,
@@ -24,13 +20,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+  const { user } = useAuth();
 
   const userLinks = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -42,10 +32,7 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
   ];
 
   const adminLinks = [
-    { to: '/admin', label: 'Overview', icon: LayoutDashboard },
     { to: '/admin/users', label: 'User Management', icon: Users },
-    { to: '/admin/transactions', label: 'Transactions', icon: Activity },
-    { to: '/admin/alerts', label: 'Alerts', icon: AlertCircle },
     { to: '/admin/content', label: 'Content', icon: FileText },
   ];
 
@@ -141,27 +128,7 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
           )}
         </nav>
 
-        {/* Bottom actions */}
-        <div className={`border-t border-surface-200 dark:border-surface-700 ${collapsed ? 'p-2' : 'p-3'}`}>
-          {/* Settings link for both users and admins */}
-          <NavLink
-            to={user?.role === 'admin' ? '/admin/settings' : '/profile'}
-            className={`flex items-center rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700/50 transition-colors ${collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2'}`}
-            onClick={onClose}
-            title={collapsed ? 'Settings' : undefined}
-          >
-            <Settings size={18} className="text-surface-400" />
-            {!collapsed && <span className="text-sm text-surface-600 dark:text-surface-400">Settings</span>}
-          </NavLink>
-          <button
-            onClick={handleLogout}
-            className={`flex w-full items-center rounded-lg text-danger-500 hover:bg-danger-50 dark:hover:bg-danger-500/10 transition-colors ${collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2'}`}
-            title={collapsed ? 'Log out' : undefined}
-          >
-            <LogOut size={18} />
-            {!collapsed && <span className="text-sm font-medium">Log out</span>}
-          </button>
-        </div>
+        {/* Bottom actions removed in favor of profile menu */}
       </aside>
     </>
   );

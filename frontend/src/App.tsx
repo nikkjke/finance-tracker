@@ -22,11 +22,7 @@ import ReportsPage from './pages/dashboard/ReportsPage';
 import BudgetsPage from './pages/dashboard/BudgetsPage';
 import NotificationsPage from './pages/dashboard/NotificationsPage';
 import ProfilePage from './pages/dashboard/ProfilePage';
-import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
-import AdminTransactions from './pages/admin/AdminTransactions';
-import AdminAlerts from './pages/admin/AdminAlerts';
-import AdminSettings from './pages/admin/AdminSettings';
 import AdminContent from './pages/admin/AdminContent';
 import { NotFoundPage, UnauthorizedPage, ForbiddenPage, ServerErrorPage } from './pages/errors';
 import { AboutUsPage, SupportPage, ContactPage, PrivacyPolicyPage, TermsOfServicePage, CookiePolicyPage, SecurityPage } from './pages/info';
@@ -80,12 +76,9 @@ function App() {
                 </ProtectedRoute>
               }
             >
-              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin" element={<AdminUsers />} />
               <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/transactions" element={<AdminTransactions />} />
-              <Route path="/admin/alerts" element={<AdminAlerts />} />
               <Route path="/admin/content" element={<AdminContent />} />
-              <Route path="/admin/settings" element={<AdminSettings />} />
             </Route>
 
             {/* Shared Routes (accessible by both users and admins) */}

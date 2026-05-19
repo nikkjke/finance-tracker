@@ -19,6 +19,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   // Redirect already-authenticated users to their dashboard
   useEffect(() => {
@@ -52,7 +53,7 @@ export default function LoginPage() {
     setIsLoading(true);
     const emailValue = emailRef.current?.value || '';
     const passwordValue = passwordRef.current?.value || '';
-    const result = await login(emailValue, passwordValue);
+    const result = await login(emailValue, passwordValue, rememberMe);
     setIsLoading(false);
 
     if (result.success) {
@@ -61,21 +62,6 @@ export default function LoginPage() {
       navigate(targetPath);
     } else {
       setErrors({ email: result.error || 'Login failed' });
-    }
-  };
-
-  const handleQuickLogin = async (role: 'user' | 'admin') => {
-    const credentials = role === 'admin'
-      ? { email: 'admin@fintrack.com', password: 'admin123' }
-      : { email: 'mariana@example.com', password: 'user123' };
-    
-    if (emailRef.current) emailRef.current.value = credentials.email;
-    if (passwordRef.current) passwordRef.current.value = credentials.password;
-    setErrors((prev) => ({ ...prev, email: undefined, password: undefined }));
-    
-    const result = await login(credentials.email, credentials.password);
-    if (result.success) {
-      navigate(role === 'admin' ? '/admin' : '/dashboard');
     }
   };
 
@@ -164,24 +150,6 @@ export default function LoginPage() {
               </Link>
             </p>
 
-          {/* Quick login buttons */}
-          <div className="mt-6 grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => handleQuickLogin('user')}
-              className="btn-secondary text-sm"
-            >
-              Demo User Login
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickLogin('admin')}
-              className="btn-secondary text-sm"
-            >
-              Demo Admin Login
-            </button>
-          </div>
-
           <div className="my-6 flex items-center gap-3">
             <div className="h-px flex-1 bg-surface-200 dark:bg-surface-700" />
             <span className="text-sm text-surface-400">or continue with email</span>
@@ -232,7 +200,12 @@ export default function LoginPage() {
 
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2">
-                <input type="checkbox" className="h-4 w-4 rounded border-surface-300 text-primary-600 focus:ring-primary-500" />
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(event) => setRememberMe(event.target.checked)}
+                  className="h-4 w-4 rounded border-surface-300 text-primary-600 focus:ring-primary-500"
+                />
                 <span className="text-sm text-surface-600 dark:text-surface-400">Remember me</span>
               </label>
               <button type="button" className="text-sm font-medium text-primary-600 hover:text-primary-500">
