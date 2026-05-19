@@ -2,7 +2,6 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Connection string ────────────────────────────────────────────────────────
@@ -102,6 +101,7 @@ app.UseHttpsRedirection();
 app.UseCors("FrontendPolicy");
 
 app.UseAuthentication(); // must come before UseAuthorization
+
 app.UseAuthorization();
 
 app.MapControllers();
