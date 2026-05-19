@@ -44,6 +44,13 @@
   --color-surface-950: #1a1b1d;
 
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --animate-scan: scan 3s ease-in-out infinite;
+
+  @keyframes scan {
+    0%, 100% { transform: translateY(8px); }
+    50% { transform: translateY(200px); }
+  }
 }
 
 @layer base {

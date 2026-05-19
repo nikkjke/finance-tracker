@@ -1,4 +1,6 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import jsQR from 'jsqr';
 import {
   ScanLine,
   Upload,
@@ -10,6 +12,12 @@ import {
   CreditCard,
   AlertCircle,
   FileImage,
+  QrCode,
+  Zap,
+  Store,
+  DollarSign,
+  Calendar,
+  Notebook,
 } from 'lucide-react';
 import type { Expense, ExpenseCategory } from '../../types';
 import { categoryLabels } from '../../data/mockData';
@@ -18,6 +26,7 @@ import DatePicker from '../../components/ui/DatePicker';
 import { DebouncedInput, DebouncedTextarea } from '../../components/ui/DebouncedInput';
 import { useAuth } from '../../contexts/AuthContext';
 import { useExpenses } from '../../contexts/ExpenseContext';
+import { scanReceipt, type ReceiptScanResult } from '../../services/receiptScanService';
 
 interface FormData {
   storeName: string;
@@ -37,7 +46,7 @@ interface FormErrors {
   notes?: string;
 }
 
-type ScanState = 'idle' | 'scanning' | 'success' | 'error';
+type ScanState = 'idle' | 'scanning' | 'processing' | 'confirm' | 'success' | 'error';
 type ElectronicReceiptState = 'idle' | 'processing' | 'success' | 'error';
 
 const initialFormData: FormData = {
@@ -50,9 +59,10 @@ const initialFormData: FormData = {
 };
 
 export default function AddExpensePage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { addExpense } = useExpenses();
-  const [activeTab, setActiveTab] = useState<'manual' | 'scan' | 'electronic'>('manual');
+  const [activeTab, setActiveTab] = useState<'manual' | 'scan' | 'electronic'>('scan');
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,6 +71,15 @@ export default function AddExpensePage() {
 
   // QR Scan states
   const [scanState, setScanState] = useState<ScanState>('idle');
+  const [scanError, setScanError] = useState<string | null>(null);
+  const [scanResult, setScanResult] = useState<ReceiptScanResult | null>(null);
+
+  // Camera refs
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const animFrameRef = useRef<number | null>(null);
+  const detectedQrRef = useRef<string | null>(null);
 
   // Electronic receipt photo states (frontend-only for now)
   const [electronicReceiptState, setElectronicReceiptState] = useState<ElectronicReceiptState>('idle');
@@ -163,29 +182,125 @@ export default function AddExpensePage() {
     }, 3000);
   };
 
-  const handleScan = useCallback(async () => {
-    setScanState('scanning');
-    // Simulate QR scan
-    await new Promise((resolve) => setTimeout(resolve, 2500));
-    setScanState('success');
+  // ── Camera helpers ────────────────────────────────────────────────────────
 
-    // Auto-fill form after scan
-    setFormData({
-      storeName: 'Kaufland',
-      amount: '187.45',
-      category: 'food',
-      date: '2026-02-15',
-      notes: 'Auto-scanned receipt - Weekly groceries',
-      paymentMethod: 'card',
-    });
-    setErrors({});
-    setServiceError(null);
-    setActiveTab('manual');
+  const stopCamera = useCallback(() => {
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    detectedQrRef.current = null;
   }, []);
+
+  const startCamera = useCallback(async () => {
+    setScanState('scanning');
+    setScanError(null);
+    setScanResult(null);
+    detectedQrRef.current = null;
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+      });
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+        scheduleQrScan();
+      }
+    } catch {
+      setScanState('error');
+      setScanError('Camera access was denied. Please allow camera permission and try again.');
+    }
+  }, []);
+
+  const scheduleQrScan = useCallback(() => {
+    const loop = () => {
+      const video  = videoRef.current;
+      const canvas = canvasRef.current;
+      if (!video || !canvas || video.readyState < 2) {
+        animFrameRef.current = requestAnimationFrame(loop);
+        return;
+      }
+
+      canvas.width  = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(video, 0, 0);
+
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: 'dontInvert',
+      });
+
+      if (code && code.data && !detectedQrRef.current) {
+        detectedQrRef.current = code.data;
+        stopCamera();
+        handleQrDetected(code.data);
+        return;
+      }
+
+      animFrameRef.current = requestAnimationFrame(loop);
+    };
+    animFrameRef.current = requestAnimationFrame(loop);
+  }, [stopCamera]);
+
+  const handleQrDetected = useCallback(async (qrUrl: string) => {
+    setScanState('processing');
+    const result = await scanReceipt(qrUrl);
+
+    if (!result.success || !result.data) {
+      setScanState('error');
+      setScanError(result.error ?? 'Could not extract receipt data. Please try again.');
+      return;
+    }
+
+    setScanResult(result.data);
+    setScanState('confirm');
+  }, []);
+
+  const handleConfirmAndAdd = useCallback(async () => {
+    if (!scanResult) return;
+    
+    setScanState('processing');
+    const result = await addExpense(user?.id ?? 'guest', {
+      storeName: scanResult.storeName ?? 'Unknown Store',
+      amount: scanResult.amount ?? 0,
+      category: (scanResult.category as ExpenseCategory) ?? 'other',
+      date: scanResult.date ?? new Date().toISOString().split('T')[0],
+      notes: scanResult.notes ?? undefined,
+      paymentMethod: (scanResult.paymentMethod as Expense['paymentMethod']) ?? 'qr_scan',
+    });
+
+    if (!result.success) {
+      setScanState('error');
+      setScanError(result.error ?? 'Failed to add expense. Please try again.');
+      return;
+    }
+
+    setScanResult(null);
+    setScanState('success');
+  }, [scanResult, addExpense, user?.id]);
 
   const resetScan = useCallback(() => {
+    stopCamera();
     setScanState('idle');
-  }, []);
+    setScanError(null);
+    setScanResult(null);
+  }, [stopCamera]);
+
+  const handleScanAgain = useCallback(() => {
+    stopCamera();
+    startCamera();
+  }, [stopCamera, startCamera]);
+
+  // Stop camera when leaving the scan tab
+  useEffect(() => {
+    if (activeTab !== 'scan') stopCamera();
+  }, [activeTab, stopCamera]);
+
+  // Cleanup on unmount
+  useEffect(() => () => stopCamera(), [stopCamera]);
 
   const handleElectronicReceiptSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] ?? null;
@@ -232,15 +347,15 @@ export default function AddExpensePage() {
       {/* Tab Switcher */}
       <div className="flex rounded-lg border border-surface-200 bg-surface-50 p-1 dark:border-surface-700 dark:bg-surface-800">
         <button
-          onClick={() => setActiveTab('manual')}
+          onClick={() => setActiveTab('scan')}
           className={`flex-1 flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all ${
-            activeTab === 'manual'
+            activeTab === 'scan'
               ? 'bg-white text-surface-900 shadow-sm dark:bg-surface-700 dark:text-white'
               : 'text-surface-500 hover:text-surface-700 dark:hover:text-surface-300'
           }`}
         >
-          <Check size={16} />
-          Manual Entry
+          <ScanLine size={16} />
+          Scan Receipt
         </button>
         <button
           onClick={() => setActiveTab('electronic')}
@@ -254,30 +369,30 @@ export default function AddExpensePage() {
           Receipt Photo
         </button>
         <button
-          onClick={() => setActiveTab('scan')}
+          onClick={() => setActiveTab('manual')}
           className={`flex-1 flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all ${
-            activeTab === 'scan'
+            activeTab === 'manual'
               ? 'bg-white text-surface-900 shadow-sm dark:bg-surface-700 dark:text-white'
               : 'text-surface-500 hover:text-surface-700 dark:hover:text-surface-300'
           }`}
         >
-          <ScanLine size={16} />
-          Scan Receipt
+          <Check size={16} />
+          Manual Entry
         </button>
       </div>
 
       {/* Electronic Receipt Section */}
       {activeTab === 'electronic' && (
-        <div className="card">
-          <div className="text-center">
-            <h2 className="text-lg font-semibold text-surface-900 dark:text-white mb-2">
+        <div className="card min-h-[500px] flex flex-col justify-center">
+          <div className="text-center w-full max-w-md mx-auto">
+            <h2 className="text-xl sm:text-2xl font-bold text-surface-900 dark:text-white mb-3">
               Upload Receipt Photo
             </h2>
-            <p className="text-sm text-surface-500 dark:text-surface-400 mb-6">
-              Upload a screenshot or photo of your receipt.
+            <p className="text-base text-surface-500 dark:text-surface-400 mb-8 leading-relaxed">
+              Upload a screenshot or photo of your receipt for automatic data extraction.
             </p>
 
-            <div className="mx-auto max-w-sm">
+            <div className="mx-auto w-full">
               <input
                 ref={electronicReceiptInputRef}
                 type="file"
@@ -287,7 +402,7 @@ export default function AddExpensePage() {
                 id="electronic-receipt-input"
               />
 
-              <div className="relative aspect-square rounded-xl border-2 border-dashed border-surface-300 bg-surface-50 dark:border-surface-600 dark:bg-surface-900 flex items-center justify-center overflow-hidden">
+              <div className="relative aspect-square w-full max-w-[280px] mx-auto rounded-2xl border-2 border-dashed border-surface-300 bg-surface-50 dark:border-surface-600 dark:bg-surface-900/50 flex items-center justify-center overflow-hidden">
                 {!electronicReceiptFile && electronicReceiptState !== 'error' && (
                   <div className="text-center p-6 space-y-3">
                     <FileImage size={44} className="mx-auto text-surface-400" />
@@ -405,117 +520,217 @@ export default function AddExpensePage() {
 
       {/* QR Scan Section */}
       {activeTab === 'scan' && (
-        <div className="card">
-          <div className="text-center">
-            <h2 className="text-lg font-semibold text-surface-900 dark:text-white mb-2">
-              Scan Receipt
-            </h2>
-            <p className="text-sm text-surface-500 dark:text-surface-400 mb-6">
-              Point your camera at your receipt or upload an image.
-            </p>
+        <div className="card min-h-[500px] flex flex-col justify-center">
+          {/* ── IDLE ────────────────────────────────────────────────────── */}
+          {scanState === 'idle' && (
+            <div className="text-center py-4 flex flex-col items-center justify-center w-full max-w-md mx-auto">
+              <div className="relative mx-auto mb-10 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full bg-primary-500/10 animate-ping" style={{ animationDuration: '3s' }} />
+                <div className="absolute inset-[-1rem] rounded-full border border-primary-500/20" />
+                <div className="absolute inset-[-2rem] rounded-full border border-primary-500/10" />
+                <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-primary-500/10 shadow-inner border border-primary-500/20">
+                  <QrCode size={56} className="text-primary-500" />
+                </div>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-surface-900 dark:text-white mb-3">
+                Scan Receipt QR Code
+              </h2>
+              <p className="text-base text-surface-500 dark:text-surface-400 mb-10 leading-relaxed max-w-sm mx-auto">
+                Point your camera at the QR code printed on your receipt. We will automatically extract the store, amount, and date.
+              </p>
+              <button onClick={startCamera} className="btn-primary mx-auto px-8">
+                <Camera size={16} />
+                Open Camera
+              </button>
+            </div>
+          )}
 
-            {/* Camera Area */}
-            <div className="mx-auto max-w-sm">
-              <div className="relative aspect-square rounded-xl border-2 border-dashed border-surface-300 bg-surface-50 dark:border-surface-600 dark:bg-surface-900 flex items-center justify-center overflow-hidden">
-                {scanState === 'idle' && (
-                  <div className="text-center p-6">
-                    <Camera size={48} className="mx-auto text-surface-300 dark:text-surface-600 mb-4" />
-                    <p className="text-sm text-surface-500 dark:text-surface-400">
-                      Camera preview will appear here
-                    </p>
-                  </div>
-                )}
-
-                {scanState === 'scanning' && (
-                  <div className="text-center p-6">
-                    <div className="relative">
-                      <div className="absolute inset-0 rounded-lg border-2 border-primary-500 animate-pulse" />
-                      <Loader2 size={48} className="mx-auto text-primary-500 animate-spin mb-4" />
-                    </div>
-                    <p className="text-sm font-medium text-primary-600 dark:text-primary-400">
-                      Scanning receipt...
-                    </p>
-                    <p className="text-xs text-surface-400 mt-1">
-                      Extracting purchase data
-                    </p>
-                  </div>
-                )}
-
-                {scanState === 'success' && (
-                  <div className="text-center p-6">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success-50 dark:bg-success-500/10">
-                      <Check size={32} className="text-success-500" />
-                    </div>
-                    <p className="text-sm font-medium text-success-600 dark:text-success-500">
-                      Receipt scanned successfully!
-                    </p>
-                    <p className="text-xs text-surface-400 mt-1">
-                      Data has been auto-filled in the form
-                    </p>
-                  </div>
-                )}
-
-                {scanState === 'error' && (
-                  <div className="text-center p-6">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-danger-50 dark:bg-danger-500/10">
-                      <X size={32} className="text-danger-500" />
-                    </div>
-                    <p className="text-sm font-medium text-danger-600 dark:text-danger-500">
-                      Could not read receipt
-                    </p>
-                    <p className="text-xs text-surface-400 mt-1">
-                      Please try again or enter manually
-                    </p>
-                  </div>
-                )}
+          {/* ── SCANNING (live feed) ─────────────────────────────────── */}
+          {scanState === 'scanning' && (
+            <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto">
+              <div className="text-center mb-3">
+                <h2 className="text-lg font-bold text-surface-900 dark:text-white mb-1">Scanning…</h2>
+                <p className="text-sm text-surface-500 dark:text-surface-400">Hold the QR code steady inside the frame</p>
               </div>
 
-              {/* Action Buttons */}
-              <div className="mt-6 flex gap-3">
-                {scanState === 'idle' && (
-                  <>
-                    <button className="btn-secondary flex-1">
-                      <Upload size={16} />
-                      Upload Image
-                    </button>
-                    <button onClick={handleScan} className="btn-primary flex-1">
-                      <Camera size={16} />
-                      Start Scanning
-                    </button>
-                  </>
-                )}
-                {scanState === 'scanning' && (
-                  <button
-                    onClick={resetScan}
-                    className="btn-secondary flex-1"
-                  >
-                    Cancel
-                  </button>
-                )}
-                {(scanState === 'success' || scanState === 'error') && (
-                  <>
-                    <button onClick={resetScan} className="btn-secondary flex-1">
-                      Scan Again
-                    </button>
-                    {scanState === 'success' && (
-                      <button
-                        onClick={() => setActiveTab('manual')}
-                        className="btn-primary flex-1"
-                      >
-                        Review & Submit
-                      </button>
-                    )}
-                  </>
-                )}
+              {/* Live video */}
+              <div className="relative mx-auto w-full max-w-[320px] aspect-square rounded-3xl overflow-hidden bg-black shadow-xl border-2 border-surface-200 dark:border-surface-700">
+                <video
+                  ref={videoRef}
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover block"
+                />
+                
+                {/* Corner-bracket overlay */}
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                  <div className="relative w-52 h-52">
+                    {/* TL */}
+                    <span className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-xl" />
+                    {/* TR */}
+                    <span className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-xl" />
+                    {/* BL */}
+                    <span className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-xl" />
+                    {/* BR */}
+                    <span className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-xl" />
+                    {/* scan line */}
+                    <span className="absolute left-2 right-2 top-1/2 h-[2px] bg-white shadow-[0_0_12px_rgba(255,255,255,0.8)] animate-pulse" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Hidden canvas used for pixel capture */}
+              <canvas ref={canvasRef} className="hidden" />
+
+              <div className="mt-4 text-center">
+                <button onClick={resetScan} className="btn-secondary px-6 py-2 text-sm">
+                  <X size={14} className="mr-2" /> Cancel
+                </button>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* ── PROCESSING (Extracting Data) ───────────────────────────── */}
+          {scanState === 'processing' && (
+            <div className="flex flex-col items-center justify-center w-full py-8 text-center">
+              <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-primary-500/10 border border-primary-500/20 mb-8">
+                <Zap size={36} className="text-primary-500 animate-pulse" />
+              </div>
+              <h2 className="text-xl font-bold text-surface-900 dark:text-white mb-2">Processing Receipt…</h2>
+              <p className="text-base text-surface-500 dark:text-surface-400 max-w-xs">
+                Extracting transaction details. <br />
+                Please wait a moment.
+              </p>
+              <div className="mt-10">
+                <Loader2 size={32} className="text-primary-500 animate-spin" />
+              </div>
+            </div>
+          )}
+
+          {/* ── CONFIRM ──────────────────────────────────────────────── */}
+          {scanState === 'confirm' && scanResult && (
+            <div className="w-full flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-success-500/10">
+                  <Check size={20} className="text-success-500" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-surface-900 dark:text-white">Receipt Detected</h2>
+                  <p className="text-sm text-surface-500 dark:text-surface-400">Review the extracted data before adding</p>
+                </div>
+              </div>
+
+              <div className="grid gap-2 mb-6">
+                {([
+                  { 
+                    label: 'Store / Vendor', 
+                    value: scanResult.storeName, 
+                    icon: <Store size={16} className="text-surface-400" /> 
+                  },
+                  { 
+                    label: 'Amount', 
+                    value: scanResult.amount != null ? `$${scanResult.amount.toFixed(2)}` : null, 
+                    icon: <DollarSign size={16} className="text-surface-400" /> 
+                  },
+                  { 
+                    label: 'Category', 
+                    value: categoryLabels[scanResult.category as ExpenseCategory] || scanResult.category, 
+                    icon: <Tag size={16} className="text-surface-400" /> 
+                  },
+                  { 
+                    label: 'Date', 
+                    value: scanResult.date ? new Date(scanResult.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : null, 
+                    icon: <Calendar size={16} className="text-surface-400" /> 
+                  },
+                  { 
+                    label: 'Payment', 
+                    value: scanResult.paymentMethod ? scanResult.paymentMethod.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : null, 
+                    icon: <CreditCard size={16} className="text-surface-400" /> 
+                  },
+                  { 
+                    label: 'Notes', 
+                    value: scanResult.notes, 
+                    icon: <Notebook size={16} className="text-surface-400" /> 
+                  },
+                ] as { label: string; value: string | null; icon: React.ReactNode }[]).map(({ label, value, icon }) => (
+                  <div
+                    key={label}
+                    className="flex items-center justify-between rounded-xl bg-surface-50/50 dark:bg-surface-800/50 border border-surface-100 dark:border-surface-700/50 px-4 py-3"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      {icon}
+                      <span className="text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                        {label}
+                      </span>
+                    </div>
+                    <span className="text-sm font-bold text-surface-900 dark:text-white">
+                      {value ?? <span className="text-surface-400 font-normal italic">Not detected</span>}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-4">
+                <button onClick={handleScanAgain} className="btn-secondary flex-1 py-2">
+                  Scan Again
+                </button>
+                <button onClick={handleConfirmAndAdd} className="btn-primary flex-1 py-2">
+                  <Check size={18} className="mr-2" /> Confirm & Add
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── SUCCESS ──────────────────────────────────────────────── */}
+          {scanState === 'success' && (
+            <div className="flex flex-col items-center justify-center w-full py-12 text-center">
+              <div className="relative mb-8">
+                <div className="absolute inset-0 rounded-full bg-success-500/20 animate-ping" style={{ animationDuration: '3s' }} />
+                <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-success-500/10 border-2 border-success-500/20 shadow-lg shadow-success-500/10">
+                  <Check size={48} className="text-success-500" />
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold text-surface-900 dark:text-white mb-2">Expense Added!</h2>
+              <p className="text-base text-surface-500 dark:text-surface-400 max-w-xs mb-10">
+                Your receipt has been processed and the transaction was successfully recorded.
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center gap-4 w-full max-w-sm">
+                <button onClick={resetScan} className="btn-secondary flex-1 py-3">
+                  Scan Another
+                </button>
+                <button onClick={() => navigate('/dashboard')} className="btn-primary flex-1 py-3">
+                  View Dashboard
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── ERROR ────────────────────────────────────────────────── */}
+          {scanState === 'error' && (
+            <div className="text-center py-4">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-danger-50 dark:bg-danger-500/10">
+                <X size={32} className="text-danger-500" />
+              </div>
+              <h2 className="text-base font-semibold text-danger-600 dark:text-danger-400 mb-1">Scan Failed</h2>
+              <p className="text-sm text-surface-500 dark:text-surface-400 mb-6 max-w-xs mx-auto">
+                {scanError ?? 'Could not extract receipt data.'}
+              </p>
+              <div className="flex gap-3 justify-center">
+                <button onClick={resetScan} className="btn-secondary">
+                  Try Again
+                </button>
+                <button onClick={() => setActiveTab('manual')} className="btn-primary">
+                  Enter Manually
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* Manual Entry Form */}
       {activeTab === 'manual' && (
-        <div className="card">
+        <div className="card min-h-[500px]">
           {submitted ? (
             <div className="py-12 text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success-50 dark:bg-success-500/10">
