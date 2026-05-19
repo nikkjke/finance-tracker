@@ -30,11 +30,11 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
 import { useExpenses } from '../../contexts/ExpenseContext';
 import { useBudgets } from '../../contexts/BudgetContext';
+import { useContent } from '../../contexts/ContentContext';
 import Modal from '../ui/Modal';
 import Dropdown from '../ui/Dropdown';
 import DatePicker from '../ui/DatePicker';
 import { DebouncedInput, DebouncedTextarea } from '../ui/DebouncedInput';
-import { categoryLabels, categoryColors } from '../../data/mockData';
 interface NavbarProps {
   onMenuClick: () => void;
   onToggleSidebar: () => void;
@@ -69,6 +69,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
   const { notifications, markAsRead, markAsUnread, deleteNotification, unreadCount } = useNotification();
   const { getExpenses, updateExpense } = useExpenses();
   const { getBudgets, updateBudget } = useBudgets();
+  const { expenseCategoryOptions, getExpenseCategoryLabel, getExpenseCategoryColor } = useContent();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -103,24 +104,24 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
     const expResults = rawTransactions
       .filter((t) =>
         t.storeName.toLowerCase().includes(query) ||
-        (categoryLabels[t.category] || t.category).toLowerCase().includes(query)
+        getExpenseCategoryLabel(t.category).toLowerCase().includes(query)
       )
       .map((t) => ({
         type: 'expense' as const,
         id: t.id,
         title: t.storeName,
-        subtitle: `${new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} in ${categoryLabels[t.category] || t.category}`,
+        subtitle: `${new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} in ${getExpenseCategoryLabel(t.category)}`,
         amount: t.amount,
         category: t.category,
         original: t,
       }));
 
     const budResults = rawBudgets
-      .filter((b) => (categoryLabels[b.category] || b.category).toLowerCase().includes(query))
+      .filter((b) => getExpenseCategoryLabel(b.category).toLowerCase().includes(query))
       .map((b) => ({
         type: 'budget' as const,
         id: b.id,
-        title: `${categoryLabels[b.category] || b.category} Budget`,
+        title: `${getExpenseCategoryLabel(b.category)} Budget`,
         subtitle: b.period ? `${b.period} budget target` : 'Budget target',
         amount: b.limit,
         category: b.category,
@@ -138,7 +139,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
     };
 
     return [...expResults.sort(byBestMatch), ...budResults.sort(byBestMatch)].slice(0, 8);
-  }, [searchQuery, getExpenses, getBudgets, user?.id, user?.role]);
+  }, [searchQuery, getExpenses, getBudgets, getExpenseCategoryLabel, user?.id, user?.role]);
 
   useEffect(() => {
     setActiveSearchIndex(null);
@@ -267,7 +268,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                     >
                     {searchResults.map((t, idx) => {
                         const ItemIcon = categoryIcons[t.category] || MoreHorizontal;
-                        const categoryColor = categoryColors[t.category] || '#64748b';
+                        const categoryColor = getExpenseCategoryColor(t.category);
                         const showTypeHeader = idx === 0 || searchResults[idx - 1].type !== t.type;
                         return (
                           <div key={`${t.type}-${t.id}`}>
@@ -538,7 +539,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                     <Dropdown 
                       value={editForm.category || ''} 
                       onChange={(val) => setEditForm({...editForm, category: val})}
-                      options={Object.entries(categoryLabels).map(([value, label]) => ({ value, label }))}
+                      options={expenseCategoryOptions}
                       icon={<Tag size={16} />}
                       fullWidth
                     />
@@ -580,7 +581,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                   <Dropdown 
                     value={editForm.category || ''} 
                     onChange={(val) => setEditForm({...editForm, category: val})}
-                    options={Object.entries(categoryLabels).map(([value, label]) => ({ value, label }))}
+                    options={expenseCategoryOptions}
                     icon={<Tag size={16} />}
                     fullWidth
                   />

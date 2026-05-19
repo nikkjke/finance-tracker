@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Budget, BudgetPeriod } from '../../types';
-import { categoryLabels, categoryColors } from '../../data/mockData';
+import { useContent } from '../../contexts/ContentContext';
 
 const periodLabels: Record<BudgetPeriod, string> = {
   weekly: 'Weekly',
@@ -99,9 +99,10 @@ interface BudgetProgressProps {
 }
 
 export default function BudgetProgress({ budget, actions }: BudgetProgressProps) {
+  const { getExpenseCategoryLabel, getExpenseCategoryColor } = useContent();
   const percent = Math.min((budget.spent / budget.limit) * 100, 100);
   const remaining = budget.limit - budget.spent;
-  const color = categoryColors[budget.category] || '#64748b';
+  const color = getExpenseCategoryColor(budget.category);
   const barColor = percent > 90 ? '#ef4444' : percent > 70 ? '#f59e0b' : color;
   const { periodLabel, rangeLabel } = getBudgetBadgeParts(budget);
 
@@ -115,7 +116,7 @@ export default function BudgetProgress({ budget, actions }: BudgetProgressProps)
             style={{ backgroundColor: color }}
           />
           <span className="truncate text-base font-semibold text-surface-900 dark:text-white">
-            {categoryLabels[budget.category]}
+            {getExpenseCategoryLabel(budget.category)}
           </span>
         </div>
         <div className="grid w-full min-w-0 grid-cols-[1fr_auto] items-center gap-2 sm:flex sm:w-auto sm:shrink-0 sm:grid-cols-none">

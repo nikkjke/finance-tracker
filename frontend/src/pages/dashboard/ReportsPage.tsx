@@ -9,11 +9,11 @@ import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
 import Pagination from '../../components/ui/Pagination';
 import Modal from '../../components/ui/Modal';
-import { categoryLabels, incomeLabels } from '../../data/mockData';
 import { useExpenses } from '../../contexts/ExpenseContext';
 import { useIncome } from '../../contexts/IncomeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useContent } from '../../contexts/ContentContext';
 import StatCard from '../../components/ui/StatCard';
 import { applyFilters, presetToDateRange, exportReport } from '../../services';
 import type { FilterPipelineConfig, SortConfig } from '../../services/filterService';
@@ -24,6 +24,13 @@ export default function ReportsPage() {
   const { income: storeIncome, updateIncome, deleteIncome } = useIncome();
   const { user } = useAuth();
   const { pushNotification } = useNotification();
+  const {
+    expenseCategoryOptions,
+    incomeCategoryOptions,
+    getExpenseCategoryLabel,
+    getIncomeCategoryLabel,
+    transactionStatuses,
+  } = useContent();
 
   // Filter by current user (stable references via useMemo)
   const userExpenses = useMemo(() => storeExpenses.filter((e) => !user || e.userId === user.id), [storeExpenses, user]);
@@ -34,17 +41,54 @@ export default function ReportsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState('6months');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending' | 'cancelled'>('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date-desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   const [incomeSearchQuery, setIncomeSearchQuery] = useState('');
   const [incomeDateRange, setIncomeDateRange] = useState('6months');
   const [incomeCategoryFilter, setIncomeCategoryFilter] = useState('all');
-  const [incomeStatusFilter, setIncomeStatusFilter] = useState<'all' | 'completed' | 'pending'>('all');
+  const [incomeStatusFilter, setIncomeStatusFilter] = useState('all');
   const [incomeSortBy, setIncomeSortBy] = useState('date-desc');
   const [incomePage, setIncomePage] = useState(1);
   const [incomeItemsPerPage, setIncomeItemsPerPage] = useState(5);
+
+  const expenseCategoryFilterOptions = useMemo(() => ([
+    { value: 'all', label: 'All Categories' },
+    ...expenseCategoryOptions,
+  ]), [expenseCategoryOptions]);
+
+  const incomeCategoryFilterOptions = useMemo(() => ([
+    { value: 'all', label: 'All Categories' },
+    ...incomeCategoryOptions,
+  ]), [incomeCategoryOptions]);
+
+  const incomeStatusFilterOptions = useMemo(() => {
+    const fallback = [
+      { value: 'completed', label: 'Completed' },
+      { value: 'pending', label: 'Pending' },
+    ];
+
+    const statuses = transactionStatuses.length > 0
+      ? transactionStatuses.map((status) => ({ value: status.value, label: status.label }))
+      : fallback;
+
+    return [{ value: 'all', label: 'All Statuses' }, ...statuses];
+  }, [transactionStatuses]);
+
+  const expenseStatusFilterOptions = useMemo(() => {
+    const fallback = [
+      { value: 'completed', label: 'Completed' },
+      { value: 'pending', label: 'Pending' },
+      { value: 'cancelled', label: 'Cancelled' },
+    ];
+
+    const statuses = transactionStatuses.length > 0
+      ? transactionStatuses.map((status) => ({ value: status.value, label: status.label }))
+      : fallback;
+
+    return [{ value: 'all', label: 'All Statuses' }, ...statuses];
+  }, [transactionStatuses]);
 
   // ── Expense edit / delete state ──
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
@@ -341,28 +385,13 @@ export default function ReportsPage() {
           value={categoryFilter}
           onChange={setCategoryFilter}
           icon={<Filter size={16} />}
-          options={[
-            { value: 'all', label: 'All Categories' },
-            { value: 'food', label: 'Food & Groceries' },
-            { value: 'transport', label: 'Transport' },
-            { value: 'entertainment', label: 'Entertainment' },
-            { value: 'shopping', label: 'Shopping' },
-            { value: 'bills', label: 'Bills & Utilities' },
-            { value: 'health', label: 'Health' },
-            { value: 'education', label: 'Education' },
-            { value: 'travel', label: 'Travel' },
-          ]}
+          options={expenseCategoryFilterOptions}
         />
         <Dropdown
           value={statusFilter}
-          onChange={(val) => setStatusFilter(val as typeof statusFilter)}
+          onChange={setStatusFilter}
           icon={<Filter size={16} />}
-          options={[
-            { value: 'all', label: 'All Statuses' },
-            { value: 'completed', label: 'Completed' },
-            { value: 'pending', label: 'Pending' },
-            { value: 'cancelled', label: 'Cancelled' },
-          ]}
+          options={expenseStatusFilterOptions}
         />
         <Dropdown
           value={sortBy}
@@ -498,26 +527,14 @@ export default function ReportsPage() {
               value={incomeCategoryFilter}
               onChange={setIncomeCategoryFilter}
               icon={<Filter size={16} />}
-              options={[
-                { value: 'all', label: 'All Categories' },
-                { value: 'salary', label: 'Salary' },
-                { value: 'freelance', label: 'Freelance' },
-                { value: 'investment', label: 'Investment' },
-                { value: 'bonus', label: 'Bonus' },
-                { value: 'gift', label: 'Gift' },
-                { value: 'other_income', label: 'Other Income' },
-              ]}
+              options={incomeCategoryFilterOptions}
             />
 
             <Dropdown
               value={incomeStatusFilter}
-              onChange={(val) => setIncomeStatusFilter(val as typeof incomeStatusFilter)}
+              onChange={setIncomeStatusFilter}
               icon={<Filter size={16} />}
-              options={[
-                { value: 'all', label: 'All Statuses' },
-                { value: 'completed', label: 'Completed' },
-                { value: 'pending', label: 'Pending' },
-              ]}
+              options={incomeStatusFilterOptions}
             />
 
             <Dropdown
@@ -593,7 +610,7 @@ export default function ReportsPage() {
             categoryBreakdown.map((item) => (
               <div key={item.category}>
                 <div className="mb-1 flex items-center justify-between text-xs">
-                  <span className="text-surface-600 dark:text-surface-300">{categoryLabels[item.category as keyof typeof categoryLabels]}</span>
+                  <span className="text-surface-600 dark:text-surface-300">{getExpenseCategoryLabel(item.category)}</span>
                   <span className="text-surface-500">{item.share.toFixed(1)}%</span>
                 </div>
                 <div className="h-2 rounded-full bg-surface-100 dark:bg-surface-700">
@@ -652,7 +669,7 @@ export default function ReportsPage() {
               <Dropdown
                 value={expenseForm.category}
                 onChange={(val) => setExpenseForm((f) => ({ ...f, category: val as ExpenseCategory }))}
-                options={Object.entries(categoryLabels).map(([value, label]) => ({ value, label }))}
+                options={expenseCategoryOptions}
                 icon={<Tag size={16} />}
                 fullWidth
               />
@@ -725,7 +742,7 @@ export default function ReportsPage() {
             <Dropdown
               value={incomeForm.category}
               onChange={(val) => setIncomeForm((f) => ({ ...f, category: val as IncomeCategory }))}
-              options={Object.entries(incomeLabels).map(([value, label]) => ({ value, label }))}
+              options={incomeCategoryOptions}
               icon={<Briefcase size={16} />}
               fullWidth
             />
