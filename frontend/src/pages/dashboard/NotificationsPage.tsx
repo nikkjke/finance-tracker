@@ -19,6 +19,7 @@ import Dropdown from '../../components/ui/Dropdown';
 import EmptyState from '../../components/ui/EmptyState';
 import Modal from '../../components/ui/Modal';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import StatCard from '../../components/ui/StatCard';
 import type { NotificationType, Notification } from '../../contexts/NotificationContext';
 
@@ -91,6 +92,8 @@ export default function NotificationsPage() {
     unreadCount,
   } = useNotification();
   
+  const { t, language } = useLanguage();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | NotificationType>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'unread' | 'read'>('all');
@@ -120,6 +123,50 @@ export default function NotificationsPage() {
     highPriority: notifications.filter((n) => n.priority === 'high' && !n.read).length,
   }), [notifications, unreadCount]);
 
+  const getTranslatedTitle = (title: string) => {
+    const keyMap: Record<string, string> = {
+      'Transaction added': t('transactionAdded' as any),
+      'Budget added': t('budgetAdded' as any),
+      'Budget deleted': t('budgetDeleted' as any),
+      'Profile updated': t('profileUpdatedTitle' as any),
+    };
+    return keyMap[title] || t(title as any); 
+  };
+  
+  const getTranslatedMessage = (message: string) => {
+    if (language === 'en') return message;
+  
+    if (message.includes("Expense at") && message.includes("was added")) {
+      const match = message.match(/Expense at (.*?) for (.*?) was added./);
+      if (match) {
+        return `Cheltuiala la ${match[1]} în valoare de ${match[2]} a fost adăugată.`;
+      }
+    }
+    
+    if (message.includes("Income from") && message.includes("was recorded")) {
+      const match = message.match(/Income from (.*?) for (.*?) was recorded./);
+      if (match) {
+        return `Venitul de la ${match[1]} în valoare de ${match[2]} a fost înregistrat.`;
+      }
+    }
+
+    if (message.includes("Profile information for")) {
+      const match = message.match(/Profile information for (.*?) was updated./);
+      if (match) {
+        return `Informațiile profilului pentru ${match[1]} au fost actualizate.`;
+      }
+    }
+
+    if (message.includes("Budget of")) {
+      const match = message.match(/Budget of (.*?) set for (.*?)\./);
+      if (match) {
+        return `Bugetul de ${match[1]} setat pentru ${match[2]}.`;
+      }
+    }
+  
+    return message; 
+  };
+
   // ── Render ───────────────────────────────────────────────────
   return (
     <div className="space-y-6">
@@ -129,7 +176,7 @@ export default function NotificationsPage() {
           <div className="flex items-center gap-2 mb-1">
             <Bell size={20} className="text-primary-600 dark:text-primary-400" />
             <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">
-              Notifications
+              {t('notificationsTitle')}
             </h1>
             {stats.unread > 0 && (
               <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-primary-600 px-2 text-xs font-bold text-white">
@@ -138,14 +185,14 @@ export default function NotificationsPage() {
             )}
           </div>
           <p className="text-sm text-surface-500 dark:text-surface-400">
-            Stay updated with your financial activity and alerts.
+            {t('notificationsTitleDesc' as any) || "Stay updated with your financial activity and alerts."}
           </p>
         </div>
         <div className="flex gap-2">
           {stats.unread > 0 && (
             <button onClick={markAllAsRead} className="btn-secondary">
               <CheckCheck size={16} />
-              Mark all read
+              {t('markAllRead' as any) || "Mark all read"}
             </button>
           )}
           {notifications.length > 0 && (
@@ -154,7 +201,7 @@ export default function NotificationsPage() {
               className="btn-ghost text-danger-500 hover:bg-danger-50 dark:hover:bg-danger-500/10"
             >
               <Trash2 size={16} />
-              Clear all
+              {t('clearAll' as any) || "Clear all"}
             </button>
           )}
         </div>
@@ -167,7 +214,7 @@ export default function NotificationsPage() {
                 <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
                 <input
                   type="text"
-                  placeholder="Search notifications..."
+                  placeholder={t('searchNotifications' as any) || "Search notifications..."}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="input pl-10 w-full"
@@ -178,7 +225,7 @@ export default function NotificationsPage() {
                   value={typeFilter}
                   onChange={(val) => setTypeFilter(val as typeof typeFilter)}
                   options={[
-                    { value: 'all', label: 'All Types' },
+                    { value: 'all', label: t('allTypes' as any) || 'All Types' },
                     { value: 'budget', label: 'Budget' },
                     { value: 'expense', label: 'Expense' },
                     { value: 'income', label: 'Income' },
@@ -191,9 +238,9 @@ export default function NotificationsPage() {
                   value={statusFilter}
                   onChange={(val) => setStatusFilter(val as typeof statusFilter)}
                   options={[
-                    { value: 'all', label: 'All Status' },
-                    { value: 'unread', label: 'Unread' },
-                    { value: 'read', label: 'Read' },
+                    { value: 'all', label: t('allStatus' as any) || 'All Status' },
+                    { value: 'unread', label: t('unread' as any) || 'Unread' },
+                    { value: 'read', label: t('read' as any) || 'Read' },
                   ]}
                   icon={<Bell size={16} />}
                 />
@@ -204,19 +251,19 @@ export default function NotificationsPage() {
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-3">
             <StatCard
-              title="Total"
+              title={t('total' as any) || "Total"}
               value={stats.total}
               icon={<Bell size={20} />}
               isCurrency={false}
             />
             <StatCard
-              title="Unread"
+              title={t('unread' as any) || "Unread"}
               value={stats.unread}
               icon={<BellOff size={20} />}
               isCurrency={false}
             />
             <StatCard
-              title="High Priority"
+              title={t('highPriority' as any) || "High Priority"}
               value={stats.highPriority}
               icon={<AlertTriangle size={20} />}
               isCurrency={false}
@@ -228,8 +275,8 @@ export default function NotificationsPage() {
             <div className="card">
               <EmptyState
                 icon={BellOff}
-                title="No notifications"
-                description="You're all caught up! We'll notify you when something important happens."
+                title={t('noNotifications' as any) || "No notifications"}
+                description={t('allCaughtUp' as any) || "You're all caught up! We'll notify you when something important happens."}
                 className="rounded-lg border border-surface-200 dark:border-surface-700"
               />
             </div>
@@ -237,8 +284,8 @@ export default function NotificationsPage() {
             <div className="card">
               <EmptyState
                 icon={Search}
-                title="No matching notifications"
-                description="Try adjusting your search or filters."
+                title={t('noMatchingNotifs' as any) || "No matching notifications"}
+                description={t('adjustSearch' as any) || "Try adjusting your search or filters."}
                 className="rounded-lg border border-surface-200 dark:border-surface-700"
               />
             </div>
@@ -269,17 +316,17 @@ export default function NotificationsPage() {
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <h3 className={`text-sm font-semibold ${!notification.read ? 'text-surface-900 dark:text-white' : 'text-surface-700 dark:text-surface-300'}`}>
-                              {notification.title}
+                              {getTranslatedTitle(notification.title)}
                             </h3>
                             <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${getPriorityBadge(notification.priority)}`}>
-                              {notification.priority}
+                              {notification.priority === 'low' ? (language === 'ro' ? 'scăzut' : 'low') : notification.priority === 'medium' ? (language === 'ro' ? 'mediu' : 'medium') : (language === 'ro' ? 'ridicat' : 'high')}
                             </span>
                             {!notification.read && (
                               <span className="h-2 w-2 rounded-full bg-primary-500 shrink-0" />
                             )}
                           </div>
                           <p className="mt-1 text-sm text-surface-500 dark:text-surface-400 line-clamp-2">
-                            {notification.message}
+                            {getTranslatedMessage(notification.message)}
                           </p>
                         </div>
 
@@ -404,19 +451,19 @@ export default function NotificationsPage() {
                   </div>
                   <div>
                     <h3 className="text-base font-semibold text-surface-900 dark:text-white">
-                      {selectedNotification.title}
+                      {getTranslatedTitle(selectedNotification.title)}
                     </h3>
                     <div className="mt-1 flex items-center gap-2">
                       <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${getPriorityBadge(selectedNotification.priority)}`}>
-                        {selectedNotification.priority}
+                        {selectedNotification.priority === 'low' ? (language === 'ro' ? 'scăzut' : 'low') : selectedNotification.priority === 'medium' ? (language === 'ro' ? 'mediu' : 'medium') : (language === 'ro' ? 'ridicat' : 'high')}
                       </span>
-                      <span className="text-xs text-surface-400 capitalize">{selectedNotification.type}</span>
+                      <span className="text-xs text-surface-400 capitalize">{selectedNotification.type === 'expense' ? (language === 'ro' ? 'cheltuială' : 'expense') : selectedNotification.type === 'income' ? (language === 'ro' ? 'venit' : 'income') : selectedNotification.type === 'budget' ? (language === 'ro' ? 'buget' : 'budget') : selectedNotification.type}</span>
                     </div>
                   </div>
                 </div>
 
                 <p className="text-sm text-surface-600 dark:text-surface-300 leading-relaxed">
-                  {selectedNotification.message}
+                  {getTranslatedMessage(selectedNotification.message)}
                 </p>
 
                 <div className="flex items-center gap-2 text-xs text-surface-400 border-t border-surface-200 dark:border-surface-700 pt-3">
