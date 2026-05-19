@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import fintrackLogo from '../../assets/fintrack-logo.svg';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface SidebarProps {
   open: boolean;
@@ -21,14 +22,15 @@ interface SidebarProps {
 
 export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const userLinks = [
-    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/add-expense', label: 'Add Expense', icon: PlusCircle },
-    { to: '/add-income', label: 'Record Income', icon: TrendingUp },
-    { to: '/budgets', label: 'Budgets', icon: Wallet },
-    { to: '/reports', label: 'Reports', icon: BarChart3 },
-    { to: '/notifications', label: 'Notifications', icon: Bell },
+    { to: '/dashboard', label: t('dashboard'), icon: LayoutDashboard },
+    { to: '/add-expense', label: t('addExpense'), icon: PlusCircle },
+    { to: '/add-income', label: t('addIncome'), icon: TrendingUp },
+    { to: '/budgets', label: t('budgets'), icon: Wallet },
+    { to: '/reports', label: t('reports'), icon: BarChart3 },
+    { to: '/notifications', label: t('notifications'), icon: Bell },
   ];
 
   const adminLinks = [
