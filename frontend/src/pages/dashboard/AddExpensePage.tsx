@@ -18,12 +18,12 @@ import {
   Notebook,
 } from 'lucide-react';
 import type { Expense, ExpenseCategory } from '../../types';
-import { categoryLabels } from '../../data/mockData';
 import Dropdown from '../../components/ui/Dropdown';
 import DatePicker from '../../components/ui/DatePicker';
 import { DebouncedInput, DebouncedTextarea } from '../../components/ui/DebouncedInput';
 import { useAuth } from '../../contexts/AuthContext';
 import { useExpenses } from '../../contexts/ExpenseContext';
+import { useContent } from '../../contexts/ContentContext';
 import { scanReceipt, type ReceiptScanResult } from '../../services/receiptScanService';
 
 interface FormData {
@@ -59,6 +59,7 @@ export default function AddExpensePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addExpense } = useExpenses();
+  const { expenseCategoryOptions, getExpenseCategoryLabel } = useContent();
   const [activeTab, setActiveTab] = useState<'manual' | 'scan'>('scan');
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -78,8 +79,16 @@ export default function AddExpensePage() {
   const animFrameRef = useRef<number | null>(null);
   const detectedQrRef = useRef<string | null>(null);
 
-  const categories = Object.entries(categoryLabels) as [ExpenseCategory, string][];
+  const categories = expenseCategoryOptions;
   const validPaymentMethods: Expense['paymentMethod'][] = ['card', 'cash', 'bank_transfer', 'qr_scan'];
+
+  useEffect(() => {
+    if (categories.length === 0) return;
+    const hasCurrent = categories.some((option) => option.value === formData.category);
+    if (!hasCurrent) {
+      setFormData((prev) => ({ ...prev, category: categories[0].value }));
+    }
+  }, [categories, formData.category]);
 
   const validate = useCallback((): boolean => {
     const newErrors: FormErrors = {};
@@ -446,7 +455,7 @@ export default function AddExpensePage() {
                   },
                   { 
                     label: 'Category', 
-                    value: categoryLabels[scanResult.category as ExpenseCategory] || scanResult.category, 
+                    value: getExpenseCategoryLabel(scanResult.category as ExpenseCategory) || scanResult.category,
                     icon: <Tag size={16} className="text-surface-400" /> 
                   },
                   { 
@@ -612,7 +621,7 @@ export default function AddExpensePage() {
                   <Dropdown
                     value={formData.category}
                     onChange={(val) => handleChange('category', val)}
-                    options={categories.map(([value, label]) => ({ value, label }))}
+                    options={categories}
                     icon={<Tag size={16} />}
                     fullWidth
                   />

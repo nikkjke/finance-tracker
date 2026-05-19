@@ -1,11 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Check, AlertCircle, Loader2, Tag } from 'lucide-react';
 import type { IncomeCategory } from '../../types';
-import { incomeLabels } from '../../data/mockData';
 import Dropdown from '../../components/ui/Dropdown';
 import DatePicker from '../../components/ui/DatePicker';
 import { useAuth } from '../../contexts/AuthContext';
 import { useIncome } from '../../contexts/IncomeContext';
+import { useContent } from '../../contexts/ContentContext';
 
 interface FormData {
   source: string;
@@ -34,6 +34,7 @@ const initialFormData: FormData = {
 export default function AddIncomePage() {
   const { user } = useAuth();
   const { addIncome } = useIncome();
+  const { incomeCategoryOptions } = useContent();
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,7 +42,15 @@ export default function AddIncomePage() {
   const [serviceError, setServiceError] = useState<string | null>(null);
   const [resetKey, setResetKey] = useState(0);
 
-  const categories = Object.entries(incomeLabels) as [IncomeCategory, string][];
+  const categories = incomeCategoryOptions;
+
+  useEffect(() => {
+    if (categories.length === 0) return;
+    const hasCurrent = categories.some((option) => option.value === formData.category);
+    if (!hasCurrent) {
+      setFormData((prev) => ({ ...prev, category: categories[0].value }));
+    }
+  }, [categories, formData.category]);
 
   const isFormValid = useCallback((): boolean => {
     // Source validation
@@ -242,7 +251,7 @@ export default function AddIncomePage() {
                 <Dropdown
                   value={formData.category}
                   onChange={(val) => handleChange('category', val)}
-                  options={categories.map(([value, label]) => ({ value, label }))}
+                  options={categories}
                   icon={<Tag size={16} />}
                   fullWidth
                 />
