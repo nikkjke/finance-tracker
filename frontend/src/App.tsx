@@ -6,6 +6,8 @@ import { ExpenseProvider } from './contexts/ExpenseContext';
 import { IncomeProvider } from './contexts/IncomeContext';
 import { BudgetProvider } from './contexts/BudgetContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { CurrencyProvider } from './contexts/CurrencyContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -35,12 +37,14 @@ function App() {
         <ThemeProvider>
           <AuthProvider>
             <NotificationProvider>
-              <ExpenseProvider>
-                <IncomeProvider>
-                  <BudgetProvider>
-                    <ErrorBoundary>
-          <Routes>
-            {/* Public Routes */}
+              <CurrencyProvider>
+                <LanguageProvider>
+                  <ExpenseProvider>
+                  <IncomeProvider>
+                    <BudgetProvider>
+                      <ErrorBoundary>
+            <Routes>
+              {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -101,10 +105,12 @@ function App() {
             {/* Catch-all: any unknown route → 404 */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
-                    </ErrorBoundary>
-                  </BudgetProvider>
-                </IncomeProvider>
-              </ExpenseProvider>
+                      </ErrorBoundary>
+                    </BudgetProvider>
+                  </IncomeProvider>
+                  </ExpenseProvider>
+                </LanguageProvider>
+              </CurrencyProvider>
             </NotificationProvider>
           </AuthProvider>
         </ThemeProvider>
