@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { ChartDataPoint } from '../../types';
 import { categoryColors } from '../../data/mockData';
+import { useCurrency } from '../../contexts/CurrencyContext';
 
 interface DonutChartProps {
   data: ChartDataPoint[];
@@ -8,6 +9,7 @@ interface DonutChartProps {
 }
 
 export default function DonutChart({ data, size = 240 }: DonutChartProps) {
+  const { formatCurrency } = useCurrency();
   const total = data.reduce((sum, d) => sum + d.value, 0);
   const colors = Object.values(categoryColors);
   let cumulativePercent = 0;
@@ -27,7 +29,7 @@ export default function DonutChart({ data, size = 240 }: DonutChartProps) {
             className="absolute z-10 text-center pointer-events-none"
             style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
           >
-            <p className="text-2xl font-bold text-surface-900 dark:text-white sm:text-3xl">$0</p>
+            <p className="text-2xl font-bold text-surface-900 dark:text-white sm:text-3xl">{formatCurrency(0)}</p>
             <p className="text-xs text-surface-400 sm:text-sm">No data</p>
           </div>
         </div>
@@ -103,7 +105,7 @@ export default function DonutChart({ data, size = 240 }: DonutChartProps) {
                 style={{ backgroundColor: hoveredSeg.color }}
               />
               <p className="text-lg font-bold text-surface-900 dark:text-white sm:text-xl">
-                ${hoveredSeg.value.toLocaleString()}
+                {formatCurrency(hoveredSeg.value)}
               </p>
               <p className="text-xs font-medium text-surface-600 dark:text-surface-300">
                 {hoveredSeg.label}
@@ -115,7 +117,7 @@ export default function DonutChart({ data, size = 240 }: DonutChartProps) {
           ) : (
             <>
               <p className="text-2xl font-bold text-surface-900 dark:text-white sm:text-3xl">
-                ${total.toLocaleString()}
+                {formatCurrency(total)}
               </p>
               {/* <p className="text-xs text-surface-400 sm:text-sm">Total</p> */}
             </>
@@ -142,7 +144,7 @@ export default function DonutChart({ data, size = 240 }: DonutChartProps) {
               {seg.label}
             </span>
             <span className="text-xs font-medium text-surface-900 dark:text-white ml-auto">
-              ${seg.value.toLocaleString()}
+              {formatCurrency(seg.value)}
             </span>
           </div>
         ))}

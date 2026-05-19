@@ -8,14 +8,15 @@ import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
 import { categoryLabels } from '../../data/mockData';
-import { sortItems } from '../../services';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBudgets } from '../../contexts/BudgetContext';
 import { useExpenses } from '../../contexts/ExpenseContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import StatCard from '../../components/ui/StatCard';
-import type { Budget, ExpenseCategory, BudgetPeriod } from '../../types';
+import { sortItems } from '../../services';
+import type { Budget, BudgetPeriod, ExpenseCategory } from '../../contexts/BudgetContext';
 
-// ─── Period range helper ──────────────────────────────────────────────────────
+// ── Period range helper ──────────────────────────────────────────────────────────
 function getBudgetPeriodRange(period: BudgetPeriod, startDate?: string, endDate?: string): { start: string; end: string } {
   if (period === 'custom' && startDate && endDate) return { start: startDate, end: endDate };
   const now = new Date();
@@ -45,11 +46,11 @@ function getBudgetPeriodRange(period: BudgetPeriod, startDate?: string, endDate?
 }
 
 export default function BudgetsPage() {
+  const { budgets: allBudgets, addBudget, updateBudget, deleteBudget, currencySymbol } = useBudgets();
   const { user } = useAuth();
-  const { budgets: allBudgets, addBudget, updateBudget, deleteBudget } = useBudgets();
   const { expenses } = useExpenses();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { t, language } = useLanguage();
+  
   const [showModal, setShowModal] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [formCategory, setFormCategory] = useState<ExpenseCategory>('food');
@@ -66,6 +67,8 @@ export default function BudgetsPage() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'over-budget' | 'under-budget'>('all');
   const [sortBy, setSortBy] = useState<'limit-asc' | 'limit-desc' | 'spent-asc' | 'spent-desc'>('limit-asc');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Get user's budgets and calculate spent amounts
   const budgets = useMemo(() => {
@@ -254,14 +257,14 @@ export default function BudgetsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Budget Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">{t('budgetManagement')}</h1>
           <p className="text-sm text-surface-500 dark:text-surface-400">
-            Set and track spending limits per category and time period.
+            {t('budgetManagementDesc')}
           </p>
         </div>
         <button onClick={handleAdd} className="btn-primary">
           <Plus size={18} />
-          Add Budget
+          {t('addBudget')}
         </button>
       </div>
 
@@ -272,7 +275,7 @@ export default function BudgetsPage() {
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
             <input
               type="text"
-              placeholder="Search by category..."
+              placeholder={language === 'ro' ? 'Caută după categorie...' : 'Search by category...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input pl-10 w-full"
@@ -283,9 +286,9 @@ export default function BudgetsPage() {
               value={filterStatus}
               onChange={(val) => setFilterStatus(val as typeof filterStatus)}
               options={[
-                { value: 'all', label: 'All Budgets' },
-                { value: 'under-budget', label: 'Under Budget' },
-                { value: 'over-budget', label: 'Over Budget' },
+                { value: 'all', label: language === 'ro' ? 'Toate Bugetele' : 'All Budgets' },
+                { value: 'under-budget', label: language === 'ro' ? 'Sub Buget' : 'Under Budget' },
+                { value: 'over-budget', label: language === 'ro' ? 'Peste Buget' : 'Over Budget' },
               ]}
               icon={<Filter size={16} />}
             />
@@ -293,10 +296,10 @@ export default function BudgetsPage() {
               value={sortBy}
               onChange={(val) => setSortBy(val as typeof sortBy)}
               options={[
-                { value: 'limit-asc', label: 'Limit: Low to High' },
-                { value: 'limit-desc', label: 'Limit: High to Low' },
-                { value: 'spent-asc', label: 'Spent: Low to High' },
-                { value: 'spent-desc', label: 'Spent: High to Low' },
+                { value: 'limit-asc', label: language === 'ro' ? 'Limită: Mică la Mare' : 'Limit: Low to High' },
+                { value: 'limit-desc', label: language === 'ro' ? 'Limită: Mare la Mică' : 'Limit: High to Low' },
+                { value: 'spent-asc', label: language === 'ro' ? 'Cheltuit: Mic la Mare' : 'Spent: Low to High' },
+                { value: 'spent-desc', label: language === 'ro' ? 'Cheltuit: Mare la Mic' : 'Spent: High to Low' },
               ]}
               minWidth="min-w-[195px]"
             />
@@ -309,7 +312,7 @@ export default function BudgetsPage() {
         <div className="card flex items-center justify-center py-20">
           <div className="flex flex-col items-center gap-3">
             <Spinner size={32} />
-            <p className="text-sm text-surface-500 dark:text-surface-400">Loading budgets...</p>
+            <p className="text-sm text-surface-500 dark:text-surface-400">{language === 'ro' ? 'Se încarcă bugetele...' : 'Loading budgets...'}</p>
           </div>
         </div>
       )}
@@ -318,7 +321,7 @@ export default function BudgetsPage() {
       {!isLoading && error && (
         <div className="card">
           <ErrorState
-            title="Failed to load budgets"
+            title={language === 'ro' ? 'Eroare la încărcarea bugetelor' : 'Failed to load budgets'}
             message={error}
             onRetry={() => setError(null)}
           />
@@ -331,17 +334,17 @@ export default function BudgetsPage() {
       {/* Summary */}
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard
-          title="Total Budget"
+          title={t('totalBudget')}
           value={totalBudget}
           icon={<PiggyBank size={20} />}
         />
         <StatCard
-          title="Total Spent"
+          title={t('totalSpent')}
           value={totalSpent}
           icon={<Receipt size={20} />}
         />
         <StatCard
-          title="Remaining"
+          title={t('remainingUpper')}
           value={totalBudget - totalSpent}
           icon={<TrendingUp size={20} />}
         />
@@ -352,8 +355,8 @@ export default function BudgetsPage() {
         <div className="card">
           <EmptyState
             icon={PiggyBank}
-            title="No budgets yet"
-            description="Create your first budget to start tracking your spending limits by category."
+            title={t('noBudgetsYet')}
+            description={t('createBudgetCategory')}
             className="rounded-lg border border-surface-200 dark:border-surface-700"
           />
         </div>
@@ -361,8 +364,8 @@ export default function BudgetsPage() {
         <div className="card">
           <EmptyState
             icon={PiggyBank}
-            title="No results found"
-            description="Try adjusting your search or filter criteria."
+            title={language === 'ro' ? 'Nu au fost găsite rezultate' : 'No results found'}
+            description={language === 'ro' ? 'Încercați să ajustați criteriile de căutare sau filtrare.' : 'Try adjusting your search or filter criteria.'}
             className="rounded-lg border border-surface-200 dark:border-surface-700"
             action={
               <button
@@ -373,7 +376,7 @@ export default function BudgetsPage() {
                 }}
                 className="btn-secondary"
               >
-                Clear Filters
+                {language === 'ro' ? 'Șterge Filtrele' : 'Clear Filters'}
               </button>
             }
           />
@@ -410,7 +413,7 @@ export default function BudgetsPage() {
       <Modal
         open={showModal}
         onClose={() => { setShowModal(false); setModalError(null); }}
-        title={editingBudget ? 'Edit Budget' : 'Add Budget'}
+        title={editingBudget ? (language === 'ro' ? 'Editează Buget' : 'Edit Budget') : t('addBudget')}
       >
         <div className="space-y-4">
           {modalError && (
@@ -420,7 +423,7 @@ export default function BudgetsPage() {
             </div>
           )}
           <div>
-            <label className="label">Category</label>
+            <label className="label">{t('category')}</label>
             <Dropdown
               value={formCategory}
               onChange={(val) => setFormCategory(val as ExpenseCategory)}
@@ -433,7 +436,7 @@ export default function BudgetsPage() {
             )}
           </div>
           <div>
-            <label className="label">Budget Period</label>
+            <label className="label">{language === 'ro' ? 'Perioadă Buget' : 'Budget Period'}</label>
             <Dropdown
               value={formPeriod}
               onChange={(val) => {
@@ -443,11 +446,11 @@ export default function BudgetsPage() {
                 setFormErrors((prev) => ({ ...prev, startDate: undefined, endDate: undefined }));
               }}
               options={[
-                { value: 'weekly', label: 'Weekly' },
-                { value: 'monthly', label: 'Monthly' },
-                { value: 'quarterly', label: 'Quarterly' },
-                { value: 'yearly', label: 'Yearly' },
-                { value: 'custom', label: 'Custom range' },
+                { value: 'weekly', label: language === 'ro' ? 'Săptămânal' : 'Weekly' },
+                { value: 'monthly', label: language === 'ro' ? 'Lunar' : 'Monthly' },
+                { value: 'quarterly', label: language === 'ro' ? 'Trimestrial' : 'Quarterly' },
+                { value: 'yearly', label: language === 'ro' ? 'Anual' : 'Yearly' },
+                { value: 'custom', label: language === 'ro' ? 'Interval personalizat' : 'Custom range' },
               ]}
               icon={<Calendar size={16} />}
               fullWidth
@@ -459,7 +462,7 @@ export default function BudgetsPage() {
                 <DatePicker
                   value={formStartDate}
                   onChange={setFormStartDate}
-                  label="Start Date"
+                  label={language === 'ro' ? 'Dată Început' : 'Start Date'}
                   error={!!formErrors.startDate}
                 />
                 {formErrors.startDate && (
@@ -470,7 +473,7 @@ export default function BudgetsPage() {
                 <DatePicker
                   value={formEndDate}
                   onChange={setFormEndDate}
-                  label="End Date"
+                  label={language === 'ro' ? 'Dată Sfârșit' : 'End Date'}
                   error={!!formErrors.endDate}
                 />
                 {formErrors.endDate && (
@@ -480,7 +483,7 @@ export default function BudgetsPage() {
             </div>
           )}
           <div>
-            <label className="label">Spending Limit ($)</label>
+            <label className="label">{language === 'ro' ? 'Limită Cheltuieli' : 'Spending Limit'} ({currencySymbol})</label>
             <input
               type="number"
               step="0.01"
@@ -494,7 +497,18 @@ export default function BudgetsPage() {
               <p className="mt-1 text-sm text-danger-500">{formErrors.limit}</p>
             )}
           </div>
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-2 border-t border-surface-200 dark:border-surface-700">
+            <button
+              onClick={() => {
+                if (isSaving) return;
+                setShowModal(false);
+                setModalError(null);
+              }}
+              disabled={isSaving}
+              className={`btn-secondary flex-1 ${isSaving ? 'cursor-not-allowed opacity-70' : ''}`}
+            >
+              {language === 'ro' ? 'Anulează' : 'Cancel'}
+            </button>
             <button
               onClick={handleSave}
               disabled={isSaving}
@@ -503,22 +517,11 @@ export default function BudgetsPage() {
               {isSaving ? (
                 <span className="inline-flex items-center gap-2">
                   <Spinner size={16} className="text-current" />
-                  Saving...
+                  {language === 'ro' ? 'Se salvează...' : 'Saving...'}
                 </span>
               ) : (
-                editingBudget ? 'Save Changes' : 'Create Budget'
+                editingBudget ? (language === 'ro' ? 'Salvează Modificările' : 'Save Changes') : (language === 'ro' ? 'Creează Buget' : 'Create Budget')
               )}
-            </button>
-            <button
-              onClick={() => {
-                if (isSaving) return;
-                setShowModal(false);
-                setModalError(null);
-              }}
-              disabled={isSaving}
-              className={`btn-secondary ${isSaving ? 'cursor-not-allowed opacity-70' : ''}`}
-            >
-              Cancel
             </button>
           </div>
         </div>
@@ -528,7 +531,7 @@ export default function BudgetsPage() {
       <Modal
         open={!!deleteConfirmId}
         onClose={() => setDeleteConfirmId(null)}
-        title="Delete Budget"
+        title={language === 'ro' ? 'Șterge Buget' : 'Delete Budget'}
       >
         <div className="space-y-4">
           <div className="flex items-start gap-3">
@@ -537,16 +540,16 @@ export default function BudgetsPage() {
             </div>
             <div>
               <p className="text-sm text-surface-700 dark:text-surface-300">
-                Are you sure you want to delete this budget? This action cannot be undone.
+                {language === 'ro' ? 'Ești sigur că vrei să ștergi acest buget? Această acțiune nu poate fi anulată.' : 'Are you sure you want to delete this budget? This action cannot be undone.'}
               </p>
             </div>
           </div>
           <div className="flex gap-3 pt-2">
             <button onClick={confirmDelete} className="btn-danger flex-1">
-              Delete Budget
+              {language === 'ro' ? 'Șterge Buget' : 'Delete Budget'}
             </button>
             <button onClick={() => setDeleteConfirmId(null)} className="btn-secondary flex-1">
-              Cancel
+              {language === 'ro' ? 'Anulează' : 'Cancel'}
             </button>
           </div>
         </div>
