@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import jsQR from 'jsqr';
 import {
   ScanLine,
-  Upload,
   Camera,
   Check,
   X,
@@ -11,7 +10,6 @@ import {
   Tag,
   CreditCard,
   AlertCircle,
-  FileImage,
   QrCode,
   Zap,
   Store,
@@ -47,7 +45,6 @@ interface FormErrors {
 }
 
 type ScanState = 'idle' | 'scanning' | 'processing' | 'confirm' | 'success' | 'error';
-type ElectronicReceiptState = 'idle' | 'processing' | 'success' | 'error';
 
 const initialFormData: FormData = {
   storeName: '',
@@ -62,7 +59,7 @@ export default function AddExpensePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addExpense } = useExpenses();
-  const [activeTab, setActiveTab] = useState<'manual' | 'scan' | 'electronic'>('scan');
+  const [activeTab, setActiveTab] = useState<'manual' | 'scan'>('scan');
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -80,11 +77,6 @@ export default function AddExpensePage() {
   const streamRef = useRef<MediaStream | null>(null);
   const animFrameRef = useRef<number | null>(null);
   const detectedQrRef = useRef<string | null>(null);
-
-  // Electronic receipt photo states (frontend-only for now)
-  const [electronicReceiptState, setElectronicReceiptState] = useState<ElectronicReceiptState>('idle');
-  const [electronicReceiptFile, setElectronicReceiptFile] = useState<File | null>(null);
-  const electronicReceiptInputRef = useRef<HTMLInputElement | null>(null);
 
   const categories = Object.entries(categoryLabels) as [ExpenseCategory, string][];
   const validPaymentMethods: Expense['paymentMethod'][] = ['card', 'cash', 'bank_transfer', 'qr_scan'];
@@ -302,45 +294,13 @@ export default function AddExpensePage() {
   // Cleanup on unmount
   useEffect(() => () => stopCamera(), [stopCamera]);
 
-  const handleElectronicReceiptSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0] ?? null;
-    if (!selectedFile) return;
-
-    if (!selectedFile.type.startsWith('image/')) {
-      setElectronicReceiptState('error');
-      setElectronicReceiptFile(null);
-      return;
-    }
-
-    setElectronicReceiptFile(selectedFile);
-    setElectronicReceiptState('idle');
-  }, []);
-
-  const processElectronicReceipt = useCallback(async () => {
-    if (!electronicReceiptFile) return;
-
-    setElectronicReceiptState('processing');
-    await new Promise((resolve) => setTimeout(resolve, 1800));
-
-    // Frontend placeholder for future OCR/data extraction integration.
-    setElectronicReceiptState('success');
-  }, [electronicReceiptFile]);
-
-  const resetElectronicReceipt = useCallback(() => {
-    setElectronicReceiptState('idle');
-    setElectronicReceiptFile(null);
-    if (electronicReceiptInputRef.current) {
-      electronicReceiptInputRef.current.value = '';
-    }
-  }, []);
-
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Page Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Add Expense</h1>
         <p className="text-sm text-surface-500 dark:text-surface-400">
-          Add a new expense manually, scan a receipt, or upload a receipt photo.
+          Add a new expense manually or scan a receipt.
         </p>
       </div>
 
@@ -358,17 +318,6 @@ export default function AddExpensePage() {
           Scan Receipt
         </button>
         <button
-          onClick={() => setActiveTab('electronic')}
-          className={`flex-1 flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all ${
-            activeTab === 'electronic'
-              ? 'bg-white text-surface-900 shadow-sm dark:bg-surface-700 dark:text-white'
-              : 'text-surface-500 hover:text-surface-700 dark:hover:text-surface-300'
-          }`}
-        >
-          <FileImage size={16} />
-          Receipt Photo
-        </button>
-        <button
           onClick={() => setActiveTab('manual')}
           className={`flex-1 flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all ${
             activeTab === 'manual'
@@ -380,143 +329,6 @@ export default function AddExpensePage() {
           Manual Entry
         </button>
       </div>
-
-      {/* Electronic Receipt Section */}
-      {activeTab === 'electronic' && (
-        <div className="card min-h-[500px] flex flex-col justify-center">
-          <div className="text-center w-full max-w-md mx-auto">
-            <h2 className="text-xl sm:text-2xl font-bold text-surface-900 dark:text-white mb-3">
-              Upload Receipt Photo
-            </h2>
-            <p className="text-base text-surface-500 dark:text-surface-400 mb-8 leading-relaxed">
-              Upload a screenshot or photo of your receipt for automatic data extraction.
-            </p>
-
-            <div className="mx-auto w-full">
-              <input
-                ref={electronicReceiptInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleElectronicReceiptSelect}
-                className="hidden"
-                id="electronic-receipt-input"
-              />
-
-              <div className="relative aspect-square w-full max-w-[280px] mx-auto rounded-2xl border-2 border-dashed border-surface-300 bg-surface-50 dark:border-surface-600 dark:bg-surface-900/50 flex items-center justify-center overflow-hidden">
-                {!electronicReceiptFile && electronicReceiptState !== 'error' && (
-                  <div className="text-center p-6 space-y-3">
-                    <FileImage size={44} className="mx-auto text-surface-400" />
-                    <p className="text-sm text-surface-500 dark:text-surface-400">
-                      Choose a receipt image to continue
-                    </p>
-                  </div>
-                )}
-
-                {electronicReceiptState === 'error' && (
-                  <div className="text-center p-6 space-y-2">
-                    <X size={40} className="mx-auto text-danger-500" />
-                    <p className="text-sm font-medium text-danger-600 dark:text-danger-400">
-                      Invalid file type
-                    </p>
-                    <p className="text-xs text-surface-500 dark:text-surface-400">
-                      Please upload an image file (JPG, PNG, WEBP).
-                    </p>
-                  </div>
-                )}
-
-                {electronicReceiptFile && electronicReceiptState !== 'processing' && (
-                  <div className="text-center p-6 space-y-2">
-                    <FileImage size={40} className="mx-auto text-primary-500" />
-                    <p className="text-sm font-medium text-surface-900 dark:text-white break-all">
-                      {electronicReceiptFile.name}
-                    </p>
-                    <p className="text-xs text-surface-500 dark:text-surface-400">
-                      {(electronicReceiptFile.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                  </div>
-                )}
-
-                {electronicReceiptState === 'processing' && (
-                  <div className="text-center p-6">
-                    <Loader2 size={48} className="mx-auto text-primary-500 animate-spin mb-4" />
-                    <p className="text-sm font-medium text-primary-600 dark:text-primary-400">
-                      Processing receipt...
-                    </p>
-                  </div>
-                )}
-
-                {electronicReceiptState === 'success' && (
-                  <div className="text-center p-6">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success-50 dark:bg-success-500/10">
-                      <Check size={32} className="text-success-500" />
-                    </div>
-                    <p className="text-sm font-medium text-success-600 dark:text-success-500">
-                      Receipt processed successfully!
-                    </p>
-                    <p className="text-xs text-surface-400 mt-1">
-                      Ready for automatic transaction input
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-6 flex gap-3">
-                {electronicReceiptState !== 'processing' && (
-                  <button
-                    type="button"
-                    onClick={() => electronicReceiptInputRef.current?.click()}
-                    className="btn-secondary flex-1"
-                  >
-                    <Upload size={16} />
-                    {electronicReceiptFile ? 'Choose Another Image' : 'Upload Image'}
-                  </button>
-                )}
-
-                {electronicReceiptState === 'idle' || electronicReceiptState === 'error' ? (
-                  <button
-                    type="button"
-                    onClick={processElectronicReceipt}
-                    disabled={!electronicReceiptFile}
-                    className="btn-primary flex-1 disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    Process Receipt
-                  </button>
-                ) : null}
-
-                {electronicReceiptState === 'processing' && (
-                  <button
-                    type="button"
-                    onClick={resetElectronicReceipt}
-                    className="btn-secondary flex-1"
-                  >
-                    Cancel
-                  </button>
-                )}
-
-                {electronicReceiptState === 'success' && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={resetElectronicReceipt}
-                      className="btn-secondary flex-1"
-                    >
-                      Upload Another
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('manual')}
-                      className="btn-primary flex-1"
-                    >
-                      Review & Submit
-                    </button>
-                  </>
-                )}
-
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* QR Scan Section */}
       {activeTab === 'scan' && (

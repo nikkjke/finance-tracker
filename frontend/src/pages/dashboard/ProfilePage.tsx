@@ -18,15 +18,50 @@ export default function ProfilePage() {
     budgetAlerts: true,
     weeklyReport: true,
     receiptScans: false,
-    promotions: false,
   });
   const [saved, setSaved] = useState(false);
+
+  const profilePrefsKey = user ? `profile_prefs_${user.id}` : 'profile_prefs_guest';
 
   useEffect(() => {
     setName(user?.name || '');
     setEmail(user?.email || '');
     setAvatar(user?.avatar || '');
   }, [user?.name, user?.email, user?.avatar]);
+
+  useEffect(() => {
+    try {
+      const savedPrefs = localStorage.getItem(profilePrefsKey);
+      if (!savedPrefs) {
+        return;
+      }
+
+      const parsed = JSON.parse(savedPrefs) as {
+        currency?: string;
+        language?: string;
+        notifications?: {
+          budgetAlerts?: boolean;
+          weeklyReport?: boolean;
+          receiptScans?: boolean;
+        };
+      };
+
+      if (parsed.currency) {
+        setCurrency(parsed.currency);
+      }
+      if (parsed.language) {
+        setLanguage(parsed.language);
+      }
+      if (parsed.notifications) {
+        setNotifications((prev) => ({
+          ...prev,
+          ...parsed.notifications,
+        }));
+      }
+    } catch {
+      // Ignore malformed local data.
+    }
+  }, [profilePrefsKey]);
 
   const handleAvatarSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -100,6 +135,19 @@ export default function ProfilePage() {
     }
 
     updateUser({ name: trimmedName, email: trimmedEmail, avatar });
+
+    try {
+      localStorage.setItem(
+        profilePrefsKey,
+        JSON.stringify({
+          currency,
+          language,
+          notifications,
+        }),
+      );
+    } catch {
+      // Ignore localStorage failures (private mode, quota, etc.).
+    }
 
     if (changedFields.length > 0) {
       const fields = changedFields.join(', ');
@@ -252,7 +300,6 @@ export default function ProfilePage() {
             { key: 'budgetAlerts' as const, label: 'Budget Alerts', desc: 'Get notified when approaching budget limits' },
             { key: 'weeklyReport' as const, label: 'Weekly Report', desc: 'Receive a weekly spending summary' },
             { key: 'receiptScans' as const, label: 'Receipt Scans', desc: 'Notifications for scanned receipt processing' },
-            { key: 'promotions' as const, label: 'Promotions', desc: 'Updates about new features and offers' },
           ].map((item) => (
             <div key={item.key} className="flex items-center justify-between">
               <div>
