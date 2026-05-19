@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import Dropdown from './Dropdown';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface PaginationProps {
   currentPage: number;
@@ -20,6 +21,7 @@ export default function Pagination({
   totalItems,
   loading = false,
 }: PaginationProps) {
+  const { t } = useLanguage();
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
@@ -73,7 +75,7 @@ export default function Pagination({
       {onItemsPerPageChange && (
         <div className="flex items-center gap-3">
           <label className="text-sm font-medium text-surface-600 dark:text-surface-400">
-            Items per page:
+            {t('itemsPerPageLabel')}
           </label>
           <Dropdown
             value={itemsPerPage.toString()}
@@ -87,12 +89,12 @@ export default function Pagination({
 
       {/* Info text */}
       <div className="text-sm text-surface-600 dark:text-surface-400">
-        Showing <span className="font-semibold text-surface-900 dark:text-white">{startItem}</span>
-        {' '}to{' '}
+        {t('showing')} <span className="font-semibold text-surface-900 dark:text-white">{startItem}</span>
+        {' '}{t('to')}{' '}
         <span className="font-semibold text-surface-900 dark:text-white">{endItem}</span>
-        {' '}of{' '}
+        {' '}{t('of')}{' '}
         <span className="font-semibold text-surface-900 dark:text-white">{totalItems}</span>
-        {' '}items
+        {' '}{t('items')}
       </div>
 
       {/* Pagination controls */}

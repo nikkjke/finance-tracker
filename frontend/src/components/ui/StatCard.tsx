@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { useCurrency } from '../../contexts/CurrencyContext';
 
 interface StatCardProps {
   title: string;
@@ -11,6 +12,7 @@ interface StatCardProps {
 }
 
 export default function StatCard({ title, value, icon, change, changeLabel, isCurrency = true }: StatCardProps) {
+  const { formatCurrency } = useCurrency();
   const isPositive = change !== undefined && change >= 0;
   const isNeutral = change === undefined || change === 0;
 
@@ -26,7 +28,7 @@ export default function StatCard({ title, value, icon, change, changeLabel, isCu
           <p className="text-2xl font-extrabold tracking-tight text-surface-900 dark:text-white truncate">
             {typeof value === 'number' 
               ? (isCurrency 
-                  ? `$${value.toLocaleString('en-US', { minimumFractionDigits: 2 })}` 
+                  ? formatCurrency(value)
                   : value.toLocaleString('en-US')) 
               : value}
           </p>

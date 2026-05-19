@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { Budget, BudgetPeriod } from '../../types';
 import { categoryLabels, categoryColors } from '../../data/mockData';
+import { useCurrency } from '../../contexts/CurrencyContext';
 
 const periodLabels: Record<BudgetPeriod, string> = {
   weekly: 'Weekly',
@@ -99,6 +100,7 @@ interface BudgetProgressProps {
 }
 
 export default function BudgetProgress({ budget, actions }: BudgetProgressProps) {
+  const { formatCurrency } = useCurrency();
   const percent = Math.min((budget.spent / budget.limit) * 100, 100);
   const remaining = budget.limit - budget.spent;
   const color = categoryColors[budget.category] || '#64748b';
@@ -137,10 +139,10 @@ export default function BudgetProgress({ budget, actions }: BudgetProgressProps)
       <div className="flex items-baseline justify-between">
         <div className="flex items-baseline gap-1.5">
           <span className="text-xl font-bold text-surface-900 dark:text-white">
-            ${budget.spent.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            {formatCurrency(budget.spent)}
           </span>
           <span className="text-sm text-surface-400">
-            of ${budget.limit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            of {formatCurrency(budget.limit)}
           </span>
         </div>
         <span className="text-sm font-semibold" style={{ color: barColor }}>
@@ -166,7 +168,7 @@ export default function BudgetProgress({ budget, actions }: BudgetProgressProps)
           : 'text-danger-500'
       }`}>
         {remaining > 0
-          ? `$${remaining.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} remaining`
+          ? `${formatCurrency(remaining)} remaining`
           : 'Budget exceeded!'}
       </p>
     </div>
