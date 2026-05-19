@@ -18,12 +18,16 @@ import StatCard from '../../components/ui/StatCard';
 import { applyFilters, presetToDateRange, exportReport } from '../../services';
 import type { FilterPipelineConfig, SortConfig } from '../../services/filterService';
 import type { Expense, Income, ExpenseCategory, PaymentMethod, IncomeCategory } from '../../types';
+import { useCurrency } from '../../contexts/CurrencyContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export default function ReportsPage() {
   const { expenses: storeExpenses, updateExpense, deleteExpense } = useExpenses();
   const { income: storeIncome, updateIncome, deleteIncome } = useIncome();
   const { user } = useAuth();
   const { pushNotification } = useNotification();
+  const { formatCurrency, currencySymbol } = useCurrency();
+  const { t } = useLanguage();
 
   // Filter by current user (stable references via useMemo)
   const userExpenses = useMemo(() => storeExpenses.filter((e) => !user || e.userId === user.id), [storeExpenses, user]);
@@ -295,14 +299,14 @@ export default function ReportsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Reports & Analytics</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">{t('reportsAnalytics')}</h1>
           <p className="text-sm text-surface-500 dark:text-surface-400">
-            Analyze your spending patterns and trends.
+            {t('reportsAnalyticsDesc')}
           </p>
         </div>
         <button className="btn-secondary" onClick={handleExportReport}>
           <Download size={16} />
-          Export Report
+          {t('exportReport')}
         </button>
       </div>
 
@@ -310,7 +314,7 @@ export default function ReportsPage() {
       {!isLoading && !error && (
         <div className="flex items-center gap-1.5 text-xs text-surface-500 dark:text-surface-400">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-success-500" />
-          {filteredExpensesCount} transactions found
+          {filteredExpensesCount} {t('transactionsFound')}
         </div>
       )}
 
@@ -322,7 +326,7 @@ export default function ReportsPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search store or notes..."
+            placeholder={t('searchStore')}
             className="input w-full pl-9"
           />
         </div>
@@ -333,7 +337,7 @@ export default function ReportsPage() {
           options={[
             { value: '7days', label: 'Last 7 Days' },
             { value: '30days', label: 'Last 30 Days' },
-            { value: '6months', label: 'Last 6 Months' },
+            { value: '6months', label: t('last6Months') },
             { value: '1year', label: 'Last Year' },
           ]}
         />
@@ -342,7 +346,7 @@ export default function ReportsPage() {
           onChange={setCategoryFilter}
           icon={<Filter size={16} />}
           options={[
-            { value: 'all', label: 'All Categories' },
+            { value: 'all', label: t('allCategories') },
             { value: 'food', label: 'Food & Groceries' },
             { value: 'transport', label: 'Transport' },
             { value: 'entertainment', label: 'Entertainment' },
@@ -358,7 +362,7 @@ export default function ReportsPage() {
           onChange={(val) => setStatusFilter(val as typeof statusFilter)}
           icon={<Filter size={16} />}
           options={[
-            { value: 'all', label: 'All Statuses' },
+            { value: 'all', label: t('allStatuses') },
             { value: 'completed', label: 'Completed' },
             { value: 'pending', label: 'Pending' },
             { value: 'cancelled', label: 'Cancelled' },
@@ -369,7 +373,7 @@ export default function ReportsPage() {
           onChange={setSortBy}
           icon={<ArrowUpDown size={16} />}
           options={[
-            { value: 'date-desc', label: 'Date: Newest First' },
+            { value: 'date-desc', label: t('dateNewestFirst') },
             { value: 'date-asc', label: 'Date: Oldest First' },
             { value: 'amount-desc', label: 'Amount: High to Low' },
             { value: 'amount-asc', label: 'Amount: Low to High' },
@@ -418,17 +422,17 @@ export default function ReportsPage() {
       {/* Summary Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard
-          title="Average Daily"
+          title={t('averageDaily')}
           value={averageDaily}
           icon={<CalendarDays size={20} />}
         />
         <StatCard
-          title="Highest Expense"
+          title={t('highestExpense')}
           value={highestExpense}
           icon={<ArrowUpRight size={20} />}
         />
         <StatCard
-          title="Total Transactions"
+          title={t('totalTransactions')}
           value={filteredExpensesCount}
           icon={<Hash size={20} />}
           isCurrency={false}
@@ -438,7 +442,7 @@ export default function ReportsPage() {
       {/* All Transactions (Top) */}
       <div className="card">
         <h2 className="text-base font-semibold text-surface-900 dark:text-white mb-6">
-          All Transactions
+          {t('allTransactions')}
         </h2>
         <div className="space-y-4">
           <TransactionTable expenses={paginatedExpenses} onEdit={handleEditExpense} onDelete={handleDeleteExpense} />
@@ -464,7 +468,7 @@ export default function ReportsPage() {
       <div className="card">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-base font-semibold text-surface-900 dark:text-white">
-            All Income
+            {t('allIncome')}
           </h2>
           <p className="text-xs text-surface-400 dark:text-surface-500">{filteredIncomeCount} entries found</p>
         </div>
@@ -477,7 +481,7 @@ export default function ReportsPage() {
                 type="text"
                 value={incomeSearchQuery}
                 onChange={(e) => setIncomeSearchQuery(e.target.value)}
-                placeholder="Search source or notes..."
+                placeholder={t('searchStore')}
                 className="input w-full pl-9"
               />
             </div>
@@ -489,7 +493,7 @@ export default function ReportsPage() {
               options={[
                 { value: '7days', label: 'Last 7 Days' },
                 { value: '30days', label: 'Last 30 Days' },
-                { value: '6months', label: 'Last 6 Months' },
+                { value: '6months', label: t('last6Months') },
                 { value: '1year', label: 'Last Year' },
               ]}
             />
@@ -499,7 +503,7 @@ export default function ReportsPage() {
               onChange={setIncomeCategoryFilter}
               icon={<Filter size={16} />}
               options={[
-                { value: 'all', label: 'All Categories' },
+                { value: 'all', label: t('allCategories') },
                 { value: 'salary', label: 'Salary' },
                 { value: 'freelance', label: 'Freelance' },
                 { value: 'investment', label: 'Investment' },
@@ -514,7 +518,7 @@ export default function ReportsPage() {
               onChange={(val) => setIncomeStatusFilter(val as typeof incomeStatusFilter)}
               icon={<Filter size={16} />}
               options={[
-                { value: 'all', label: 'All Statuses' },
+                { value: 'all', label: t('allStatuses') },
                 { value: 'completed', label: 'Completed' },
                 { value: 'pending', label: 'Pending' },
               ]}
@@ -525,7 +529,7 @@ export default function ReportsPage() {
               onChange={setIncomeSortBy}
               icon={<ArrowUpDown size={16} />}
               options={[
-                { value: 'date-desc', label: 'Date: Newest First' },
+                { value: 'date-desc', label: t('dateNewestFirst') },
                 { value: 'date-asc', label: 'Date: Oldest First' },
                 { value: 'amount-desc', label: 'Amount: High to Low' },
                 { value: 'amount-asc', label: 'Amount: Low to High' },
@@ -562,21 +566,21 @@ export default function ReportsPage() {
         <div className="mb-5 flex items-center gap-2">
           <Wallet size={18} className="text-primary-500" />
           <h2 className="text-base font-semibold text-surface-900 dark:text-white">
-            Spending Diagnostics
+            {t('spendingDiagnostics')}
           </h2>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-xl border border-surface-200 p-4 dark:border-surface-700">
-            <p className="text-xs uppercase tracking-wide text-surface-400">Total Spend</p>
-            <p className="mt-2 text-xl font-bold text-surface-900 dark:text-white">${totalSpent.toFixed(2)}</p>
+            <p className="text-xs uppercase tracking-wide text-surface-400">{t('totalSpend')}</p>
+            <p className="mt-2 text-xl font-bold text-surface-900 dark:text-white">{formatCurrency(totalSpent)}</p>
           </div>
           <div className="rounded-xl border border-surface-200 p-4 dark:border-surface-700">
-            <p className="text-xs uppercase tracking-wide text-surface-400">Average Expense</p>
-            <p className="mt-2 text-xl font-bold text-surface-900 dark:text-white">${averageExpense.toFixed(2)}</p>
+            <p className="text-xs uppercase tracking-wide text-surface-400">{t('averageExpense')}</p>
+            <p className="mt-2 text-xl font-bold text-surface-900 dark:text-white">{formatCurrency(averageExpense)}</p>
           </div>
           <div className="rounded-xl border border-surface-200 p-4 dark:border-surface-700">
-            <p className="text-xs uppercase tracking-wide text-surface-400">Median Expense</p>
-            <p className="mt-2 text-xl font-bold text-surface-900 dark:text-white">${medianExpense.toFixed(2)}</p>
+            <p className="text-xs uppercase tracking-wide text-surface-400">{t('medianExpense')}</p>
+            <p className="mt-2 text-xl font-bold text-surface-900 dark:text-white">{formatCurrency(medianExpense)}</p>
           </div>
         </div>
       </div>
@@ -584,7 +588,7 @@ export default function ReportsPage() {
       <div className="card">
         <div className="mb-5 flex items-center gap-2">
           <ListFilter size={18} className="text-primary-500" />
-          <h2 className="text-base font-semibold text-surface-900 dark:text-white">Category Concentration</h2>
+          <h2 className="text-base font-semibold text-surface-900 dark:text-white">{t('categoryConcentration')}</h2>
         </div>
         <div className="space-y-3">
           {categoryBreakdown.length === 0 ? (
@@ -606,7 +610,7 @@ export default function ReportsPage() {
       </div>
 
       <div className="card">
-        <h2 className="mb-5 text-base font-semibold text-surface-900 dark:text-white">Top Merchants</h2>
+        <h2 className="mb-5 text-base font-semibold text-surface-900 dark:text-white">{t('topMerchants')}</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {topMerchants.length === 0 ? (
             <p className="text-sm text-surface-400 col-span-full">No merchant data for the selected filters.</p>
@@ -615,9 +619,9 @@ export default function ReportsPage() {
               <div key={merchant.name} className="flex items-center justify-between rounded-lg border border-surface-200 px-3 py-2 dark:border-surface-700">
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-surface-900 dark:text-white truncate">{merchant.name}</p>
-                  <p className="text-xs text-surface-400">{merchant.count} transactions</p>
+                  <p className="text-xs text-surface-400">{merchant.count} {t('transactionsText')}</p>
                 </div>
-                <p className="text-sm font-semibold text-surface-900 dark:text-white ml-2">${merchant.total.toFixed(2)}</p>
+                <p className="text-sm font-semibold text-surface-900 dark:text-white ml-2">{formatCurrency(merchant.total)}</p>
               </div>
             ))
           )}
@@ -635,7 +639,7 @@ export default function ReportsPage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Amount ($)</label>
+              <label className="label">Amount ({currencySymbol})</label>
               <input type="number" min="0.01" step="0.01" className="input w-full" value={expenseForm.amount} onChange={(e) => setExpenseForm((f) => ({ ...f, amount: e.target.value }))} />
             </div>
             <div>
@@ -691,7 +695,7 @@ export default function ReportsPage() {
             <AlertTriangle size={24} className="text-danger-500" />
           </div>
           <p className="text-sm text-surface-600 dark:text-surface-300">
-            Are you sure you want to delete the expense <strong className="text-surface-900 dark:text-white">&quot;{deletingExpense?.storeName}&quot;</strong> for <strong className="text-surface-900 dark:text-white">${deletingExpense?.amount.toFixed(2)}</strong>?
+            Are you sure you want to delete the expense <strong className="text-surface-900 dark:text-white">&quot;{deletingExpense?.storeName}&quot;</strong> for <strong className="text-surface-900 dark:text-white">{deletingExpense ? formatCurrency(deletingExpense.amount) : ''}</strong>?
           </p>
           <div className="flex justify-center gap-3 pt-2">
             <button className="btn-secondary" onClick={() => setDeletingExpense(null)}>Cancel</button>
@@ -709,7 +713,7 @@ export default function ReportsPage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="label">Amount ($)</label>
+              <label className="label">Amount ({currencySymbol})</label>
               <input type="number" min="0.01" step="0.01" className="input w-full" value={incomeForm.amount} onChange={(e) => setIncomeForm((f) => ({ ...f, amount: e.target.value }))} />
             </div>
             <div>
@@ -748,7 +752,7 @@ export default function ReportsPage() {
             <AlertTriangle size={24} className="text-danger-500" />
           </div>
           <p className="text-sm text-surface-600 dark:text-surface-300">
-            Are you sure you want to delete the income <strong className="text-surface-900 dark:text-white">&quot;{deletingIncome?.source}&quot;</strong> for <strong className="text-surface-900 dark:text-white">${deletingIncome?.amount.toFixed(2)}</strong>?
+            Are you sure you want to delete the income <strong className="text-surface-900 dark:text-white">&quot;{deletingIncome?.source}&quot;</strong> for <strong className="text-surface-900 dark:text-white">{deletingIncome ? formatCurrency(deletingIncome.amount) : ''}</strong>?
           </p>
           <div className="flex justify-center gap-3 pt-2">
             <button className="btn-secondary" onClick={() => setDeletingIncome(null)}>Cancel</button>
