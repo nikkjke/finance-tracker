@@ -6,6 +6,8 @@ import {
   ChevronDown,
   PanelLeftClose,
   PanelLeftOpen,
+  Settings,
+  LogOut,
   Check,
   Trash2,
   Search,
@@ -63,8 +65,8 @@ const categoryIcons: Record<string, typeof ShoppingBag> = {
 };
 
 export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed, isScrolled = false }: NavbarProps) {
-  const { user } = useAuth();
-  const { notifications, markAsRead, deleteNotification, unreadCount } = useNotification();
+  const { user, logout } = useAuth();
+  const { notifications, markAsRead, markAsUnread, deleteNotification, unreadCount } = useNotification();
   const { getExpenses, updateExpense } = useExpenses();
   const { getBudgets, updateBudget } = useBudgets();
   const navigate = useNavigate();
@@ -354,7 +356,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                 </div>
                 <button
                   onClick={() => {
-                    navigate(user?.role === 'admin' ? '/admin/alerts' : '/notifications');
+                    navigate(user?.role === 'admin' ? '/admin/users' : '/notifications');
                     setShowNotifications(false);
                   }}
                   className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-semibold"
@@ -387,19 +389,21 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                             {notif.message}
                           </p>
                         </div>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                          {!notif.read && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (notif.read) {
+                                markAsUnread(notif.id);
+                              } else {
                                 markAsRead(notif.id);
-                              }}
-                              className="rounded p-1 text-surface-400 hover:bg-success-50 hover:text-success-600 dark:hover:bg-success-500/10 dark:hover:text-success-400 transition-colors"
-                              title="Mark as read"
-                            >
-                              <Check size={12} />
-                            </button>
-                          )}
+                              }
+                            }}
+                            className="rounded p-1 text-surface-400 hover:bg-success-50 hover:text-success-600 dark:hover:bg-success-500/10 dark:hover:text-success-400 transition-colors"
+                            title={notif.read ? 'Mark as unread' : 'Mark as read'}
+                          >
+                            <Check size={12} />
+                          </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -420,7 +424,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                 <div className="border-t border-surface-200 px-4 py-2 text-center dark:border-surface-700">
                   <button
                     onClick={() => {
-                      navigate(user?.role === 'admin' ? '/admin/alerts' : '/notifications');
+                      navigate(user?.role === 'admin' ? '/admin/users' : '/notifications');
                       setShowNotifications(false);
                     }}
                     className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-semibold"
@@ -462,9 +466,21 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                     navigate('/profile');
                     setShowProfile(false);
                   }}
-                  className="w-full text-left rounded-lg px-3 py-2 text-sm text-surface-700 hover:bg-surface-100 dark:text-surface-200 dark:hover:bg-surface-700 transition-colors"
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-surface-700 hover:bg-surface-100 dark:text-surface-200 dark:hover:bg-surface-700 transition-colors"
                 >
-                  View Profile
+                  <Settings size={16} className="text-surface-400" />
+                  Settings
+                </button>
+                <button
+                  onClick={() => {
+                    logout();
+                    navigate('/');
+                    setShowProfile(false);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-danger-600 hover:bg-danger-50 dark:text-danger-400 dark:hover:bg-danger-500/10 transition-colors"
+                >
+                  <LogOut size={16} className="text-danger-500" />
+                  Log out
                 </button>
               </div>
             </div>

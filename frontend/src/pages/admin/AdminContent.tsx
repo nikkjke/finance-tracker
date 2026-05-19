@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Save, X, Tag, DollarSign, FileText } from 'lucide-react';
 import Modal from '../../components/ui/Modal';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Category {
   id: string;
@@ -25,6 +26,9 @@ interface StatusOption {
 
 export default function AdminContent() {
   const { pushNotification } = useNotification();
+  const { user } = useAuth();
+  const [isLoaded, setIsLoaded] = useState(false);
+  const storageKey = user ? `admin_content_${user.id}` : 'admin_content';
 
   // Expense Categories
   const [expenseCategories, setExpenseCategories] = useState<Category[]>([
@@ -62,6 +66,65 @@ export default function AdminContent() {
     { id: '1', value: 'completed', label: 'Completed', color: '#10b981' },
     { id: '2', value: 'pending', label: 'Pending', color: '#f59e0b' },
     { id: '3', value: 'cancelled', label: 'Cancelled', color: '#ef4444' },
+  ]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (!saved) {
+        setIsLoaded(true);
+        return;
+      }
+
+      const parsed = JSON.parse(saved) as {
+        expenseCategories?: Category[];
+        incomeCategories?: Category[];
+        currencies?: Currency[];
+        transactionStatuses?: StatusOption[];
+      };
+
+      if (parsed.expenseCategories?.length) {
+        setExpenseCategories(parsed.expenseCategories);
+      }
+      if (parsed.incomeCategories?.length) {
+        setIncomeCategories(parsed.incomeCategories);
+      }
+      if (parsed.currencies?.length) {
+        setCurrencies(parsed.currencies);
+      }
+      if (parsed.transactionStatuses?.length) {
+        setTransactionStatuses(parsed.transactionStatuses);
+      }
+    } catch {
+    } finally {
+      setIsLoaded(true);
+    }
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (!isLoaded) {
+      return;
+    }
+
+    try {
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          expenseCategories,
+          incomeCategories,
+          currencies,
+          transactionStatuses,
+        }),
+      );
+    } catch {
+    }
+  }, [
+    expenseCategories,
+    incomeCategories,
+    currencies,
+    transactionStatuses,
+    isLoaded,
+    storageKey,
   ]);
 
   // Modal states

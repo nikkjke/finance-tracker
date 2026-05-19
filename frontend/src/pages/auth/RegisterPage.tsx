@@ -10,6 +10,7 @@ interface FormErrors {
   email?: string;
   password?: string;
   confirmPassword?: string;
+  terms?: string;
 }
 
 export default function RegisterPage() {
@@ -19,6 +20,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Redirect already-authenticated users to their dashboard
   useEffect(() => {
@@ -27,7 +29,7 @@ export default function RegisterPage() {
     }
   }, [authLoading, isAuthenticated, user, navigate]);
 
-  const validate = (data: Record<string, string>): boolean => {
+  const validate = (data: Record<string, string>, acceptedTerms: boolean): boolean => {
     const newErrors: FormErrors = {};
     if (!data.name.trim()) {
       newErrors.name = 'Name is required';
@@ -45,6 +47,9 @@ export default function RegisterPage() {
     if (data.password !== data.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
+    if (!acceptedTerms) {
+      newErrors.terms = 'You must accept the terms and privacy policy.';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -59,10 +64,10 @@ export default function RegisterPage() {
       confirmPassword: formData.get('confirmPassword') as string || '',
     };
 
-    if (!validate(data)) return;
+    if (!validate(data, agreedToTerms)) return;
 
     setIsLoading(true);
-    const result = await register(data.name, data.email, data.password);
+    const result = await register(data.name, data.email, data.password, agreedToTerms);
     setIsLoading(false);
 
     if (result.success) {
@@ -234,18 +239,33 @@ export default function RegisterPage() {
             </div>
 
             <label className="flex items-start gap-2">
-              <input type="checkbox" className="mt-1 h-4 w-4 rounded border-surface-300 text-primary-600 focus:ring-primary-500" />
+              <input
+                type="checkbox"
+                checked={agreedToTerms}
+                onChange={(event) => {
+                  setAgreedToTerms(event.target.checked);
+                  if (errors.terms) {
+                    clearError('terms');
+                  }
+                }}
+                className="mt-1 h-4 w-4 rounded border-surface-300 text-primary-600 focus:ring-primary-500"
+              />
               <span className="text-sm text-surface-500 dark:text-surface-400">
                 I agree to the{' '}
-                <button type="button" className="font-medium text-primary-600 hover:text-primary-500">Terms of Service</button>
+                <Link to="/terms-of-service" className="font-medium text-primary-600 hover:text-primary-500">
+                  Terms of Service
+                </Link>
                 {' '}and{' '}
-                <button type="button" className="font-medium text-primary-600 hover:text-primary-500">Privacy Policy</button>
+                <Link to="/privacy-policy" className="font-medium text-primary-600 hover:text-primary-500">
+                  Privacy Policy
+                </Link>
               </span>
             </label>
+            {errors.terms && <p className="text-xs text-danger-500">{errors.terms}</p>}
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !agreedToTerms}
               className="btn-primary w-full py-3"
             >
               {isLoading ? 'Creating account...' : 'Create account'}

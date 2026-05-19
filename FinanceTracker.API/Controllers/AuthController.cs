@@ -35,6 +35,9 @@ namespace FinanceTracker.API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            if (!dto.TermsAccepted)
+                return BadRequest(new { message = "You must accept the terms and privacy policy." });
+
             try
             {
                 var result = _auth.Register(dto);

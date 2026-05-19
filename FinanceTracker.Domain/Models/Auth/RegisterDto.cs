@@ -15,5 +15,9 @@ namespace FinanceTracker.Domain.Models.Auth
         [Required]
         [MinLength(6)]
         public string Password { get; set; } = string.Empty;
+
+        [Required]
+        [Range(typeof(bool), "true", "true", ErrorMessage = "Terms must be accepted.")]
+        public bool TermsAccepted { get; set; }
     }
 }

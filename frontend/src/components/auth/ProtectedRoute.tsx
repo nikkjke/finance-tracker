@@ -14,7 +14,7 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children, requiredRole, adminOnly, userOnly }: ProtectedRouteProps) {
   const { isAuthenticated, user, isLoading } = useAuth();
 
-  // Show loading spinner while session is being restored from localStorage
+  // Show loading spinner while session is being restored from storage
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-surface-50 dark:bg-surface-950">
