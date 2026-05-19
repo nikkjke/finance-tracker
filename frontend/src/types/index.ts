@@ -10,25 +10,10 @@ export type PaymentMethod = 'card' | 'cash' | 'bank_transfer' | 'qr_scan';
 export type ExpenseStatus = 'completed' | 'pending' | 'cancelled';
 
 /** Categories that can be assigned to expenses and budgets. */
-export type ExpenseCategory =
-  | 'food'
-  | 'transport'
-  | 'entertainment'
-  | 'shopping'
-  | 'bills'
-  | 'health'
-  | 'education'
-  | 'travel'
-  | 'other';
+export type ExpenseCategory = string;
 
 /** Categories for income sources. */
-export type IncomeCategory =
-  | 'salary'
-  | 'freelance'
-  | 'investment'
-  | 'bonus'
-  | 'gift'
-  | 'other_income';
+export type IncomeCategory = string;
 
 /** Represents a registered user in the system. */
 export interface User {

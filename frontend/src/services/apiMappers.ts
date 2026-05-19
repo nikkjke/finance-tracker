@@ -6,31 +6,16 @@ import type {
   CreateIncomeDTO,
   BudgetPeriod,
   Expense,
-  ExpenseCategory,
   ExpenseStatus,
   Income,
-  IncomeCategory,
   PaymentMethod,
   UpdateBudgetDTO,
   UpdateExpenseDTO,
   UpdateIncomeDTO,
 } from '../types';
 
-const expenseCategoryValues: ExpenseCategory[] = [
-  'food',
-  'transport',
-  'entertainment',
-  'shopping',
-  'bills',
-  'health',
-  'education',
-  'travel',
-  'other',
-];
-
 const paymentMethodValues: PaymentMethod[] = ['card', 'cash', 'bank_transfer', 'qr_scan'];
 const expenseStatusValues: ExpenseStatus[] = ['completed', 'pending', 'cancelled'];
-const incomeCategoryValues: IncomeCategory[] = ['salary', 'freelance', 'investment', 'bonus', 'gift', 'other_income'];
 const incomeStatusValues: Income['status'][] = ['completed', 'pending'];
 const budgetPeriodValues: BudgetPeriod[] = ['weekly', 'monthly', 'quarterly', 'yearly', 'custom'];
 
@@ -192,7 +177,7 @@ export function mapExpenseFromApi(payload: unknown, fallbackUserId?: string): Ex
     userId: fallbackUserId ?? asString(value.userId),
     storeName: asString(value.storeName),
     amount: asNumber(value.amount),
-    category: mapEnum(value.category, expenseCategoryValues, 'other'),
+    category: asString(value.category, 'other'),
     date: normalizeDateString(value.date, new Date().toISOString().split('T')[0]),
     notes: asString(value.notes) || undefined,
     paymentMethod: mapEnum(value.paymentMethod, paymentMethodValues, 'card'),
@@ -209,7 +194,7 @@ export function mapIncomeFromApi(payload: unknown, fallbackUserId?: string): Inc
     userId: fallbackUserId ?? asString(value.userId),
     source: asString(value.source),
     amount: asNumber(value.amount),
-    category: mapEnum(value.category, incomeCategoryValues, 'other_income'),
+    category: asString(value.category, 'other_income'),
     date: normalizeDateString(value.date, new Date().toISOString().split('T')[0]),
     notes: asString(value.notes) || undefined,
     status: mapEnum(value.status, incomeStatusValues, 'completed'),
@@ -222,7 +207,7 @@ export function mapBudgetFromApi(payload: unknown, fallbackUserId?: string): Bud
   return {
     id: asString(value.id, crypto.randomUUID()),
     userId: fallbackUserId ?? asString(value.userId),
-    category: mapEnum(value.category, expenseCategoryValues, 'other'),
+    category: asString(value.category, 'other'),
     limit: asNumber(value.limit),
     spent: asNumber(value.spent),
     month: asString(value.month),
