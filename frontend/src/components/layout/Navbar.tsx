@@ -33,7 +33,6 @@ import Dropdown from '../ui/Dropdown';
 import DatePicker from '../ui/DatePicker';
 import { DebouncedInput, DebouncedTextarea } from '../ui/DebouncedInput';
 import { categoryLabels, categoryColors } from '../../data/mockData';
-import type { UserRole } from '../../types';
 interface NavbarProps {
   onMenuClick: () => void;
   onToggleSidebar: () => void;
@@ -90,11 +89,6 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
     setIsSearchOpen(false);
     setActiveSearchIndex(null);
     setSearchInteractionMode(null);
-  };
-
-  const handleRoleSwitch = (_role: UserRole) => {
-    // Role switching is disabled — roles are assigned by the backend via JWT
-    setShowProfile(false);
   };
 
   const searchResults = useMemo<SearchResultItem[]>(() => {
