@@ -7,12 +7,12 @@ import Dropdown from '../../components/ui/Dropdown';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
-import { categoryLabels } from '../../data/mockData';
 import { sortItems } from '../../services';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBudgets } from '../../contexts/BudgetContext';
 import { useExpenses } from '../../contexts/ExpenseContext';
 import StatCard from '../../components/ui/StatCard';
+import { useContent } from '../../contexts/ContentContext';
 import type { Budget, ExpenseCategory, BudgetPeriod } from '../../types';
 
 // ─── Period range helper ──────────────────────────────────────────────────────
@@ -48,6 +48,7 @@ export default function BudgetsPage() {
   const { user } = useAuth();
   const { budgets: allBudgets, addBudget, updateBudget, deleteBudget } = useBudgets();
   const { expenses } = useExpenses();
+  const { expenseCategoryOptions, getExpenseCategoryLabel } = useContent();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -66,6 +67,14 @@ export default function BudgetsPage() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'over-budget' | 'under-budget'>('all');
   const [sortBy, setSortBy] = useState<'limit-asc' | 'limit-desc' | 'spent-asc' | 'spent-desc'>('limit-asc');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (expenseCategoryOptions.length === 0) return;
+    const hasCurrent = expenseCategoryOptions.some((option) => option.value === formCategory);
+    if (!hasCurrent) {
+      setFormCategory(expenseCategoryOptions[0].value as ExpenseCategory);
+    }
+  }, [expenseCategoryOptions, formCategory]);
 
   // Get user's budgets and calculate spent amounts
   const budgets = useMemo(() => {
@@ -94,13 +103,15 @@ export default function BudgetsPage() {
     let result = [...budgets];
 
     // Apply search by category name
-    const categoryNames = categoryLabels as Record<ExpenseCategory, string>;
+    const categoryNames = Object.fromEntries(
+      expenseCategoryOptions.map((option) => [option.value, option.label])
+    ) as Record<ExpenseCategory, string>;
 
     // Search by category label (e.g. "Food & Groceries") instead of raw value
     if (searchQuery.trim()) {
       const lower = searchQuery.toLowerCase();
       result = result.filter((b) => {
-        const label = categoryNames[b.category]?.toLowerCase() || b.category;
+        const label = (categoryNames[b.category] ?? getExpenseCategoryLabel(b.category)).toLowerCase();
         return label.includes(lower) || b.category.includes(lower);
       });
     }
@@ -424,7 +435,7 @@ export default function BudgetsPage() {
             <Dropdown
               value={formCategory}
               onChange={(val) => setFormCategory(val as ExpenseCategory)}
-              options={(Object.entries(categoryLabels) as [ExpenseCategory, string][]).map(([value, label]) => ({ value, label }))}
+              options={expenseCategoryOptions}
               icon={<Tag size={16} />}
               fullWidth
             />
