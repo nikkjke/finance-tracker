@@ -25,6 +25,8 @@ import { DebouncedInput, DebouncedTextarea } from '../../components/ui/Debounced
 import { useAuth } from '../../contexts/AuthContext';
 import { useExpenses } from '../../contexts/ExpenseContext';
 import { scanReceipt, type ReceiptScanResult } from '../../services/receiptScanService';
+import { useCurrency } from '../../contexts/CurrencyContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface FormData {
   storeName: string;
@@ -59,6 +61,8 @@ export default function AddExpensePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addExpense } = useExpenses();
+  const { formatCurrency, currencySymbol } = useCurrency();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'manual' | 'scan'>('scan');
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -298,9 +302,9 @@ export default function AddExpensePage() {
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Add Expense</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">{t('addExpense')}</h1>
         <p className="text-sm text-surface-500 dark:text-surface-400">
-          Add a new expense manually or scan a receipt.
+          {t('addExpenseDesc')}
         </p>
       </div>
 
@@ -315,7 +319,7 @@ export default function AddExpensePage() {
           }`}
         >
           <ScanLine size={16} />
-          Scan Receipt
+          {t('scanReceipt')}
         </button>
         <button
           onClick={() => setActiveTab('manual')}
@@ -326,7 +330,7 @@ export default function AddExpensePage() {
           }`}
         >
           <Check size={16} />
-          Manual Entry
+          {t('manualEntry')}
         </button>
       </div>
 
@@ -345,14 +349,14 @@ export default function AddExpensePage() {
                 </div>
               </div>
               <h2 className="text-xl sm:text-2xl font-bold text-surface-900 dark:text-white mb-3">
-                Scan Receipt QR Code
+                {t('scanReceiptQr')}
               </h2>
               <p className="text-base text-surface-500 dark:text-surface-400 mb-10 leading-relaxed max-w-sm mx-auto">
-                Point your camera at the QR code printed on your receipt. We will automatically extract the store, amount, and date.
+                {t('pointCameraQr')}
               </p>
               <button onClick={startCamera} className="btn-primary mx-auto px-8">
                 <Camera size={16} />
-                Open Camera
+                {t('openCamera')}
               </button>
             </div>
           )}
@@ -441,7 +445,7 @@ export default function AddExpensePage() {
                   },
                   { 
                     label: 'Amount', 
-                    value: scanResult.amount != null ? `$${scanResult.amount.toFixed(2)}` : null, 
+                    value: scanResult.amount != null ? formatCurrency(scanResult.amount) : null, 
                     icon: <DollarSign size={16} className="text-surface-400" /> 
                   },
                   { 
@@ -568,7 +572,7 @@ export default function AddExpensePage() {
               {/* Store Name */}
               <div>
                 <label htmlFor="storeName" className="label">
-                  Store / Vendor Name
+                  {t('storeVendor')}
                 </label>
                 <DebouncedInput
                   id="storeName"
@@ -576,7 +580,7 @@ export default function AddExpensePage() {
                   maxLength={100}
                   value={formData.storeName}
                   onChange={(val) => handleChange('storeName', val)}
-                  placeholder="e.g. Kaufland, Amazon, Bolt"
+                  placeholder={t('egStore')}
                   className={`input ${errors.storeName ? 'border-danger-500' : ''}`}
                 />
                 {errors.storeName && (
@@ -588,7 +592,7 @@ export default function AddExpensePage() {
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>
                   <label htmlFor="amount" className="label">
-                    Total Amount ($)
+                    {t('totalAmount')} ({currencySymbol})
                   </label>
                   <DebouncedInput
                     id="amount"
@@ -607,7 +611,7 @@ export default function AddExpensePage() {
 
                 <div>
                   <label htmlFor="category" className="label">
-                    Category
+                    {t('category')}
                   </label>
                   <Dropdown
                     value={formData.category}
@@ -628,7 +632,7 @@ export default function AddExpensePage() {
                   <DatePicker
                     value={formData.date}
                     onChange={(val) => handleChange('date', val)}
-                    label="Date"
+                    label={t('date')}
                     error={!!errors.date}
                   />
                   {errors.date && (
@@ -637,7 +641,7 @@ export default function AddExpensePage() {
                 </div>
 
                 <div>
-                  <label className="label">Payment Method</label>
+                  <label className="label">{t('paymentMethod')}</label>
                   <Dropdown
                     value={formData.paymentMethod}
                     onChange={(val) => handleChange('paymentMethod', val)}
@@ -660,7 +664,7 @@ export default function AddExpensePage() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label htmlFor="notes" className="label">
-                    Notes <span className="text-surface-400 font-normal">(optional)</span>
+                    {t('notes')}
                   </label>
                   <span className={`text-xs ${formData.notes.length > 270 ? 'text-warning-500' : 'text-surface-400'}`}>
                     {formData.notes.length}/300
@@ -672,7 +676,7 @@ export default function AddExpensePage() {
                   maxLength={300}
                   value={formData.notes}
                   onChange={(val) => handleChange('notes', val)}
-                  placeholder="Add any additional details..."
+                  placeholder={t('addAnyDetails')}
                   className={`input resize-none ${errors.notes ? 'border-danger-500' : ''}`}
                 />
                 {errors.notes && (
@@ -693,7 +697,7 @@ export default function AddExpensePage() {
                       Saving...
                     </>
                   ) : (
-                    'Add Expense'
+                    t('addExpense')
                   )}
                 </button>
                 <button
@@ -705,7 +709,7 @@ export default function AddExpensePage() {
                   }}
                   className="btn-secondary"
                 >
-                  Clear
+                  {t('clear')}
                 </button>
               </div>
             </form>

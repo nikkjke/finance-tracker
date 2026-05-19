@@ -2,6 +2,7 @@ import { createContext, useContext, useMemo, useState, useCallback, useEffect, t
 import type { Expense, CreateExpenseDTO, UpdateExpenseDTO, ServiceResponse } from '../types';
 import { useAuth } from './AuthContext';
 import { useNotification } from './NotificationContext';
+import { useCurrency } from './CurrencyContext';
 import {
   getExpenses as fetchExpenses,
   addExpense as createExpense,
@@ -27,6 +28,7 @@ const ExpenseContext = createContext<ExpenseContextType | undefined>(undefined);
 export function ExpenseProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { pushNotification } = useNotification();
+  const { formatCurrency } = useCurrency();
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
   useEffect(() => {
@@ -67,12 +69,12 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     setExpenses((prev) => [result.data as Expense, ...prev]);
     pushNotification({
       title: 'Transaction added',
-      message: `Expense at ${result.data.storeName} for $${result.data.amount.toFixed(2)} was added.`,
+      message: `Expense at ${result.data.storeName} for ${formatCurrency(result.data.amount)} was added.`,
       type: 'expense',
       priority: 'low',
     });
     return result;
-  }, [pushNotification]);
+  }, [pushNotification, formatCurrency]);
 
   const updateExpense = useCallback(async (
     id: string,
@@ -92,7 +94,7 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
 
     const storeName = result.data.storeName ?? previousExpense?.storeName ?? 'transaction';
     const amount = result.data.amount ?? previousExpense?.amount;
-    const amountText = typeof amount === 'number' ? `$${amount.toFixed(2)}` : 'new amount';
+    const amountText = typeof amount === 'number' ? formatCurrency(amount) : 'new amount';
     if (options?.notify !== false) {
       pushNotification({
         title: 'Transaction updated',
@@ -103,7 +105,7 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     }
 
     return result;
-  }, [expenses, user?.id, pushNotification]);
+  }, [expenses, user?.id, pushNotification, formatCurrency]);
 
   const deleteExpense = useCallback(async (id: string): Promise<ServiceResponse<null>> => {
     const deletedExpense = expenses.find((expense) => expense.id === id);
