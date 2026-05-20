@@ -22,7 +22,12 @@ export default function AdminContent() {
   const [incomeCategories, setIncomeCategories] = useState<ContentCategory[]>([]);
 
   // Currencies
-  const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [currencies, setCurrencies] = useState<Currency[]>([
+    { id: '1', code: 'USD', symbol: '$', name: 'US Dollar' },
+    { id: '2', code: 'EUR', symbol: '€', name: 'Euro' },
+    { id: '3', code: 'GBP', symbol: '£', name: 'British Pound' },
+    { id: '4', code: 'MDL', symbol: 'lei', name: 'Moldovan Leu' },
+  ]);
 
   // Transaction Statuses
   const [transactionStatuses, setTransactionStatuses] = useState<TransactionStatus[]>([]);

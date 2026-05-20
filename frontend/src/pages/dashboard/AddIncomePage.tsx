@@ -6,6 +6,8 @@ import DatePicker from '../../components/ui/DatePicker';
 import { useAuth } from '../../contexts/AuthContext';
 import { useIncome } from '../../contexts/IncomeContext';
 import { useContent } from '../../contexts/ContentContext';
+import { useCurrency } from '../../contexts/CurrencyContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface FormData {
   source: string;
@@ -41,6 +43,8 @@ export default function AddIncomePage() {
   const [submitted, setSubmitted] = useState(false);
   const [serviceError, setServiceError] = useState<string | null>(null);
   const [resetKey, setResetKey] = useState(0);
+  const { currencySymbol } = useCurrency();
+  const { t } = useLanguage();
 
   const categories = incomeCategoryOptions;
 
@@ -174,9 +178,9 @@ export default function AddIncomePage() {
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Record Income</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">{t('recordIncome')}</h1>
         <p className="text-sm text-surface-500 dark:text-surface-400">
-          Add a new income source to track your earnings and calculate net income.
+          {t('recordIncomeDesc')}
         </p>
       </div>
 
@@ -207,7 +211,7 @@ export default function AddIncomePage() {
             {/* Income Source */}
             <div>
               <label htmlFor="source" className="label">
-                Income Source
+                {t('incomeSource')}
               </label>
               <input
                 id="source"
@@ -215,7 +219,7 @@ export default function AddIncomePage() {
                 maxLength={100}
                 defaultValue={formData.source}
                 onBlur={(e) => handleChange('source', e.target.value)}
-                placeholder="e.g. Acme Corp, Freelance Project, Investment"
+                placeholder={t('egIncome')}
                 className={`input ${errors.source ? 'border-danger-500' : ''}`}
               />
               {errors.source && (
@@ -227,7 +231,7 @@ export default function AddIncomePage() {
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
                 <label htmlFor="amount" className="label">
-                  Amount ($)
+                  {t('totalAmount')} ({currencySymbol})
                 </label>
                 <input
                   id="amount"
@@ -246,7 +250,7 @@ export default function AddIncomePage() {
 
               <div>
                 <label htmlFor="category" className="label">
-                  Category
+                  {t('category')}
                 </label>
                 <Dropdown
                   value={formData.category}
@@ -261,12 +265,11 @@ export default function AddIncomePage() {
               </div>
             </div>
 
-            {/* Date */}
             <div>
               <DatePicker
                 value={formData.date}
                 onChange={(val) => handleChange('date', val)}
-                label="Date"
+                label={t('date')}
                 error={!!errors.date}
               />
               {errors.date && (
@@ -274,11 +277,10 @@ export default function AddIncomePage() {
               )}
             </div>
 
-            {/* Notes */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label htmlFor="notes" className="label">
-                  Notes <span className="text-surface-400 font-normal">(optional)</span>
+                  {t('notes')}
                 </label>
                 <span className={`text-xs ${formData.notes.length > 270 ? 'text-warning-500' : 'text-surface-400'}`}>
                   {formData.notes.length}/300
@@ -290,7 +292,7 @@ export default function AddIncomePage() {
                 maxLength={300}
                 defaultValue={formData.notes}
                 onBlur={(e) => handleChange('notes', e.target.value)}
-                placeholder="Add any additional details about this income..."
+                placeholder={t('addIncomeDetails')}
                 className={`input resize-none ${errors.notes ? 'border-danger-500' : ''}`}
               />
               {errors.notes && (
@@ -311,7 +313,7 @@ export default function AddIncomePage() {
                     Saving...
                   </>
                 ) : (
-                  'Record Income'
+                  t('recordIncome')
                 )}
               </button>
               <button
@@ -324,7 +326,7 @@ export default function AddIncomePage() {
                 }}
                 className="btn-secondary"
               >
-                Clear
+                {t('clear')}
               </button>
             </div>
           </form>

@@ -1,6 +1,7 @@
 import { CreditCard, Banknote, Building2, ScanLine, ShoppingBag, Car, Film, Zap, Heart, GraduationCap, Plane, UtensilsCrossed, MoreHorizontal, Edit2, Trash2 } from 'lucide-react';
 import type { Expense } from '../../types';
 import { useContent } from '../../contexts/ContentContext';
+import { useCurrency } from '../../contexts/CurrencyContext';
 import EmptyState from './EmptyState';
 
 interface TransactionTableProps {
@@ -31,6 +32,7 @@ const methodConfig: Record<string, { icon: typeof CreditCard; label: string }> =
 
 export default function TransactionTable({ expenses, limit, onEdit, onDelete }: TransactionTableProps) {
   const { getExpenseCategoryLabel, getExpenseCategoryColor, getTransactionStatus } = useContent();
+  const { formatCurrency } = useCurrency();
   const hasActions = !!(onEdit || onDelete);
   const displayed = limit ? expenses.slice(0, limit) : expenses;
 
@@ -95,7 +97,7 @@ export default function TransactionTable({ expenses, limit, onEdit, onDelete }: 
             {/* Amount */}
             <div className="text-right shrink-0">
               <p className="text-sm font-bold text-surface-900 dark:text-white">
-                ${expense.amount.toFixed(2)}
+                {formatCurrency(expense.amount)}
               </p>
               <div className="mt-0.5 flex items-center justify-end gap-1 text-xs text-surface-400">
                 <MethodIcon size={12} />

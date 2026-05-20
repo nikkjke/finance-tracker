@@ -30,6 +30,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
 import { useExpenses } from '../../contexts/ExpenseContext';
 import { useBudgets } from '../../contexts/BudgetContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useContent } from '../../contexts/ContentContext';
 import Modal from '../ui/Modal';
 import Dropdown from '../ui/Dropdown';
@@ -69,8 +70,9 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
   const { notifications, markAsRead, markAsUnread, deleteNotification, unreadCount } = useNotification();
   const { getExpenses, updateExpense } = useExpenses();
   const { getBudgets, updateBudget } = useBudgets();
-  const { expenseCategoryOptions, getExpenseCategoryLabel, getExpenseCategoryColor } = useContent();
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
+  const { expenseCategoryOptions, getExpenseCategoryLabel, getExpenseCategoryColor } = useContent();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -146,6 +148,50 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
     setSearchInteractionMode(null);
   }, [searchQuery]);
 
+  const getTranslatedTitle = (title: string) => {
+    const keyMap: Record<string, string> = {
+      'Transaction added': t('transactionAdded' as any),
+      'Budget added': t('budgetAdded' as any),
+      'Budget deleted': t('budgetDeleted' as any),
+      'Profile updated': t('profileUpdatedTitle' as any),
+    };
+    return keyMap[title] || t(title as any); 
+  };
+  
+  const getTranslatedMessage = (message: string) => {
+    if (language === 'en') return message;
+  
+    if (message.includes("Expense at") && message.includes("was added")) {
+      const match = message.match(/Expense at (.*?) for (.*?) was added./);
+      if (match) {
+        return `Cheltuiala la ${match[1]} în valoare de ${match[2]} a fost adăugată.`;
+      }
+    }
+    
+    if (message.includes("Income from") && message.includes("was recorded")) {
+      const match = message.match(/Income from (.*?) for (.*?) was recorded./);
+      if (match) {
+        return `Venitul de la ${match[1]} în valoare de ${match[2]} a fost înregistrat.`;
+      }
+    }
+
+    if (message.includes("Profile information for")) {
+      const match = message.match(/Profile information for (.*?) was updated./);
+      if (match) {
+        return `Informațiile profilului pentru ${match[1]} au fost actualizate.`;
+      }
+    }
+
+    if (message.includes("Budget of")) {
+      const match = message.match(/Budget of (.*?) set for (.*?)\./);
+      if (match) {
+        return `Bugetul de ${match[1]} setat pentru ${match[2]}.`;
+      }
+    }
+  
+    return message; 
+  };
+
   const handleSelectSearchItem = (item: SearchResultItem) => {
     setSelectedItem({ type: item.type, data: item.original });
     setEditForm({
@@ -192,7 +238,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
         </button>
         <div className="hidden sm:block">
           <p className="text-sm text-surface-500 dark:text-surface-400">
-            Welcome back,{' '}
+            {t('welcomeBack') || 'Welcome back'},{' '}
             <span className="font-semibold text-surface-900 dark:text-white">
               {user?.name || 'User'}
             </span>
@@ -249,7 +295,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                 setIsSearchOpen(false);
               }
             }}
-            placeholder="Search transactions, budgets..."
+            placeholder={language === 'ro' ? 'Caută tranzacții, bugete...' : 'Search transactions, budgets...'}
             className="h-10 w-full rounded-full border border-surface-200 bg-surface-50/50 py-2 pl-10 pr-4 text-sm text-surface-900 transition-all focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500/10 dark:border-surface-700 dark:bg-surface-800/50 dark:text-white dark:focus:border-primary-500 dark:focus:bg-surface-900"
           />
 
@@ -274,7 +320,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                           <div key={`${t.type}-${t.id}`}>
                             {showTypeHeader && (
                               <div className="px-4 pt-1.5 pb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-surface-400 dark:text-surface-500">
-                                {t.type === 'expense' ? 'Transactions' : 'Budgets'}
+                                {t.type === 'expense' ? (language === 'ro' ? 'Tranzacții' : 'Transactions') : (language === 'ro' ? 'Bugete' : 'Budgets')}
                               </div>
                             )}
                             <button
@@ -299,7 +345,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                                   <ItemIcon size={16} style={{ color: categoryColor }} />
                                 </div>
                                 <div className="flex flex-col min-w-0 flex-1">
-                                  <span className="text-sm font-medium text-surface-900 dark:text-white truncate">{t.title} <span className="text-[10px] ml-1 bg-surface-100 dark:bg-surface-700 px-1 rounded uppercase tracking-wider text-surface-500">{t.type}</span></span>
+                                  <span className="text-sm font-medium text-surface-900 dark:text-white truncate">{t.title} <span className="text-[10px] ml-1 bg-surface-100 dark:bg-surface-700 px-1 rounded uppercase tracking-wider text-surface-500">{t.type === 'expense' ? (language === 'ro' ? 'cheltuială' : 'expense') : (language === 'ro' ? 'buget' : 'budget')}</span></span>
                                   <span className="text-xs text-surface-500 dark:text-surface-400 truncate">{t.subtitle}</span>
                                 </div>
                               </div>
@@ -318,8 +364,12 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                     <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-surface-100 dark:bg-surface-700">
                       <Search size={16} className="text-surface-400" />
                     </div>
-                    <p className="text-sm font-medium text-surface-700 dark:text-surface-300">No results for "{searchQuery}"</p>
-                    <p className="mt-1 text-xs text-surface-400">Try a store name or category like food, transport, or shopping.</p>
+                    <p className="text-sm font-medium text-surface-700 dark:text-surface-300">
+                      {language === 'ro' ? `Nu există rezultate pentru "${searchQuery}"` : `No results for "${searchQuery}"`}
+                    </p>
+                    <p className="mt-1 text-xs text-surface-400">
+                      {language === 'ro' ? 'Încearcă prin a scrie numele magazinului sau a categoriei ca mâncare, transport, sau cumpărături.' : 'Try a store name or category like food, transport, or shopping.'}
+                    </p>
                   </div>
                 )}
               </div>
@@ -351,9 +401,9 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
               <div className="border-b border-surface-200 px-4 py-3 flex items-center justify-between dark:border-surface-700">
                 <div>
                   <h4 className="text-sm font-semibold text-surface-900 dark:text-white">
-                    Notifications
+                    {t('notificationsTitle')}
                   </h4>
-                  <p className="text-xs text-surface-500">{unreadCount} unread</p>
+                  <p className="text-xs text-surface-500">{unreadCount} {t('unread' as any) || 'unread'}</p>
                 </div>
                 <button
                   onClick={() => {
@@ -362,7 +412,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                   }}
                   className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-semibold"
                 >
-                  View All
+                  {language === 'ro' ? 'Vezi Tot' : 'View All'}
                 </button>
               </div>
               <div className="max-h-96 overflow-y-auto">
@@ -370,7 +420,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                   <div className="px-4 py-8 text-center">
                     <Bell size={32} className="mx-auto text-surface-300 dark:text-surface-700 mb-2" />
                     <p className="text-sm text-surface-500 dark:text-surface-400">
-                      No notifications
+                      {t('noNotifications' as any) || 'No notifications'}
                     </p>
                   </div>
                 ) : (
@@ -384,10 +434,10 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-surface-900 dark:text-white leading-snug">
-                            {notif.title}
+                            {getTranslatedTitle(notif.title)}
                           </p>
                           <p className="text-xs text-surface-500 dark:text-surface-400 mt-0.5 line-clamp-2">
-                            {notif.message}
+                            {getTranslatedMessage(notif.message)}
                           </p>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
@@ -430,7 +480,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                     }}
                     className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-semibold"
                   >
-                    View {notifications.length - 5} more notifications
+                    {language === 'ro' ? `Vezi încă ${notifications.length - 5} notificări` : `View ${notifications.length - 5} more notifications`}
                   </button>
                 </div>
               )}
@@ -470,7 +520,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                   className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-surface-700 hover:bg-surface-100 dark:text-surface-200 dark:hover:bg-surface-700 transition-colors"
                 >
                   <Settings size={16} className="text-surface-400" />
-                  Settings
+                  {t('settings')}
                 </button>
                 <button
                   onClick={() => {
@@ -481,7 +531,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                   className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-danger-600 hover:bg-danger-50 dark:text-danger-400 dark:hover:bg-danger-500/10 transition-colors"
                 >
                   <LogOut size={16} className="text-danger-500" />
-                  Log out
+                  {t('logout')}
                 </button>
               </div>
             </div>

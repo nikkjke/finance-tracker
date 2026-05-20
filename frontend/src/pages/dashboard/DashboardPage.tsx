@@ -22,6 +22,8 @@ import { useIncome } from '../../contexts/IncomeContext';
 import { useBudgets } from '../../contexts/BudgetContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useContent } from '../../contexts/ContentContext';
+import { useCurrency } from '../../contexts/CurrencyContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import type { BudgetPeriod } from '../../types';
 
 // ─── Period range helper (mirrors BudgetsPage) ───────────────────────────────
@@ -59,6 +61,8 @@ export default function DashboardPage() {
   const { budgets } = useBudgets();
   const { user } = useAuth();
   const { getExpenseCategoryLabel } = useContent();
+  const { formatCurrency } = useCurrency();
+  const { t, language } = useLanguage();
 
   // Filter data for the current user
   const userExpenses = useMemo(() => {
@@ -223,19 +227,19 @@ export default function DashboardPage() {
           {/* Page Header */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Dashboard</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">{t('dashboard')}</h1>
               <p className="text-sm text-surface-500 dark:text-surface-400">
-                Here&#39;s what&#39;s happening with your finances this month.
+                {t('hereIsSummary')}
               </p>
             </div>
             <div className="flex gap-3">
               <Link to="/add-income" className="btn-secondary">
                 <TrendingUp size={18} />
-                Record Income
+                {t('addIncome')}
               </Link>
               <Link to="/add-expense" className="btn-primary">
                 <PlusCircle size={18} />
-                Add Expense
+                {t('addExpense')}
               </Link>
             </div>
           </div>
@@ -243,22 +247,22 @@ export default function DashboardPage() {
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
-              title="Total Income"
+              title={t('monthlyIncome')}
               value={totalIncome}
               icon={<TrendingUp size={20} />}
             />
             <StatCard
-              title="Total Expenses"
+              title={t('monthlySpending')}
               value={totalSpent}
               icon={<TrendingDown size={20} />}
             />
             <StatCard
-              title="Net Income"
+              title={t('netIncome')}
               value={netIncome}
               icon={<DollarSign size={20} />}
             />
             <StatCard
-              title="Budget Remaining"
+              title={t('budgetRemaining')}
               value={budgetRemaining}
               icon={<Wallet size={20} />}
             />
@@ -271,7 +275,7 @@ export default function DashboardPage() {
               <div className="mb-6 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-surface-900 dark:text-white">
-                    Income and Expenses
+                    {t('incomeVsSpending')}
                   </h2>
                   <p className="text-sm text-surface-400">
                     Last 6 months overview
@@ -314,12 +318,12 @@ export default function DashboardPage() {
                         {
                           color: '#22c55e',
                           label: 'Income',
-                          value: `$${((point.income as number) ?? 0).toLocaleString()}`,
+                          value: formatCurrency((point.income as number) ?? 0),
                         },
                         {
                           color: 'var(--chart-line-secondary)',
                           label: 'Spending',
-                          value: `$${((point.spending as number) ?? 0).toLocaleString()}`,
+                          value: formatCurrency((point.spending as number) ?? 0),
                         },
                       ]}
                     />
@@ -332,9 +336,8 @@ export default function DashboardPage() {
             <div className="card">
               <div className="mb-6">
                 <h2 className="text-lg font-semibold text-surface-900 dark:text-white">
-                  By Category
+                  {t('spendingByCategory')}
                 </h2>
-                <p className="text-sm text-surface-400">This month</p>
               </div>
               <DonutChart data={spendingByCategory} />
             </div>
@@ -345,19 +348,19 @@ export default function DashboardPage() {
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-surface-900 dark:text-white">
-                  Budget Progress
+                  {t('budgetProgress')}
                 </h2>
-                <p className="text-sm text-surface-400">{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
+                <p className="text-sm text-surface-400">{new Date().toLocaleDateString(language === 'ro' ? 'ro-RO' : 'en-US', { month: 'long', year: 'numeric' })}</p>
               </div>
               <Link to="/budgets" className="btn-ghost text-sm">
-                View All <ArrowRight size={14} />
+                {t('viewAll')} <ArrowRight size={14} />
               </Link>
             </div>
             {budgetData.length === 0 ? (
               <EmptyState
                 icon={Target}
-                title="No budgets set"
-                description="Create your first budget to start tracking and managing your spending limits."
+                title={t('noBudgetsSet')}
+                description={t('createFirstBudget')}
                 className="rounded-lg border border-surface-200 dark:border-surface-700"
               />
             ) : (
@@ -374,12 +377,11 @@ export default function DashboardPage() {
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-surface-900 dark:text-white">
-                  Recent Transactions
+                  {t('recentTransactions')}
                 </h2>
-                <p className="text-sm text-surface-400">Latest activity</p>
               </div>
               <Link to="/reports" className="btn-ghost text-sm">
-                See All <ArrowRight size={14} />
+                {t('viewAll')} <ArrowRight size={14} />
               </Link>
             </div>
             <TransactionTable expenses={transactionsData.transactions} limit={5} />
@@ -390,15 +392,24 @@ export default function DashboardPage() {
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-surface-900 dark:text-white">
-                  Recent Income
+                  {t('recentIncome')}
                 </h2>
-                <p className="text-sm text-surface-400">Latest activity</p>
+                <p className="text-sm text-surface-400">{t('latestActivity')}</p>
               </div>
               <Link to="/reports" className="btn-ghost text-sm">
-                See All <ArrowRight size={14} />
+                {t('seeAll')} <ArrowRight size={14} />
               </Link>
             </div>
-            <IncomeTable income={recentIncomeData.income} limit={5} />
+            {recentIncomeData.income.length === 0 ? (
+               <EmptyState
+                icon={TrendingUp}
+                title={t('noIncomeRecords')}
+                description={t('incomeEntriesAppearHere')}
+                className="rounded-lg border border-surface-200 dark:border-surface-700"
+              />
+            ) : (
+              <IncomeTable income={recentIncomeData.income} limit={5} />
+            )}
           </div>
         </>
       )}
