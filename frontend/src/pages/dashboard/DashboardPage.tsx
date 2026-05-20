@@ -17,13 +17,11 @@ import DonutChart from '../../components/ui/DonutChart';
 import BudgetProgress from '../../components/ui/BudgetProgress';
 import EmptyState from '../../components/ui/EmptyState';
 import Spinner from '../../components/ui/Spinner';
-import {
-  categoryLabels,
-} from '../../data/mockData';
 import { useExpenses } from '../../contexts/ExpenseContext';
 import { useIncome } from '../../contexts/IncomeContext';
 import { useBudgets } from '../../contexts/BudgetContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useContent } from '../../contexts/ContentContext';
 import { useCurrency } from '../../contexts/CurrencyContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import type { BudgetPeriod } from '../../types';
@@ -62,6 +60,7 @@ export default function DashboardPage() {
   const { income } = useIncome();
   const { budgets } = useBudgets();
   const { user } = useAuth();
+  const { getExpenseCategoryLabel } = useContent();
   const { formatCurrency } = useCurrency();
   const { t, language } = useLanguage();
 
@@ -111,9 +110,9 @@ export default function DashboardPage() {
       map[e.category] = (map[e.category] || 0) + e.amount;
     });
     return Object.entries(map)
-      .map(([key, value]) => ({ label: categoryLabels[key as keyof typeof categoryLabels] || key, value }))
+        .map(([key, value]) => ({ label: getExpenseCategoryLabel(key), value }))
       .sort((a, b) => b.value - a.value);
-  }, [userExpenses]);
+  }, [userExpenses, getExpenseCategoryLabel]);
 
   // Memoized budget utilization with percentages
   const budgetData = useMemo(() => {

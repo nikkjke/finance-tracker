@@ -6,6 +6,7 @@ import { ExpenseProvider } from './contexts/ExpenseContext';
 import { IncomeProvider } from './contexts/IncomeContext';
 import { BudgetProvider } from './contexts/BudgetContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { ContentProvider } from './contexts/ContentContext';
 import { CurrencyProvider } from './contexts/CurrencyContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 
@@ -39,10 +40,11 @@ function App() {
             <NotificationProvider>
               <CurrencyProvider>
                 <LanguageProvider>
-                  <ExpenseProvider>
-                  <IncomeProvider>
-                    <BudgetProvider>
-                      <ErrorBoundary>
+                  <ContentProvider>
+                    <ExpenseProvider>
+                      <IncomeProvider>
+                        <BudgetProvider>
+                          <ErrorBoundary>
             <Routes>
               {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
@@ -105,10 +107,11 @@ function App() {
             {/* Catch-all: any unknown route → 404 */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
-                      </ErrorBoundary>
-                    </BudgetProvider>
-                  </IncomeProvider>
-                  </ExpenseProvider>
+                          </ErrorBoundary>
+                        </BudgetProvider>
+                      </IncomeProvider>
+                    </ExpenseProvider>
+                  </ContentProvider>
                 </LanguageProvider>
               </CurrencyProvider>
             </NotificationProvider>

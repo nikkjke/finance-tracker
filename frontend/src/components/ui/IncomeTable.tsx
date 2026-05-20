@@ -1,9 +1,9 @@
 import { Briefcase, Laptop, TrendingUp, Award, Gift, MoreHorizontal, Edit2, Trash2, Building2 } from 'lucide-react';
 import type { Income } from '../../types';
+import { useContent } from '../../contexts/ContentContext';
 import { useCurrency } from '../../contexts/CurrencyContext';
-import { incomeLabels } from '../../data/mockData';
-import EmptyState from './EmptyState';
 import { useLanguage } from '../../contexts/LanguageContext';
+import EmptyState from './EmptyState';
 
 interface IncomeTableProps {
   income: Income[];
@@ -21,16 +21,8 @@ const incomeCategoryIcons: Record<string, any> = {
   other_income: MoreHorizontal,
 };
 
-const incomeCategoryColors: Record<string, string> = {
-  salary: '#2563eb', // blue-600
-  freelance: '#7c3aed', // violet-600
-  investment: '#10b981', // emerald-500
-  bonus: '#f59e0b', // amber-500
-  gift: '#ec4899', // pink-500
-  other_income: '#64748b', // slate-500
-};
-
 export default function IncomeTable({ income, limit, onEdit, onDelete }: IncomeTableProps) {
+  const { getIncomeCategoryLabel, getIncomeCategoryColor } = useContent();
   const { formatCurrency } = useCurrency();
   const { t, language } = useLanguage();
   const hasActions = !!(onEdit || onDelete);
@@ -40,7 +32,7 @@ export default function IncomeTable({ income, limit, onEdit, onDelete }: IncomeT
     <div className="space-y-3 animate-in fade-in duration-200">
       {displayed.map((item) => {
         const CategoryIcon = incomeCategoryIcons[item.category] || MoreHorizontal;
-        const catColor = incomeCategoryColors[item.category] || '#64748b';
+        const catColor = getIncomeCategoryColor(item.category);
 
         return (
           <div
@@ -65,7 +57,7 @@ export default function IncomeTable({ income, limit, onEdit, onDelete }: IncomeT
                   </div>
                 </div>
                 <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-surface-500 dark:text-surface-400">
-                  <span>{incomeLabels[item.category]}</span>
+                  <span>{getIncomeCategoryLabel(item.category)}</span>
                   {item.notes && (
                     <>
                       <span className="text-surface-300 dark:text-surface-600">&middot;</span>

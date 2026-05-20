@@ -1,15 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Save, Camera, DollarSign, Globe } from 'lucide-react';
 import Dropdown from '../../components/ui/Dropdown';
 import { useAuth } from '../../contexts/AuthContext';
 import { ThemeToggle } from '../../components/ui/ThemeToggle';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useContent } from '../../contexts/ContentContext';
 import { useCurrency } from '../../contexts/CurrencyContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
   const { pushNotification } = useNotification();
+  const { currencies } = useContent();
   const { currency, setCurrency } = useCurrency();
   const { language, setLanguage, t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -24,6 +26,23 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false);
 
   const profilePrefsKey = user ? `profile_prefs_${user.id}` : 'profile_prefs_guest';
+
+  const fallbackCurrencyOptions = useMemo(() => ([
+    { value: 'USD', label: 'USD ($)' },
+    { value: 'EUR', label: 'EUR (€)' },
+    { value: 'MDL', label: 'MDL (lei)' },
+    { value: 'GBP', label: 'GBP (£)' },
+  ]), []);
+
+  const currencyOptions = useMemo(() => {
+    if (currencies.length === 0) {
+      return fallbackCurrencyOptions;
+    }
+
+    return [...currencies]
+      .sort((a, b) => a.code.localeCompare(b.code))
+      .map((curr) => ({ value: curr.code, label: `${curr.code} (${curr.symbol})` }));
+  }, [currencies, fallbackCurrencyOptions]);
 
   useEffect(() => {
     setName(user?.name || '');
@@ -58,6 +77,14 @@ export default function ProfilePage() {
       // Ignore malformed local data.
     }
   }, [profilePrefsKey]);
+
+  useEffect(() => {
+    if (currencyOptions.length === 0) return;
+    const hasCurrent = currencyOptions.some((option) => option.value === currency);
+    if (!hasCurrent) {
+      setCurrency(currencyOptions[0].value as 'USD' | 'MDL');
+    }
+  }, [currency, currencyOptions]);
 
   const handleAvatarSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -244,10 +271,7 @@ export default function ProfilePage() {
                 onChange={(val) => setCurrency(val as 'USD' | 'MDL')}
                 icon={<DollarSign size={16} />}
                 fullWidth
-                options={[
-                  { value: 'USD', label: 'USD ($)' },
-                  { value: 'MDL', label: 'MDL (lei)' },
-                ]}
+                options={currencyOptions}
               />
             </div>
             <div>

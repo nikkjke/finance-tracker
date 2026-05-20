@@ -1,7 +1,7 @@
 import { CreditCard, Banknote, Building2, ScanLine, ShoppingBag, Car, Film, Zap, Heart, GraduationCap, Plane, UtensilsCrossed, MoreHorizontal, Edit2, Trash2 } from 'lucide-react';
 import type { Expense } from '../../types';
+import { useContent } from '../../contexts/ContentContext';
 import { useCurrency } from '../../contexts/CurrencyContext';
-import { categoryLabels, categoryColors } from '../../data/mockData';
 import EmptyState from './EmptyState';
 
 interface TransactionTableProps {
@@ -31,22 +31,26 @@ const methodConfig: Record<string, { icon: typeof CreditCard; label: string }> =
 };
 
 export default function TransactionTable({ expenses, limit, onEdit, onDelete }: TransactionTableProps) {
+  const { getExpenseCategoryLabel, getExpenseCategoryColor, getTransactionStatus } = useContent();
   const { formatCurrency } = useCurrency();
   const hasActions = !!(onEdit || onDelete);
   const displayed = limit ? expenses.slice(0, limit) : expenses;
 
-  const statusConfig: Record<string, { bg: string; text: string; dot: string }> = {
-    completed: { bg: 'bg-success-50 dark:bg-success-500/10', text: 'text-success-600 dark:text-success-500', dot: 'bg-success-500' },
-    pending: { bg: 'bg-warning-50 dark:bg-warning-500/10', text: 'text-warning-600 dark:text-warning-500', dot: 'bg-warning-500' },
-    cancelled: { bg: 'bg-danger-50 dark:bg-danger-500/10', text: 'text-danger-600 dark:text-danger-500', dot: 'bg-danger-500' },
+  const statusFallback: Record<string, { label: string; color: string }> = {
+    completed: { label: 'Completed', color: '#10b981' },
+    pending: { label: 'Pending', color: '#f59e0b' },
+    cancelled: { label: 'Cancelled', color: '#ef4444' },
   };
 
   return (
     <div className="space-y-3 animate-in fade-in duration-200">
       {displayed.map((expense) => {
-        const status = statusConfig[expense.status];
+        const status = getTransactionStatus(expense.status) ?? statusFallback[expense.status] ?? {
+          label: expense.status,
+          color: '#64748b',
+        };
         const CategoryIcon = categoryIcons[expense.category] || MoreHorizontal;
-        const catColor = categoryColors[expense.category] || '#64748b';
+        const catColor = getExpenseCategoryColor(expense.category);
         const method = methodConfig[expense.paymentMethod] || methodConfig.card;
         const MethodIcon = method.icon;
 
@@ -69,15 +73,18 @@ export default function TransactionTable({ expenses, limit, onEdit, onDelete }: 
                 <p className="text-sm font-semibold text-surface-900 dark:text-white truncate">
                   {expense.storeName}
                 </p>
-                <div className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 ${status.bg}`}>
-                  <div className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
-                  <span className={`text-[10px] font-medium ${status.text}`}>
-                    {expense.status.charAt(0).toUpperCase() + expense.status.slice(1)}
+                <div
+                  className="flex items-center gap-1.5 rounded-full px-2 py-0.5"
+                  style={{ backgroundColor: `${status.color}20` }}
+                >
+                  <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: status.color }} />
+                  <span className="text-[10px] font-medium" style={{ color: status.color }}>
+                    {status.label}
                   </span>
                 </div>
               </div>
               <div className="mt-0.5 flex items-center gap-2 text-xs text-surface-400">
-                <span>{categoryLabels[expense.category]}</span>
+                <span>{getExpenseCategoryLabel(expense.category)}</span>
                 {expense.notes && (
                   <>
                     <span className="text-surface-300 dark:text-surface-600">&middot;</span>
