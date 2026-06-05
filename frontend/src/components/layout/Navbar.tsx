@@ -31,6 +31,7 @@ import { useNotification } from '../../contexts/NotificationContext';
 import { useExpenses } from '../../contexts/ExpenseContext';
 import { useBudgets } from '../../contexts/BudgetContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useCurrency } from '../../contexts/CurrencyContext';
 import { useContent } from '../../contexts/ContentContext';
 import Modal from '../ui/Modal';
 import Dropdown from '../ui/Dropdown';
@@ -72,6 +73,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
   const { getBudgets, updateBudget } = useBudgets();
   const navigate = useNavigate();
   const { t, language } = useLanguage();
+  const { convertToBase, convertFromBase, formatCurrency } = useCurrency();
   const { expenseCategoryOptions, getExpenseCategoryLabel, getExpenseCategoryColor } = useContent();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -196,7 +198,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
     setSelectedItem({ type: item.type, data: item.original });
     setEditForm({
       ...item.original,
-      amount: item.type === 'expense' ? item.original.amount : item.original.limit,
+      amount: item.type === 'expense' ? convertFromBase(item.original.amount) : convertFromBase(item.original.limit),
     });
     setIsSearchOpen(false);
     setSearchQuery('');
@@ -350,7 +352,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                                 </div>
                               </div>
                               <span className="ml-3 shrink-0 whitespace-nowrap text-sm font-semibold text-surface-900 dark:text-white">
-                                ${t.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                {formatCurrency(t.amount)}
                               </span>
                             </button>
                           </div>
@@ -669,7 +671,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                       if (!selectedItem) return;
                       setIsSaving(true);
                       await updateBudget(selectedItem.data.id, {
-                        limit: parseFloat(editForm.amount),
+                        limit: convertToBase(parseFloat(editForm.amount)),
                         category: editForm.category,
                         period: editForm.period,
                       });
@@ -695,7 +697,7 @@ export default function Navbar({ onMenuClick, onToggleSidebar, sidebarCollapsed,
                     setIsSaving(true);
                     await updateExpense(selectedItem.data.id, {
                       storeName: editForm.storeName,
-                      amount: parseFloat(editForm.amount),
+                      amount: convertToBase(parseFloat(editForm.amount)),
                       category: editForm.category,
                       date: editForm.date,
                       paymentMethod: editForm.paymentMethod,
