@@ -52,7 +52,7 @@ export default function BudgetsPage() {
   const { expenses } = useExpenses();
   const { expenseCategoryOptions, getExpenseCategoryLabel } = useContent();
   const { t, language } = useLanguage();
-  const { currencySymbol } = useCurrency();
+  const { currencySymbol, convertToBase, convertFromBase, formatCurrency } = useCurrency();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -198,7 +198,7 @@ export default function BudgetsPage() {
         // Update existing budget
         const result = await updateBudget(editingBudget.id, {
           category: formCategory,
-          limit: parseFloat(formLimit),
+          limit: convertToBase(parseFloat(formLimit)),
           period: formPeriod,
           startDate: formPeriod === 'custom' ? formStartDate : undefined,
           endDate: formPeriod === 'custom' ? formEndDate : undefined,
@@ -215,7 +215,7 @@ export default function BudgetsPage() {
 
         const result = await addBudget(user.id, {
           category: formCategory,
-          limit: parseFloat(formLimit),
+          limit: convertToBase(parseFloat(formLimit)),
           month: currentMonth,
           period: formPeriod,
           startDate: formPeriod === 'custom' ? formStartDate : undefined,
@@ -241,7 +241,7 @@ export default function BudgetsPage() {
   const handleEdit = (budget: Budget) => {
     setEditingBudget(budget);
     setFormCategory(budget.category);
-    setFormLimit(budget.limit.toString());
+    setFormLimit(convertFromBase(budget.limit).toString());
     setFormPeriod(budget.period ?? 'monthly');
     setFormStartDate(budget.startDate ?? '');
     setFormEndDate(budget.endDate ?? '');

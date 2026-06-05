@@ -62,7 +62,7 @@ export default function AddExpensePage() {
   const { user } = useAuth();
   const { addExpense } = useExpenses();
   const { expenseCategoryOptions, getExpenseCategoryLabel } = useContent();
-  const { formatCurrency, currencySymbol } = useCurrency();
+  const { formatCurrency, currencySymbol, convertToBase, convertToBaseFrom } = useCurrency();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'manual' | 'scan'>('scan');
   const [formData, setFormData] = useState<FormData>(initialFormData);
@@ -164,7 +164,7 @@ export default function AddExpensePage() {
 
     const result = await addExpense(user?.id ?? 'guest', {
       storeName: formData.storeName.trim(),
-      amount: parseFloat(formData.amount),
+      amount: convertToBase(parseFloat(formData.amount)),
       category: formData.category,
       date: formData.date,
       notes: formData.notes || undefined,
@@ -268,9 +268,14 @@ export default function AddExpensePage() {
     if (!scanResult) return;
     
     setScanState('processing');
+    
+    const isMoldovanUrl = detectedQrRef.current?.includes('.md');
+    const amountVal = scanResult.amount ?? 0;
+    const finalBaseAmount = isMoldovanUrl ? convertToBaseFrom(amountVal, 'MDL') : convertToBase(amountVal);
+
     const result = await addExpense(user?.id ?? 'guest', {
       storeName: scanResult.storeName ?? 'Unknown Store',
-      amount: scanResult.amount ?? 0,
+      amount: finalBaseAmount,
       category: (scanResult.category as ExpenseCategory) ?? 'other',
       date: scanResult.date ?? new Date().toISOString().split('T')[0],
       notes: scanResult.notes ?? undefined,
@@ -289,6 +294,7 @@ export default function AddExpensePage() {
 
   const resetScan = useCallback(() => {
     stopCamera();
+    detectedQrRef.current = null;
     setScanState('idle');
     setScanError(null);
     setScanResult(null);
@@ -296,6 +302,7 @@ export default function AddExpensePage() {
 
   const handleScanAgain = useCallback(() => {
     stopCamera();
+    detectedQrRef.current = null;
     startCamera();
   }, [stopCamera, startCamera]);
 
@@ -454,7 +461,11 @@ export default function AddExpensePage() {
                   },
                   { 
                     label: 'Amount', 
-                    value: scanResult.amount != null ? formatCurrency(scanResult.amount) : null, 
+                    value: scanResult.amount != null 
+                        ? (detectedQrRef.current?.includes('.md') 
+                            ? `${scanResult.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} MDL` 
+                            : `${scanResult.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${currencySymbol}`)
+                        : null, 
                     icon: <DollarSign size={16} className="text-surface-400" /> 
                   },
                   { 

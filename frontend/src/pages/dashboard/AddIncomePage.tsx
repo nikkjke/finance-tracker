@@ -43,7 +43,7 @@ export default function AddIncomePage() {
   const [submitted, setSubmitted] = useState(false);
   const [serviceError, setServiceError] = useState<string | null>(null);
   const [resetKey, setResetKey] = useState(0);
-  const { currencySymbol } = useCurrency();
+  const { currencySymbol, convertToBase } = useCurrency();
   const { t } = useLanguage();
 
   const categories = incomeCategoryOptions;
@@ -151,7 +151,7 @@ export default function AddIncomePage() {
 
     const result = await addIncome(user?.id ?? 'guest', {
       source: formData.source.trim(),
-      amount: parseFloat(formData.amount),
+      amount: convertToBase(parseFloat(formData.amount)),
       category: formData.category,
       date: formData.date,
       notes: formData.notes || undefined,
