@@ -8,9 +8,18 @@ interface CurrencyContextType {
   setCurrency: (currency: Currency) => void;
   formatCurrency: (amount: number) => string;
   currencySymbol: string;
+  convertToBase: (amount: number) => number;
+  convertToBaseFrom: (amount: number, fromCurrency: Currency) => number;
+  convertFromBase: (amount: number) => number;
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
+
+// Hardcoded Exchange Rates (Base: USD)
+const EXCHANGE_RATES = {
+  USD: 1,
+  MDL: 18.25, // e.g. 1 USD = 18.25 MDL
+};
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -46,15 +55,28 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
 
   const currencySymbol = currency === 'MDL' ? 'MDL' : '$';
 
+  const convertFromBase = (amount: number) => {
+    return amount * EXCHANGE_RATES[currency as keyof typeof EXCHANGE_RATES];
+  };
+
+  const convertToBase = (amount: number) => {
+    return amount / EXCHANGE_RATES[currency as keyof typeof EXCHANGE_RATES];
+  };
+
+  const convertToBaseFrom = (amount: number, fromCurrency: Currency) => {
+    return amount / EXCHANGE_RATES[fromCurrency];
+  };
+
   const formatCurrency = (amount: number) => {
+    const convertedAmount = convertFromBase(amount);
     if (currency === 'MDL') {
-      return `${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} MDL`;
+      return `${convertedAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })} MDL`;
     }
-    return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    return `$${convertedAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
   };
 
   return (
-    <CurrencyContext.Provider value={{ currency, setCurrency, formatCurrency, currencySymbol }}>
+    <CurrencyContext.Provider value={{ currency, setCurrency, formatCurrency, currencySymbol, convertToBase, convertToBaseFrom, convertFromBase }}>
       {children}
     </CurrencyContext.Provider>
   );

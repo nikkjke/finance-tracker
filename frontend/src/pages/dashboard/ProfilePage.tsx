@@ -29,9 +29,7 @@ export default function ProfilePage() {
 
   const fallbackCurrencyOptions = useMemo(() => ([
     { value: 'USD', label: 'USD ($)' },
-    { value: 'EUR', label: 'EUR (€)' },
     { value: 'MDL', label: 'MDL (lei)' },
-    { value: 'GBP', label: 'GBP (£)' },
   ]), []);
 
   const currencyOptions = useMemo(() => {
@@ -40,6 +38,7 @@ export default function ProfilePage() {
     }
 
     return [...currencies]
+      .filter((curr) => curr.code === 'USD' || curr.code === 'MDL')
       .sort((a, b) => a.code.localeCompare(b.code))
       .map((curr) => ({ value: curr.code, label: `${curr.code} (${curr.symbol})` }));
   }, [currencies, fallbackCurrencyOptions]);

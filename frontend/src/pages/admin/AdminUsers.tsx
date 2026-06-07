@@ -15,11 +15,13 @@ import ErrorState from '../../components/ui/ErrorState';
 import StatCard from '../../components/ui/StatCard';
 import { applyFilters, exportUsers, adminService } from '../../services';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import type { User } from '../../types';
 import type { FilterPipelineConfig, SortConfig } from '../../services/filterService';
 
 export default function AdminUsers() {
   const { pushNotification } = useNotification();
+  const { t } = useLanguage();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +65,7 @@ export default function AdminUsers() {
     searchQuery,
     searchFields: ['name', 'email'],
     filters: {
-      role: roleFilter,
+      role: roleFilter === 'admin' ? 'Admin' : roleFilter === 'user' ? 'User' : 'all',
     },
     sort: sortConfig,
   };
@@ -157,16 +159,16 @@ export default function AdminUsers() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Users size={20} className="text-primary-600 dark:text-primary-400" />
-            <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">User Management</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">{t('userManagement')}</h1>
           </div>
           <p className="text-sm text-surface-500 dark:text-surface-400">
-            Manage all users and their permissions.
+            {t('userManagementDesc')}
           </p>
         </div>
         <div className="flex gap-2">
           <button onClick={handleExport} className="btn-primary flex items-center gap-2">
             <Download size={16} />
-            <span className="hidden sm:inline">Export</span>
+            <span className="hidden sm:inline">{t('export')}</span>
           </button>
         </div>
       </div>
@@ -175,7 +177,7 @@ export default function AdminUsers() {
         <div className="card flex items-center justify-center py-20">
           <div className="flex flex-col items-center gap-3">
             <Spinner size={32} />
-            <p className="text-sm text-surface-500 dark:text-surface-400">Loading users...</p>
+            <p className="text-sm text-surface-500 dark:text-surface-400">{t('loadingUsers')}</p>
           </div>
         </div>
       )}
@@ -194,19 +196,19 @@ export default function AdminUsers() {
         <>
           <div className="grid gap-4 sm:grid-cols-3">
             <StatCard
-              title="Total Users"
+              title={t('totalUsers')}
               value={stats.total}
               icon={<Users size={20} />}
               isCurrency={false}
             />
             <StatCard
-              title="Active Users"
+              title={t('activeUsers')}
               value={stats.active}
               icon={<CheckCircle size={20} />}
               isCurrency={false}
             />
             <StatCard
-              title="Administrators"
+              title={t('administrators')}
               value={stats.admins}
               icon={<Shield size={20} />}
               isCurrency={false}
@@ -224,7 +226,7 @@ export default function AdminUsers() {
                       : 'bg-surface-100 text-surface-600 dark:bg-surface-800 dark:text-surface-400'
                   }`}
                 >
-                  All Users
+                  {t('allUsers')}
                 </button>
                 <button
                   onClick={() => setRoleFilter('user')}
@@ -234,7 +236,7 @@ export default function AdminUsers() {
                       : 'bg-surface-100 text-surface-600 dark:bg-surface-800 dark:text-surface-400'
                   }`}
                 >
-                  Regular Users
+                  {t('regularUsers')}
                 </button>
                 <button
                   onClick={() => setRoleFilter('admin')}
@@ -244,7 +246,7 @@ export default function AdminUsers() {
                       : 'bg-surface-100 text-surface-600 dark:bg-surface-800 dark:text-surface-400'
                   }`}
                 >
-                  Admins
+                  {t('admins')}
                 </button>
               </div>
 
@@ -255,7 +257,7 @@ export default function AdminUsers() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search users..."
+                    placeholder={t('searchUsers')}
                     className="input pl-9 w-full sm:w-64"
                   />
                 </div>
@@ -263,10 +265,10 @@ export default function AdminUsers() {
                   value={sortBy}
                   onChange={(val) => setSortBy(val as 'name-asc' | 'date-desc' | 'date-asc' | 'role-asc')}
                   options={[
-                    { value: 'date-desc', label: 'Newest First' },
-                    { value: 'date-asc', label: 'Oldest First' },
-                    { value: 'name-asc', label: 'Name (A-Z)' },
-                    { value: 'role-asc', label: 'Role (A-Z)' },
+                    { value: 'date-desc', label: t('newestFirst') },
+                    { value: 'date-asc', label: t('oldestFirst') },
+                    { value: 'name-asc', label: t('nameAZ') },
+                    { value: 'role-asc', label: t('roleAZ') },
                   ]}
                 />
               </div>
@@ -277,22 +279,22 @@ export default function AdminUsers() {
                 <thead>
                   <tr className="border-b border-surface-200 dark:border-surface-700">
                     <th className="pb-3 text-xs font-semibold uppercase tracking-wider text-surface-500">
-                      User
+                      {t('thUser')}
                     </th>
                     <th className="pb-3 text-xs font-semibold uppercase tracking-wider text-surface-500 hidden md:table-cell">
-                      Email
+                      {t('thEmail')}
                     </th>
                     <th className="pb-3 text-xs font-semibold uppercase tracking-wider text-surface-500 hidden sm:table-cell">
-                      Role
+                      {t('thRole')}
                     </th>
                     <th className="pb-3 text-xs font-semibold uppercase tracking-wider text-surface-500 hidden lg:table-cell">
-                      Joined
+                      {t('thJoined')}
                     </th>
                     <th className="pb-3 text-xs font-semibold uppercase tracking-wider text-surface-500 hidden lg:table-cell">
-                      Status
+                      {t('thStatus')}
                     </th>
                     <th className="pb-3 text-xs font-semibold uppercase tracking-wider text-surface-500">
-                      Actions
+                      {t('thActions')}
                     </th>
                   </tr>
                 </thead>
@@ -368,15 +370,15 @@ export default function AdminUsers() {
             {filteredUsers.length === 0 && (
               <EmptyState
                 icon={Users}
-                title="No users found"
-                description="Try adjusting your search query or role filter to find what you're looking for."
+                title={t('noUsersFound')}
+                description={t('noUsersFoundDesc')}
                 className="rounded-lg border border-surface-200 dark:border-surface-700"
                 action={
                   <button
                     onClick={() => { setSearchQuery(''); setRoleFilter('all'); }}
                     className="btn-secondary"
                   >
-                    Clear Filters
+                    {t('clearFilters')}
                   </button>
                 }
               />

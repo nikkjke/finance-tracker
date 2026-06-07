@@ -32,7 +32,7 @@ export default function ReportsPage() {
     getExpenseCategoryLabel,
     transactionStatuses,
   } = useContent();
-  const { formatCurrency, currencySymbol } = useCurrency();
+  const { formatCurrency, currencySymbol, convertToBase, convertFromBase } = useCurrency();
   const { t } = useLanguage();
 
   // Filter by current user (stable references via useMemo)
@@ -57,41 +57,41 @@ export default function ReportsPage() {
   const [incomeItemsPerPage, setIncomeItemsPerPage] = useState(5);
 
   const expenseCategoryFilterOptions = useMemo(() => ([
-    { value: 'all', label: 'All Categories' },
+    { value: 'all', label: t('allCategories') },
     ...expenseCategoryOptions,
-  ]), [expenseCategoryOptions]);
+  ]), [expenseCategoryOptions, t]);
 
   const incomeCategoryFilterOptions = useMemo(() => ([
-    { value: 'all', label: 'All Categories' },
+    { value: 'all', label: t('allCategories') },
     ...incomeCategoryOptions,
-  ]), [incomeCategoryOptions]);
+  ]), [incomeCategoryOptions, t]);
 
   const incomeStatusFilterOptions = useMemo(() => {
     const fallback = [
-      { value: 'completed', label: 'Completed' },
-      { value: 'pending', label: 'Pending' },
+      { value: 'completed', label: t('statusCompleted') },
+      { value: 'pending', label: t('statusPending') },
     ];
 
     const statuses = transactionStatuses.length > 0
       ? transactionStatuses.map((status) => ({ value: status.value, label: status.label }))
       : fallback;
 
-    return [{ value: 'all', label: 'All Statuses' }, ...statuses];
-  }, [transactionStatuses]);
+    return [{ value: 'all', label: t('allStatuses') }, ...statuses];
+  }, [transactionStatuses, t]);
 
   const expenseStatusFilterOptions = useMemo(() => {
     const fallback = [
-      { value: 'completed', label: 'Completed' },
-      { value: 'pending', label: 'Pending' },
-      { value: 'cancelled', label: 'Cancelled' },
+      { value: 'completed', label: t('statusCompleted') },
+      { value: 'pending', label: t('statusPending') },
+      { value: 'cancelled', label: t('statusCancelled') },
     ];
 
     const statuses = transactionStatuses.length > 0
       ? transactionStatuses.map((status) => ({ value: status.value, label: status.label }))
       : fallback;
 
-    return [{ value: 'all', label: 'All Statuses' }, ...statuses];
-  }, [transactionStatuses]);
+    return [{ value: 'all', label: t('allStatuses') }, ...statuses];
+  }, [transactionStatuses, t]);
 
   // ── Expense edit / delete state ──
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
@@ -107,27 +107,27 @@ export default function ReportsPage() {
   const handleEditExpense = useCallback((expense: Expense) => {
     setExpenseForm({
       storeName: expense.storeName,
-      amount: expense.amount.toString(),
+      amount: convertFromBase(expense.amount).toString(),
       category: expense.category,
       date: expense.date,
       notes: expense.notes ?? '',
       paymentMethod: expense.paymentMethod,
     });
     setEditingExpense(expense);
-  }, []);
+  }, [convertFromBase]);
 
   const handleSaveExpense = useCallback(async () => {
     if (!editingExpense) return;
     await updateExpense(editingExpense.id, {
       storeName: expenseForm.storeName.trim(),
-      amount: parseFloat(expenseForm.amount),
+      amount: convertToBase(parseFloat(expenseForm.amount)),
       category: expenseForm.category,
       date: expenseForm.date,
       notes: expenseForm.notes || undefined,
       paymentMethod: expenseForm.paymentMethod,
     });
     setEditingExpense(null);
-  }, [editingExpense, expenseForm, updateExpense]);
+  }, [editingExpense, expenseForm, updateExpense, convertToBase]);
 
   const handleDeleteExpense = useCallback((expense: Expense) => {
     setDeletingExpense(expense);
@@ -143,25 +143,25 @@ export default function ReportsPage() {
   const handleEditIncome = useCallback((income: Income) => {
     setIncomeForm({
       source: income.source,
-      amount: income.amount.toString(),
+      amount: convertFromBase(income.amount).toString(),
       category: income.category,
       date: income.date,
       notes: income.notes ?? '',
     });
     setEditingIncome(income);
-  }, []);
+  }, [convertFromBase]);
 
   const handleSaveIncome = useCallback(async () => {
     if (!editingIncome) return;
     await updateIncome(editingIncome.id, {
       source: incomeForm.source.trim(),
-      amount: parseFloat(incomeForm.amount),
+      amount: convertToBase(parseFloat(incomeForm.amount)),
       category: incomeForm.category,
       date: incomeForm.date,
       notes: incomeForm.notes || undefined,
     });
     setEditingIncome(null);
-  }, [editingIncome, incomeForm, updateIncome]);
+  }, [editingIncome, incomeForm, updateIncome, convertToBase]);
 
   const handleDeleteIncome = useCallback((income: Income) => {
     setDeletingIncome(income);
@@ -376,12 +376,12 @@ export default function ReportsPage() {
         <Dropdown
           value={dateRange}
           onChange={setDateRange}
-          icon={<Calendar size={16} />}
+          icon={<CalendarDays size={16} />}
           options={[
-            { value: '7days', label: 'Last 7 Days' },
-            { value: '30days', label: 'Last 30 Days' },
+            { value: '7days', label: t('last7Days') },
+            { value: '30days', label: t('last30Days') },
             { value: '6months', label: t('last6Months') },
-            { value: '1year', label: 'Last Year' },
+            { value: '1year', label: t('lastYear') },
           ]}
         />
         <Dropdown
@@ -402,10 +402,10 @@ export default function ReportsPage() {
           icon={<ArrowUpDown size={16} />}
           options={[
             { value: 'date-desc', label: t('dateNewestFirst') },
-            { value: 'date-asc', label: 'Date: Oldest First' },
-            { value: 'amount-desc', label: 'Amount: High to Low' },
-            { value: 'amount-asc', label: 'Amount: Low to High' },
-            { value: 'store-asc', label: 'Store: A-Z' },
+            { value: 'date-asc', label: t('dateOldestFirst') },
+            { value: 'amount-desc', label: t('amountHighLow') },
+            { value: 'amount-asc', label: t('amountLowHigh') },
+            { value: 'store-asc', label: t('storeAZ') },
           ]}
           minWidth="min-w-[220px]"
         />
@@ -519,10 +519,10 @@ export default function ReportsPage() {
               onChange={setIncomeDateRange}
               icon={<CalendarDays size={16} />}
               options={[
-                { value: '7days', label: 'Last 7 Days' },
-                { value: '30days', label: 'Last 30 Days' },
+                { value: '7days', label: t('last7Days') },
+                { value: '30days', label: t('last30Days') },
                 { value: '6months', label: t('last6Months') },
-                { value: '1year', label: 'Last Year' },
+                { value: '1year', label: t('lastYear') },
               ]}
             />
 
@@ -546,10 +546,10 @@ export default function ReportsPage() {
               icon={<ArrowUpDown size={16} />}
               options={[
                 { value: 'date-desc', label: t('dateNewestFirst') },
-                { value: 'date-asc', label: 'Date: Oldest First' },
-                { value: 'amount-desc', label: 'Amount: High to Low' },
-                { value: 'amount-asc', label: 'Amount: Low to High' },
-                { value: 'source-asc', label: 'Source: A-Z' },
+                { value: 'date-asc', label: t('dateOldestFirst') },
+                { value: 'amount-desc', label: t('amountHighLow') },
+                { value: 'amount-asc', label: t('amountLowHigh') },
+                { value: 'source-asc', label: t('sourceAZ') },
               ]}
               minWidth="min-w-[220px]"
             />

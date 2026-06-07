@@ -4,6 +4,7 @@ import Modal from '../../components/ui/Modal';
 import Spinner from '../../components/ui/Spinner';
 import ErrorState from '../../components/ui/ErrorState';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useContent } from '../../contexts/ContentContext';
 import { adminService } from '../../services';
 import type { ContentCategory, Currency, TransactionStatus } from '../../services/adminService';
@@ -11,6 +12,7 @@ import { extractServiceError } from '../../services/apiMappers';
 
 export default function AdminContent() {
   const { pushNotification } = useNotification();
+  const { t } = useLanguage();
   const { reload: reloadUserContent } = useContent();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -127,8 +129,8 @@ export default function AdminContent() {
         );
 
         pushNotification({
-          title: 'Content updated',
-          message: `Expense category "${previousLabel}" was updated.`,
+          title: t('contentUpdated'),
+          message: `${t('expenseCategory')} "${previousLabel}" ${t('wasUpdated')}.`,
           type: 'system',
           priority: 'medium',
         });
@@ -140,8 +142,8 @@ export default function AdminContent() {
 
         setExpenseCategories(prev => [...prev, created]);
         pushNotification({
-          title: 'Category added',
-          message: `Expense category "${created.label}" was added.`,
+          title: t('categoryAdded'),
+          message: `${t('expenseCategory')} "${created.label}" ${t('wasAdded')}.`,
           type: 'system',
           priority: 'low',
         });
@@ -154,8 +156,8 @@ export default function AdminContent() {
       setEditingCategory(null);
     } catch (err) {
       pushNotification({
-        title: 'Error',
-        message: extractServiceError(err, 'Failed to save expense category.'),
+        title: t('error'),
+        message: extractServiceError(err, t('failedToSaveExpenseCategory')),
         type: 'system',
         priority: 'high',
       });
@@ -163,7 +165,7 @@ export default function AdminContent() {
   };
 
   const handleDeleteExpenseCategory = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+    if (!confirm(t('confirmDeleteCategory'))) {
       return;
     }
 
@@ -173,15 +175,15 @@ export default function AdminContent() {
       setExpenseCategories(prev => prev.filter(cat => cat.id !== id));
       await reloadUserContent();
       pushNotification({
-        title: 'Category deleted',
-        message: `Expense category "${categoryToDelete?.label ?? 'Unknown'}" was deleted.`,
+        title: t('categoryDeleted'),
+        message: `${t('expenseCategory')} "${categoryToDelete?.label ?? 'Unknown'}" ${t('wasDeleted')}.`,
         type: 'security',
         priority: 'high',
       });
     } catch (err) {
       pushNotification({
-        title: 'Error',
-        message: extractServiceError(err, 'Failed to delete expense category.'),
+        title: t('error'),
+        message: extractServiceError(err, t('failedToDeleteExpenseCategory')),
         type: 'system',
         priority: 'high',
       });
@@ -217,8 +219,8 @@ export default function AdminContent() {
         );
 
         pushNotification({
-          title: 'Content updated',
-          message: `Income category "${previousLabel}" was updated.`,
+          title: t('contentUpdated'),
+          message: `${t('incomeCategory')} "${previousLabel}" ${t('wasUpdated')}.`,
           type: 'system',
           priority: 'medium',
         });
@@ -230,8 +232,8 @@ export default function AdminContent() {
 
         setIncomeCategories(prev => [...prev, created]);
         pushNotification({
-          title: 'Category added',
-          message: `Income category "${created.label}" was added.`,
+          title: t('categoryAdded'),
+          message: `${t('incomeCategory')} "${created.label}" ${t('wasAdded')}.`,
           type: 'system',
           priority: 'low',
         });
@@ -244,8 +246,8 @@ export default function AdminContent() {
       setEditingIncome(null);
     } catch (err) {
       pushNotification({
-        title: 'Error',
-        message: extractServiceError(err, 'Failed to save income category.'),
+        title: t('error'),
+        message: extractServiceError(err, t('failedToSaveIncomeCategory')),
         type: 'system',
         priority: 'high',
       });
@@ -253,7 +255,7 @@ export default function AdminContent() {
   };
 
   const handleDeleteIncomeCategory = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+    if (!confirm(t('confirmDeleteCategory'))) {
       return;
     }
 
@@ -263,15 +265,15 @@ export default function AdminContent() {
       setIncomeCategories(prev => prev.filter(cat => cat.id !== id));
       await reloadUserContent();
       pushNotification({
-        title: 'Category deleted',
-        message: `Income category "${categoryToDelete?.label ?? 'Unknown'}" was deleted.`,
+        title: t('categoryDeleted'),
+        message: `${t('incomeCategory')} "${categoryToDelete?.label ?? 'Unknown'}" ${t('wasDeleted')}.`,
         type: 'security',
         priority: 'high',
       });
     } catch (err) {
       pushNotification({
-        title: 'Error',
-        message: extractServiceError(err, 'Failed to delete income category.'),
+        title: t('error'),
+        message: extractServiceError(err, t('failedToDeleteIncomeCategory')),
         type: 'system',
         priority: 'high',
       });
@@ -308,8 +310,8 @@ export default function AdminContent() {
         );
 
         pushNotification({
-          title: 'Currency updated',
-          message: `Currency "${previousCode}" was updated to "${updated.code}".`,
+          title: t('currencyUpdated'),
+          message: `Currency "${previousCode}" ${t('wasUpdated')} to "${updated.code}".`,
           type: 'system',
           priority: 'medium',
         });
@@ -322,8 +324,8 @@ export default function AdminContent() {
 
         setCurrencies(prev => [...prev, created]);
         pushNotification({
-          title: 'Currency added',
-          message: `Currency "${created.code}" was added.`,
+          title: t('currencyAdded'),
+          message: `Currency "${created.code}" ${t('wasAdded')}.`,
           type: 'system',
           priority: 'low',
         });
@@ -336,8 +338,8 @@ export default function AdminContent() {
       setEditingCurrency(null);
     } catch (err) {
       pushNotification({
-        title: 'Error',
-        message: extractServiceError(err, 'Failed to save currency.'),
+        title: t('error'),
+        message: extractServiceError(err, t('failedToSaveCurrency')),
         type: 'system',
         priority: 'high',
       });
@@ -345,7 +347,7 @@ export default function AdminContent() {
   };
 
   const handleDeleteCurrency = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this currency? This action cannot be undone.')) {
+    if (!confirm(t('confirmDeleteCurrency'))) {
       return;
     }
 
@@ -355,15 +357,15 @@ export default function AdminContent() {
       setCurrencies(prev => prev.filter(curr => curr.id !== id));
       await reloadUserContent();
       pushNotification({
-        title: 'Currency deleted',
-        message: `Currency "${currencyToDelete?.code ?? 'Unknown'}" was deleted.`,
+        title: t('currencyDeleted'),
+        message: `Currency "${currencyToDelete?.code ?? 'Unknown'}" ${t('wasDeleted')}.`,
         type: 'security',
         priority: 'high',
       });
     } catch (err) {
       pushNotification({
-        title: 'Error',
-        message: extractServiceError(err, 'Failed to delete currency.'),
+        title: t('error'),
+        message: extractServiceError(err, t('failedToDeleteCurrency')),
         type: 'system',
         priority: 'high',
       });
@@ -400,8 +402,8 @@ export default function AdminContent() {
         );
 
         pushNotification({
-          title: 'Status updated',
-          message: `Transaction status "${previousLabel}" was updated.`,
+          title: t('statusUpdated'),
+          message: `Transaction status "${previousLabel}" ${t('wasUpdated')}.`,
           type: 'system',
           priority: 'medium',
         });
@@ -414,8 +416,8 @@ export default function AdminContent() {
 
         setTransactionStatuses(prev => [...prev, created]);
         pushNotification({
-          title: 'Status added',
-          message: `Transaction status "${created.label}" was added.`,
+          title: t('statusAdded'),
+          message: `Transaction status "${created.label}" ${t('wasAdded')}.`,
           type: 'system',
           priority: 'low',
         });
@@ -428,8 +430,8 @@ export default function AdminContent() {
       setEditingStatus(null);
     } catch (err) {
       pushNotification({
-        title: 'Error',
-        message: extractServiceError(err, 'Failed to save transaction status.'),
+        title: t('error'),
+        message: extractServiceError(err, t('failedToSaveTransactionStatus')),
         type: 'system',
         priority: 'high',
       });
@@ -437,7 +439,7 @@ export default function AdminContent() {
   };
 
   const handleDeleteStatus = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this status? This action cannot be undone.')) {
+    if (!confirm(t('confirmDeleteStatus'))) {
       return;
     }
 
@@ -447,15 +449,15 @@ export default function AdminContent() {
       setTransactionStatuses(prev => prev.filter(stat => stat.id !== id));
       await reloadUserContent();
       pushNotification({
-        title: 'Status deleted',
-        message: `Transaction status "${statusToDelete?.label ?? 'Unknown'}" was deleted.`,
+        title: t('statusDeleted'),
+        message: `Transaction status "${statusToDelete?.label ?? 'Unknown'}" ${t('wasDeleted')}.`,
         type: 'security',
         priority: 'high',
       });
     } catch (err) {
       pushNotification({
-        title: 'Error',
-        message: extractServiceError(err, 'Failed to delete transaction status.'),
+        title: t('error'),
+        message: extractServiceError(err, t('failedToDeleteTransactionStatus')),
         type: 'system',
         priority: 'high',
       });
@@ -466,9 +468,9 @@ export default function AdminContent() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Content Management</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">{t('adminContentTitle')}</h1>
         <p className="text-sm text-surface-500 dark:text-surface-400">
-          Manage categories, currencies, and other app content.
+          {t('adminContentDesc')}
         </p>
       </div>
 
@@ -476,7 +478,7 @@ export default function AdminContent() {
         <div className="card flex items-center justify-center py-20">
           <div className="flex flex-col items-center gap-3">
             <Spinner size={32} />
-            <p className="text-sm text-surface-500 dark:text-surface-400">Loading content...</p>
+            <p className="text-sm text-surface-500 dark:text-surface-400">{t('loadingContent')}</p>
           </div>
         </div>
       )}
@@ -484,7 +486,7 @@ export default function AdminContent() {
       {!isLoading && error && (
         <div className="card">
           <ErrorState
-            title="Unable to load content"
+            title={t('unableToLoadContent')}
             message={error}
             onRetry={reloadContent}
           />
@@ -499,12 +501,12 @@ export default function AdminContent() {
               <div className="flex items-center gap-2">
                 <Tag size={18} className="text-primary-500" />
                 <h2 className="text-base font-semibold text-surface-900 dark:text-white">
-                  Expense Categories
+                  {t('expenseCategoriesTitle')}
                 </h2>
               </div>
               <button onClick={handleAddExpenseCategory} className="btn-primary">
                 <Plus size={16} />
-                Add Category
+                {t('addCategory')}
               </button>
             </div>
             <div className="space-y-2">
@@ -515,7 +517,7 @@ export default function AdminContent() {
                 >
                   <div>
                     <p className="text-sm font-medium text-surface-900 dark:text-white">{category.label}</p>
-                    <p className="text-xs text-surface-400">Key: {category.key}</p>
+                    <p className="text-xs text-surface-400">{t('categoryKey')}: {category.key}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -542,12 +544,12 @@ export default function AdminContent() {
               <div className="flex items-center gap-2">
                 <Tag size={18} className="text-success-500" />
                 <h2 className="text-base font-semibold text-surface-900 dark:text-white">
-                  Income Categories
+                  {t('incomeCategoriesTitle')}
                 </h2>
               </div>
               <button onClick={handleAddIncomeCategory} className="btn-primary">
                 <Plus size={16} />
-                Add Category
+                {t('addCategory')}
               </button>
             </div>
             <div className="space-y-2">
@@ -558,7 +560,7 @@ export default function AdminContent() {
                 >
                   <div>
                     <p className="text-sm font-medium text-surface-900 dark:text-white">{category.label}</p>
-                    <p className="text-xs text-surface-400">Key: {category.key}</p>
+                    <p className="text-xs text-surface-400">{t('categoryKey')}: {category.key}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -585,12 +587,12 @@ export default function AdminContent() {
               <div className="flex items-center gap-2">
                 <DollarSign size={18} className="text-primary-500" />
                 <h2 className="text-base font-semibold text-surface-900 dark:text-white">
-                  Currencies
+                  {t('currenciesTitle')}
                 </h2>
               </div>
               <button onClick={handleAddCurrency} className="btn-primary">
                 <Plus size={16} />
-                Add Currency
+                {t('addCurrency')}
               </button>
             </div>
             <div className="space-y-2">
@@ -629,12 +631,12 @@ export default function AdminContent() {
               <div className="flex items-center gap-2">
                 <FileText size={18} className="text-primary-500" />
                 <h2 className="text-base font-semibold text-surface-900 dark:text-white">
-                  Transaction Statuses
+                  {t('transactionStatusesTitle')}
                 </h2>
               </div>
               <button onClick={handleAddStatus} className="btn-primary">
                 <Plus size={16} />
-                Add Status
+                {t('addStatus')}
               </button>
             </div>
             <div className="space-y-2">
@@ -650,7 +652,7 @@ export default function AdminContent() {
                     />
                     <div>
                       <p className="text-sm font-medium text-surface-900 dark:text-white">{status.label}</p>
-                      <p className="text-xs text-surface-400">Value: {status.value}</p>
+                      <p className="text-xs text-surface-400">{t('statusValue')}: {status.value}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -678,11 +680,11 @@ export default function AdminContent() {
       <Modal
         open={showCategoryModal}
         onClose={() => setShowCategoryModal(false)}
-        title={`${editingCategory ? 'Edit' : 'Add'} Expense Category`}
+        title={editingCategory ? t('editExpenseCategory') : t('addExpenseCategoryTitle')}
       >
         <div className="space-y-4">
           <div>
-            <label className="label">Category Key</label>
+            <label className="label">{t('categoryKey')}</label>
             <input
               type="text"
               value={categoryForm.key}
@@ -692,7 +694,7 @@ export default function AdminContent() {
             />
           </div>
           <div>
-            <label className="label">Display Label</label>
+            <label className="label">{t('displayLabel')}</label>
             <input
               type="text"
               value={categoryForm.label}
@@ -704,11 +706,11 @@ export default function AdminContent() {
           <div className="flex gap-3">
             <button onClick={handleSaveExpenseCategory} className="btn-primary flex-1">
               <Save size={16} />
-              Save
+              {t('save')}
             </button>
             <button onClick={() => setShowCategoryModal(false)} className="btn-secondary flex-1">
               <X size={16} />
-              Cancel
+              {t('cancel')}
             </button>
           </div>
         </div>
@@ -718,11 +720,11 @@ export default function AdminContent() {
       <Modal
         open={showIncomeModal}
         onClose={() => setShowIncomeModal(false)}
-        title={`${editingIncome ? 'Edit' : 'Add'} Income Category`}
+        title={editingIncome ? t('editIncomeCategory') : t('addIncomeCategoryTitle')}
       >
         <div className="space-y-4">
           <div>
-            <label className="label">Category Key</label>
+            <label className="label">{t('categoryKey')}</label>
             <input
               type="text"
               value={incomeForm.key}
@@ -732,7 +734,7 @@ export default function AdminContent() {
             />
           </div>
           <div>
-            <label className="label">Display Label</label>
+            <label className="label">{t('displayLabel')}</label>
             <input
               type="text"
               value={incomeForm.label}
@@ -744,11 +746,11 @@ export default function AdminContent() {
           <div className="flex gap-3">
             <button onClick={handleSaveIncomeCategory} className="btn-primary flex-1">
               <Save size={16} />
-              Save
+              {t('save')}
             </button>
             <button onClick={() => setShowIncomeModal(false)} className="btn-secondary flex-1">
               <X size={16} />
-              Cancel
+              {t('cancel')}
             </button>
           </div>
         </div>
@@ -758,11 +760,11 @@ export default function AdminContent() {
       <Modal
         open={showCurrencyModal}
         onClose={() => setShowCurrencyModal(false)}
-        title={`${editingCurrency ? 'Edit' : 'Add'} Currency`}
+        title={editingCurrency ? t('editCurrency') : t('addCurrencyTitle')}
       >
         <div className="space-y-4">
           <div>
-            <label className="label">Currency Code</label>
+            <label className="label">{t('currencyCode')}</label>
             <input
               type="text"
               value={currencyForm.code}
@@ -773,7 +775,7 @@ export default function AdminContent() {
             />
           </div>
           <div>
-            <label className="label">Symbol</label>
+            <label className="label">{t('symbolLabel')}</label>
             <input
               type="text"
               value={currencyForm.symbol}
@@ -783,7 +785,7 @@ export default function AdminContent() {
             />
           </div>
           <div>
-            <label className="label">Currency Name</label>
+            <label className="label">{t('currencyName')}</label>
             <input
               type="text"
               value={currencyForm.name}
@@ -795,11 +797,11 @@ export default function AdminContent() {
           <div className="flex gap-3">
             <button onClick={handleSaveCurrency} className="btn-primary flex-1">
               <Save size={16} />
-              Save
+              {t('save')}
             </button>
             <button onClick={() => setShowCurrencyModal(false)} className="btn-secondary flex-1">
               <X size={16} />
-              Cancel
+              {t('cancel')}
             </button>
           </div>
         </div>
@@ -809,11 +811,11 @@ export default function AdminContent() {
       <Modal
         open={showStatusModal}
         onClose={() => setShowStatusModal(false)}
-        title={`${editingStatus ? 'Edit' : 'Add'} Status`}
+        title={editingStatus ? t('editStatus') : t('addStatusTitle')}
       >
         <div className="space-y-4">
           <div>
-            <label className="label">Status Value</label>
+            <label className="label">{t('statusValue')}</label>
             <input
               type="text"
               value={statusForm.value}
@@ -823,7 +825,7 @@ export default function AdminContent() {
             />
           </div>
           <div>
-            <label className="label">Display Label</label>
+            <label className="label">{t('displayLabel')}</label>
             <input
               type="text"
               value={statusForm.label}
@@ -833,7 +835,7 @@ export default function AdminContent() {
             />
           </div>
           <div>
-            <label className="label">Color</label>
+            <label className="label">{t('colorLabel')}</label>
             <div className="flex gap-3">
               <input
                 type="color"
@@ -853,11 +855,11 @@ export default function AdminContent() {
           <div className="flex gap-3">
             <button onClick={handleSaveStatus} className="btn-primary flex-1">
               <Save size={16} />
-              Save
+              {t('save')}
             </button>
             <button onClick={() => setShowStatusModal(false)} className="btn-secondary flex-1">
               <X size={16} />
-              Cancel
+              {t('cancel')}
             </button>
           </div>
         </div>
