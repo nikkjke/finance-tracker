@@ -34,10 +34,15 @@ namespace FinanceTracker.API.Controllers
                 return BadRequest(ModelState);
             }
 
+            if (dto.NewRole != "Admin" && dto.NewRole != "User")
+            {
+                return BadRequest("Invalid role specified.");
+            }
+
             var success = _adminAction.ChangeUserRoleAction(id, dto.NewRole);
             if (!success)
             {
-                return NotFound("User not found or invalid role.");
+                return NotFound("User not found.");
             }
 
             return Ok(new { message = "Role updated successfully." });

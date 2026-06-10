@@ -56,7 +56,7 @@ namespace FinanceTracker.API.Controllers
         {
             try {
                 var created = _income.CreateIncomeAction(dto, GetUserId());
-                return Ok(created);
+                return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
             } catch (UnauthorizedAccessException) { return Unauthorized(); }
         }
 
