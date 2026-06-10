@@ -650,31 +650,6 @@ export default function LandingPage() {
 
           </div>
 
-          {/* Newsletter */}
-          <div id="contact" ref={(el) => { sectionRefs.current.contact = el; }} className="mt-12 rounded-xl border border-surface-200 bg-white p-6 dark:border-surface-700 dark:bg-surface-800/50 sm:flex sm:items-center sm:justify-between sm:p-8">
-            <div>
-              <h4 className="text-base font-semibold text-surface-900 dark:text-white">
-                Stay up to date
-              </h4>
-              <p className="mt-1 text-sm text-surface-500 dark:text-surface-400">
-                Get the latest tips on personal finance and product updates.
-              </p>
-            </div>
-            <form
-              onSubmit={(e) => e.preventDefault()}
-              className="mt-4 flex gap-2 sm:mt-0 sm:min-w-[320px]"
-            >
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="input flex-1 text-sm"
-              />
-              <button type="submit" className="btn-primary shrink-0 text-sm">
-                Subscribe
-              </button>
-            </form>
-          </div>
-
           {/* Bottom bar */}
           <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-surface-200 pt-8 dark:border-surface-800 sm:flex-row">
             <p className="text-xs text-surface-400">

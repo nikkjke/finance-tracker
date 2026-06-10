@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import fintrackLogo from '../../assets/fintrack-logo.svg';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface SidebarProps {
   open: boolean;
@@ -21,14 +22,15 @@ interface SidebarProps {
 
 export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const userLinks = [
-    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/add-expense', label: 'Add Expense', icon: PlusCircle },
-    { to: '/add-income', label: 'Record Income', icon: TrendingUp },
-    { to: '/budgets', label: 'Budgets', icon: Wallet },
-    { to: '/reports', label: 'Reports', icon: BarChart3 },
-    { to: '/notifications', label: 'Notifications', icon: Bell },
+    { to: '/dashboard', label: t('dashboard'), icon: LayoutDashboard },
+    { to: '/add-expense', label: t('addExpense'), icon: PlusCircle },
+    { to: '/add-income', label: t('addIncome'), icon: TrendingUp },
+    { to: '/budgets', label: t('budgets'), icon: Wallet },
+    { to: '/reports', label: t('reports'), icon: BarChart3 },
+    { to: '/notifications', label: t('notifications'), icon: Bell },
   ];
 
   const adminLinks = [
@@ -55,14 +57,14 @@ export default function Sidebar({ open, onClose, collapsed }: SidebarProps) {
       {/* Mobile overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-[200] bg-black/50 lg:hidden"
           onClick={onClose}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-900 lg:static ${
+        className={`fixed inset-y-0 left-0 z-[210] flex flex-col border-r border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-900 lg:static ${
           open ? 'translate-x-0' : '-translate-x-full'
         } lg:translate-x-0 ${
           collapsed ? 'lg:w-[68px]' : 'w-64'

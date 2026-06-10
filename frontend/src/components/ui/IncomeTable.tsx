@@ -1,6 +1,8 @@
 import { Briefcase, Laptop, TrendingUp, Award, Gift, MoreHorizontal, Edit2, Trash2, Building2 } from 'lucide-react';
 import type { Income } from '../../types';
-import { incomeLabels } from '../../data/mockData';
+import { useContent } from '../../contexts/ContentContext';
+import { useCurrency } from '../../contexts/CurrencyContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import EmptyState from './EmptyState';
 
 interface IncomeTableProps {
@@ -19,16 +21,10 @@ const incomeCategoryIcons: Record<string, any> = {
   other_income: MoreHorizontal,
 };
 
-const incomeCategoryColors: Record<string, string> = {
-  salary: '#2563eb', // blue-600
-  freelance: '#7c3aed', // violet-600
-  investment: '#10b981', // emerald-500
-  bonus: '#f59e0b', // amber-500
-  gift: '#ec4899', // pink-500
-  other_income: '#64748b', // slate-500
-};
-
 export default function IncomeTable({ income, limit, onEdit, onDelete }: IncomeTableProps) {
+  const { getIncomeCategoryLabel, getIncomeCategoryColor } = useContent();
+  const { formatCurrency } = useCurrency();
+  const { t, language } = useLanguage();
   const hasActions = !!(onEdit || onDelete);
   const displayed = limit ? income.slice(0, limit) : income;
 
@@ -36,7 +32,7 @@ export default function IncomeTable({ income, limit, onEdit, onDelete }: IncomeT
     <div className="space-y-3 animate-in fade-in duration-200">
       {displayed.map((item) => {
         const CategoryIcon = incomeCategoryIcons[item.category] || MoreHorizontal;
-        const catColor = incomeCategoryColors[item.category] || '#64748b';
+        const catColor = getIncomeCategoryColor(item.category);
 
         return (
           <div
@@ -61,7 +57,7 @@ export default function IncomeTable({ income, limit, onEdit, onDelete }: IncomeT
                   </div>
                 </div>
                 <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-surface-500 dark:text-surface-400">
-                  <span>{incomeLabels[item.category]}</span>
+                  <span>{getIncomeCategoryLabel(item.category)}</span>
                   {item.notes && (
                     <>
                       <span className="text-surface-300 dark:text-surface-600">&middot;</span>
@@ -73,7 +69,7 @@ export default function IncomeTable({ income, limit, onEdit, onDelete }: IncomeT
             </div>
 
             <div className="text-right shrink-0">
-              <p className="text-sm font-bold text-success-600 dark:text-success-500">+${item.amount.toFixed(2)}</p>
+              <p className="text-sm font-bold text-success-600 dark:text-success-500">+{formatCurrency(item.amount)}</p>
               <div className="mt-0.5 flex items-center justify-end gap-1 text-xs text-surface-400">
                 <Building2 size={12} />
                 <span>Deposit</span>
@@ -83,13 +79,13 @@ export default function IncomeTable({ income, limit, onEdit, onDelete }: IncomeT
             {/* Date */}
             <div className="hidden sm:block shrink-0 text-right min-w-[90px]">
               <p className="text-xs font-medium text-surface-500 dark:text-surface-400">
-                {new Date(item.date).toLocaleDateString('en-US', {
+                {new Date(item.date).toLocaleDateString(language === 'ro' ? 'ro-RO' : 'en-US', {
                   month: 'short',
                   day: 'numeric',
                 })}
               </p>
               <p className="text-[10px] text-surface-400 mt-0.5">
-                {new Date(item.date).toLocaleDateString('en-US', { year: 'numeric' })}
+                {new Date(item.date).toLocaleDateString(language === 'ro' ? 'ro-RO' : 'en-US', { year: 'numeric' })}
               </p>
             </div>
 
@@ -121,8 +117,8 @@ export default function IncomeTable({ income, limit, onEdit, onDelete }: IncomeT
       {displayed.length === 0 && (
         <EmptyState
           icon={TrendingUp}
-          title="No income records found"
-          description="Your income entries will appear here"
+          title={t('noIncomeRecords')}
+          description={t('incomeEntriesAppearHere')}
           className="rounded-lg border border-surface-200 dark:border-surface-700"
         />
       )}

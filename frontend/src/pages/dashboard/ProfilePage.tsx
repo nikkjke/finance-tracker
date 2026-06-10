@@ -1,19 +1,23 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Save, Camera, DollarSign, Globe } from 'lucide-react';
 import Dropdown from '../../components/ui/Dropdown';
 import { useAuth } from '../../contexts/AuthContext';
 import { ThemeToggle } from '../../components/ui/ThemeToggle';
 import { useNotification } from '../../contexts/NotificationContext';
+import { useContent } from '../../contexts/ContentContext';
+import { useCurrency } from '../../contexts/CurrencyContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
   const { pushNotification } = useNotification();
+  const { currencies } = useContent();
+  const { currency, setCurrency } = useCurrency();
+  const { language, setLanguage, t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [avatar, setAvatar] = useState(user?.avatar || '');
-  const [currency, setCurrency] = useState('USD');
-  const [language, setLanguage] = useState('en');
   const [notifications, setNotifications] = useState({
     budgetAlerts: true,
     weeklyReport: true,
@@ -22,6 +26,22 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false);
 
   const profilePrefsKey = user ? `profile_prefs_${user.id}` : 'profile_prefs_guest';
+
+  const fallbackCurrencyOptions = useMemo(() => ([
+    { value: 'USD', label: 'USD ($)' },
+    { value: 'MDL', label: 'MDL (lei)' },
+  ]), []);
+
+  const currencyOptions = useMemo(() => {
+    if (currencies.length === 0) {
+      return fallbackCurrencyOptions;
+    }
+
+    return [...currencies]
+      .filter((curr) => curr.code === 'USD' || curr.code === 'MDL')
+      .sort((a, b) => a.code.localeCompare(b.code))
+      .map((curr) => ({ value: curr.code, label: `${curr.code} (${curr.symbol})` }));
+  }, [currencies, fallbackCurrencyOptions]);
 
   useEffect(() => {
     setName(user?.name || '');
@@ -46,12 +66,6 @@ export default function ProfilePage() {
         };
       };
 
-      if (parsed.currency) {
-        setCurrency(parsed.currency);
-      }
-      if (parsed.language) {
-        setLanguage(parsed.language);
-      }
       if (parsed.notifications) {
         setNotifications((prev) => ({
           ...prev,
@@ -62,6 +76,14 @@ export default function ProfilePage() {
       // Ignore malformed local data.
     }
   }, [profilePrefsKey]);
+
+  useEffect(() => {
+    if (currencyOptions.length === 0) return;
+    const hasCurrent = currencyOptions.some((option) => option.value === currency);
+    if (!hasCurrent) {
+      setCurrency(currencyOptions[0].value as 'USD' | 'MDL');
+    }
+  }, [currency, currencyOptions]);
 
   const handleAvatarSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -140,8 +162,6 @@ export default function ProfilePage() {
       localStorage.setItem(
         profilePrefsKey,
         JSON.stringify({
-          currency,
-          language,
           notifications,
         }),
       );
@@ -167,16 +187,16 @@ export default function ProfilePage() {
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">Profile Settings</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">{t('profileSettings')}</h1>
         <p className="text-sm text-surface-500 dark:text-surface-400">
-          Manage your account settings and preferences.
+          {t('manageSettings')}
         </p>
       </div>
 
       {/* Avatar Section */}
       <div className="card">
         <h2 className="text-base font-semibold text-surface-900 dark:text-white mb-4">
-          Profile Photo
+          {t('profilePhoto')}
         </h2>
         <div className="flex items-center gap-4">
           <div className="relative">
@@ -219,12 +239,12 @@ export default function ProfilePage() {
       {/* Personal Info */}
       <div className="card">
         <h2 className="text-base font-semibold text-surface-900 dark:text-white mb-4">
-          Personal Information
+          {t('personalInfo')}
         </h2>
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="label">Full Name</label>
+              <label className="label">{t('fullName')}</label>
               <input
                 type="text"
                 value={name}
@@ -233,7 +253,7 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <label className="label">Email</label>
+              <label className="label">{t('email')}</label>
               <input
                 type="email"
                 value={email}
@@ -244,31 +264,25 @@ export default function ProfilePage() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="label">Currency</label>
+              <label className="label">{t('currency')}</label>
               <Dropdown
                 value={currency}
-                onChange={setCurrency}
+                onChange={(val) => setCurrency(val as 'USD' | 'MDL')}
                 icon={<DollarSign size={16} />}
                 fullWidth
-                options={[
-                  { value: 'USD', label: 'USD ($)' },
-                  { value: 'EUR', label: 'EUR (€)' },
-                  { value: 'MDL', label: 'MDL (lei)' },
-                  { value: 'GBP', label: 'GBP (£)' },
-                ]}
+                options={currencyOptions}
               />
             </div>
             <div>
-              <label className="label">Language</label>
+              <label className="label">{t('language')}</label>
               <Dropdown
                 value={language}
-                onChange={setLanguage}
+                onChange={(val) => setLanguage(val as 'en' | 'ro')}
                 icon={<Globe size={16} />}
                 fullWidth
                 options={[
-                  { value: 'ro', label: 'Română' },
                   { value: 'en', label: 'English' },
-                  { value: 'ru', label: 'Русский' },
+                  { value: 'ro', label: 'Română' },
                 ]}
               />
             </div>
@@ -279,12 +293,12 @@ export default function ProfilePage() {
       {/* Appearance */}
       <div className="card">
         <h2 className="text-base font-semibold text-surface-900 dark:text-white mb-4">
-          Appearance
+          {t('appearance')}
         </h2>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-surface-700 dark:text-surface-300">Dark Mode</p>
-            <p className="text-xs text-surface-400">Toggle between light and dark themes</p>
+            <p className="text-sm font-medium text-surface-700 dark:text-surface-300">{t('darkMode')}</p>
+            <p className="text-xs text-surface-400">{t('darkModeDesc')}</p>
           </div>
           <ThemeToggle />
         </div>
@@ -293,13 +307,13 @@ export default function ProfilePage() {
       {/* Notifications */}
       <div className="card">
         <h2 className="text-base font-semibold text-surface-900 dark:text-white mb-4">
-          Notifications
+          {t('notificationsTitle')}
         </h2>
         <div className="space-y-4">
           {[
-            { key: 'budgetAlerts' as const, label: 'Budget Alerts', desc: 'Get notified when approaching budget limits' },
-            { key: 'weeklyReport' as const, label: 'Weekly Report', desc: 'Receive a weekly spending summary' },
-            { key: 'receiptScans' as const, label: 'Receipt Scans', desc: 'Notifications for scanned receipt processing' },
+            { key: 'budgetAlerts' as const, label: t('budgetAlerts'), desc: t('budgetAlertsDesc') },
+            { key: 'weeklyReport' as const, label: t('weeklyReport'), desc: t('weeklyReportDesc') },
+            { key: 'receiptScans' as const, label: t('receiptScans'), desc: t('receiptScansDesc') },
           ].map((item) => (
             <div key={item.key} className="flex items-center justify-between">
               <div>
@@ -325,10 +339,10 @@ export default function ProfilePage() {
       <div className="flex items-center gap-3">
         <button onClick={handleSave} className="btn-primary">
           <Save size={16} />
-          {saved ? 'Saved!' : 'Save Changes'}
+          {saved ? t('saved') : t('saveChanges')}
         </button>
         {saved && (
-          <span className="text-sm text-success-500">Profile updated successfully.</span>
+          <span className="text-sm text-success-500">{t('profileUpdated')}</span>
         )}
       </div>
     </div>

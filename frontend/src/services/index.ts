@@ -68,3 +68,4 @@ export type {
 } from './filterService';
 
 export { adminService } from './adminService';
+export { contentService } from './contentService';

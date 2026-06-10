@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback, useEffect, type React
 import type { Budget, CreateBudgetDTO, UpdateBudgetDTO, ServiceResponse } from '../types';
 import { useAuth } from './AuthContext';
 import { useNotification } from './NotificationContext';
+import { useCurrency } from './CurrencyContext';
 import {
   getBudgets as fetchBudgets,
   addBudget as createBudget,
@@ -32,6 +33,7 @@ const formatBudgetLabel = (value?: string) => {
 export function BudgetProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { pushNotification } = useNotification();
+  const { formatCurrency } = useCurrency();
   const [budgets, setBudgets] = useState<Budget[]>([]);
 
   const loadBudgets = useCallback(async () => {
@@ -71,12 +73,12 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     const budgetLabel = formatBudgetLabel(result.data.category);
     pushNotification({
       title: 'Budget added',
-      message: `${budgetLabel} budget set to $${result.data.limit.toFixed(2)}.`,
+      message: `${budgetLabel} budget set to ${formatCurrency(result.data.limit)}.`,
       type: 'budget',
       priority: 'medium',
     });
     return result;
-  }, [pushNotification]);
+  }, [pushNotification, formatCurrency]);
 
   const updateBudget = useCallback(async (id: string, dto: UpdateBudgetDTO): Promise<ServiceResponse<Budget>> => {
     const previousBudget = budgets.find((budget) => budget.id === id);
@@ -89,7 +91,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     setBudgets((prev) => prev.map((budget) => (budget.id === id ? { ...budget, ...result.data } : budget)));
     const category = formatBudgetLabel(result.data.category ?? previousBudget?.category);
     const limit = result.data.limit ?? previousBudget?.limit;
-    const amount = typeof limit === 'number' ? `$${limit.toFixed(2)}` : 'new amount';
+    const amount = typeof limit === 'number' ? formatCurrency(limit) : 'new amount';
     pushNotification({
       title: 'Budget updated',
       message: `${category} budget was updated to ${amount}.`,
@@ -97,7 +99,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       priority: 'medium',
     });
     return result;
-  }, [budgets, user?.id, pushNotification]);
+  }, [budgets, user?.id, pushNotification, formatCurrency]);
 
   const deleteBudget = useCallback(async (id: string): Promise<ServiceResponse<null>> => {
     const deletedBudget = budgets.find((budget) => budget.id === id);
