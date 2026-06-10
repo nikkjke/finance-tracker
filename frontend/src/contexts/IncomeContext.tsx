@@ -28,8 +28,13 @@ export function IncomeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
+    if (!user?.id) {
+      setIncome([]);
+      return;
+    }
+
     const loadIncome = async () => {
-      const result = await fetchIncome(user?.id);
+      const result = await fetchIncome(user.id);
       if (!isMounted || !result.success) {
         return;
       }
