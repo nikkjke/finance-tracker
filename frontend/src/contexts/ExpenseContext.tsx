@@ -34,8 +34,13 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
+    if (!user?.id) {
+      setExpenses([]);
+      return;
+    }
+
     const loadExpenses = async () => {
-      const result = await fetchExpenses(user?.id);
+      const result = await fetchExpenses(user.id);
       if (!isMounted || !result.success) {
         return;
       }

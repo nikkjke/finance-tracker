@@ -54,7 +54,7 @@ namespace FinanceTracker.API.Controllers
         {
             try {
                 var created = _expense.CreateExpenseAction(dto, GetUserId());
-                return Ok(created);
+                return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
             } catch (UnauthorizedAccessException) { return Unauthorized(); }
         }
 

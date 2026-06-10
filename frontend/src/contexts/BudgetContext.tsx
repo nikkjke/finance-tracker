@@ -37,7 +37,11 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   const [budgets, setBudgets] = useState<Budget[]>([]);
 
   const loadBudgets = useCallback(async () => {
-    const result = await fetchBudgets(user?.id);
+    if (!user?.id) {
+      setBudgets([]);
+      return;
+    }
+    const result = await fetchBudgets(user.id);
     if (!result.success) {
       return;
     }
